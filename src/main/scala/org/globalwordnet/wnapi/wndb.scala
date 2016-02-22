@@ -84,7 +84,7 @@ object WNDB {
     exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int]) : Lexicon = {
-      Lexicon(buildEntries(items, props.id, sentences, lex, exc).toSeq,
+      Lexicon(buildEntries(items, props.id, sentences, lex, exc, satellites, counts).toSeq,
               buildSynsets(items, props.id, props.language, ili, lex),
               props.id,
               props.label,
@@ -97,7 +97,9 @@ object WNDB {
   }
 
   def buildEntries(items : Seq[WordNetDataItem], id : String,
-    sentences : Map[Int, String], lex : Int, exc : Map[String, Map[String, Seq[String]]]) = {
+    sentences : Map[Int, String], lex : Int, exc : Map[String, Map[String, Seq[String]]],
+    satellites : Map[Int, (String, Int)],
+    counts : Map[String, Int]) = {
     val map = collection.mutable.HashMap[String, Seq[WordNetDataItem]]()
     for(item <- items) {
       for(lemma <- item.lemmas) {
@@ -130,7 +132,8 @@ object WNDB {
                  SenseRelation(target="%s-%08d-%s-%d" format (id, targetOffset, pos.shortForm, trg), relType=typ.asInstanceOf[SenseRelType])
                }
              },
-             senseExamples=Nil)
+             senseExamples=Nil,
+             counts=counts.get(word.senseIdx(satellites)).map(x => Count(x)).toSeq)
           },
           syntacticBehaviours={
             val frames = items.flatMap(_.frames).toSet
@@ -153,7 +156,7 @@ object WNDB {
           "in"
       }
       Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
-             ili="${iliId}",
+             ili=Some(iliId),
              definitions=Seq(Definition(gloss)),
              iliDefinition={
                if(iliId == "in") {

@@ -1,17 +1,60 @@
 package org.globalwordnet.api.serialize
 
 import org.globalwordnet.api.wn._
-import java.io.Reader
+import java.io.{Writer, Reader, PrintWriter}
 import spray.json._
 import java.nio.charset.Charset
 
 private class ReaderAsSprayParserInput(reader : Reader) extends ParserInput.DefaultParserInput {
   private final val EOI = '\uFFFF' 
+  private final val NUL = '\u0000'
+  private var lastChar : Char = NUL
+  private var inString = false
+  private var peekChar : Char = NUL
   def nextChar() : Char = {
+    peekChar match {
+      case '\u0000' =>
+      case c =>
+        lastChar = c
+        peekChar = NUL
+        return c
+    }
     try {
-      val c = reader.read()
+      val c = reader.read().toChar
       _cursor += 1
-      c.toChar
+      if(c == '/' && !inString) {
+        peekChar = reader.read().toChar
+        _cursor += 1
+        if(peekChar == '/') {
+          while(lastChar != EOI) {
+            _cursor += 1
+            reader.read().toChar match {
+              case '\n' =>
+                peekChar = NUL
+                return nextChar()
+              case c => {
+              }
+            }
+          }
+        } else if(peekChar == '*') {
+          lastChar = NUL
+          while(lastChar != EOI) {
+            _cursor += 1
+            reader.read().toChar match {
+              case '/' if lastChar == '*' =>
+                lastChar = '/'
+                peekChar = NUL
+                return nextChar()
+              case c =>
+                lastChar = c
+            }
+          }
+        }
+      } else if(lastChar != '\\' && c == '\"') {
+        inString = !inString
+      }
+      lastChar = c
+      return c
     } catch {
       case eof : java.io.EOFException => 
         EOI
@@ -19,16 +62,18 @@ private class ReaderAsSprayParserInput(reader : Reader) extends ParserInput.Defa
   }
   def nextUtf8Char() = nextChar()
   def length = throw new RuntimeException()
-  def sliceCharArray(start : Int, end : Int) = {
-    if(start < _cursor) {
-      throw new RuntimeException()
-    } 
-    reader.skip(start - _cursor)
-    _cursor = start
-    val buf = new Array[Char](end - start)
-    reader.read(buf)
-    buf
-  }
+  def sliceCharArray(start : Int, end : Int) : Array[Char] = throw new RuntimeException()
+  //{
+  //  println("sliceCharArray" + "-" + start + "-" + end)
+  //  if(start < _cursor) {
+  //    throw new RuntimeException()
+  //  } 
+  //  reader.skip(start - _cursor)
+  //  _cursor = start
+  //  val buf = new Array[Char](end - start)
+  //  reader.read(buf)
+  //  buf
+  //}
   def sliceString(start: Int, end: Int) = new String(sliceCharArray(start, end))
 }
 
@@ -36,6 +81,11 @@ case class WNJsonException(msg : String = "", cause : Throwable = null) extends 
 
 object WNJSON {
   object WNJSONFormat extends DefaultJsonProtocol {
+    private def checkDrop(p : String, s : String) = if(s.startsWith(p)) {
+      s.drop(p.length) 
+    } else {
+      throw new WNJsonException("Expected the string %s to start with %s" format (s,p))
+    }
     class MetaFormat[A <: Meta](f : JsonFormat[A]) extends JsonFormat[A] {
       def write(a : A) = {
         val jo = f.write(a).asInstanceOf[JsObject]
@@ -60,22 +110,22 @@ object WNJSON {
       def read(v : JsValue) = v match {
         case v : JsObject =>
           val a = f.read(v)
-          a.contributor = v.fields.get("contributor").map(_.toString)
-          a.coverage = v.fields.get("coverage").map(_.toString)
-          a.creator = v.fields.get("creator").map(_.toString)
-          a.date = v.fields.get("date").map(_.toString)
-          a.description = v.fields.get("description").map(_.toString)
-          a.format = v.fields.get("format").map(_.toString)
-          a.identifier = v.fields.get("identifier").map(_.toString)
-          a.publisher = v.fields.get("publisher").map(_.toString)
-          a.relation = v.fields.get("relation").map(_.toString)
-          a.rights = v.fields.get("rights").map(_.toString)
-          a.source = v.fields.get("source").map(_.toString)
-          a.subject = v.fields.get("subject").map(_.toString)
-          a.title = v.fields.get("title").map(_.toString)
-          a.`type` = v.fields.get("type").map(_.toString)
-          a.status = v.fields.get("status").map(_.toString)
-          a.confidenceScore = v.fields.get("confidenceScore").map(_.toString.toDouble)
+          a.contributor = v.fields.get("contributor").map(stringOrFail)
+          a.coverage = v.fields.get("coverage").map(stringOrFail)
+          a.creator = v.fields.get("creator").map(stringOrFail)
+          a.date = v.fields.get("date").map(stringOrFail)
+          a.description = v.fields.get("description").map(stringOrFail)
+          a.format = v.fields.get("format").map(stringOrFail)
+          a.identifier = v.fields.get("identifier").map(stringOrFail)
+          a.publisher = v.fields.get("publisher").map(stringOrFail)
+          a.relation = v.fields.get("relation").map(stringOrFail)
+          a.rights = v.fields.get("rights").map(stringOrFail)
+          a.source = v.fields.get("source").map(stringOrFail)
+          a.subject = v.fields.get("subject").map(stringOrFail)
+          a.title = v.fields.get("title").map(stringOrFail)
+          a.`type` = v.fields.get("type").map(stringOrFail)
+          a.status = v.fields.get("status").map(stringOrFail)
+          a.confidenceScore = v.fields.get("confidenceScore").map(x => stringOrFail(x).toDouble)
           a
         case _ =>
           throw new WNJsonException("Expected object")
@@ -86,22 +136,28 @@ object WNJSON {
       case _ => throw new WNJsonException("Expected String but got: " + v)
     }
 
-    implicit object partOfSpeechFormat extends JsonFormat[PartOfSpeech] {
-      def write(p : PartOfSpeech) = JsString(p.shortForm)
+    object countFormat extends JsonFormat[Count] {
+      def write(c : Count) = JsObject("count" -> JsString(c.value.toString))
       def read(v : JsValue) = v match {
-        case JsString(s) => PartOfSpeech.fromString(s)
+        case JsObject(m) => 
+          Count(stringOrFail(m.getOrElse("value", throw new WNJsonException("Count needs a value"))).toInt)
+        case _ =>
+          throw new WNJsonException("Count must be an object")
       }
     }
-    implicit val lemmaFormat = jsonFormat2(Lemma)
+    implicit val metaCountFormat = new MetaFormat(countFormat)
+
     implicit val formFormat = jsonFormat2(Form)
     object definitionFormat extends JsonFormat[Definition] {
       def write(d : Definition) = JsObject(
-        ("gloss" -> JsString(d.content)) :: 
-          d.language.map(l => "language" -> JsString(l)).toList)
+        Map("gloss" -> JsString(d.content)) ++
+          d.language.map(l => "language" -> JsString(l)))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          Definition(stringOrFail(m("gloss")), 
+          Definition(stringOrFail(m.getOrElse("gloss", throw new WNJsonException("Definition requires gloss"))), 
                      m.get("language").map(stringOrFail))
+        case _ =>
+          throw new WNJsonException("Definition must be an object")
       }
     }
     implicit val metaDefinitionFormat = new MetaFormat(definitionFormat)
@@ -110,7 +166,9 @@ object WNJSON {
         "gloss" -> JsString(d.content))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          ILIDefinition(stringOrFail(m("gloss")))
+          ILIDefinition(stringOrFail(m.getOrElse("gloss", throw new WNJsonException("ILI Definition requires gloss"))))
+        case _ =>
+          throw new WNJsonException("ILI Definition must be an object")
       }
     }
     implicit val metaILIDefinitionFormat = new MetaFormat(iliDefinitionFormat)
@@ -120,72 +178,206 @@ object WNJSON {
         "value" -> JsString(e.content))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          SenseExample(stringOrFail(m("value")))
+          SenseExample(stringOrFail(m.getOrElse("value", throw new WNJsonException("Example requires value"))))
+        case _ =>
+          throw new WNJsonException("Sense example must be an object")
       }
     }
     implicit val metaSenseExampleFormat = new MetaFormat(senseExampleFormat)
-    implicit object synsetRelTypeFormat extends JsonFormat[SynsetRelType] {
-      def write(p : SynsetRelType) = JsString(p.name)
-      def read(v : JsValue) = v match {
-        case JsString(s) => SynsetRelType.fromString(s)
-      }
-    }
-    implicit object senseRelTypeFormat extends JsonFormat[SenseRelType] {
-      def write(p : SenseRelType) = JsString(p.name)
-      def read(v : JsValue) = v match {
-        case JsString(s) => SenseRelType.fromString(s)
-      }
-    }
     object synsetRelationFormat extends JsonFormat[SynsetRelation] {
-      def write(r : SynsetRelation) = JsObject()
-      def read(v : JsValue) = SynsetRelation("", hypernym)
+      def write(r : SynsetRelation) = JsObject(
+        "category" -> JsString("wn:" + r.relType.name),
+        "target" -> JsString(r.target))
+      def read(v : JsValue) = v match {
+        case JsObject(m) =>
+          SynsetRelation(stringOrFail(m.getOrElse("target", throw new WNJsonException("Synset relation requires target"))),
+           SynsetRelType.fromString(checkDrop("wn:", stringOrFail(m.getOrElse("category", throw new WNJsonException("Synset relation requires category"))))))
+        case _ =>
+          throw new WNJsonException("Synset relation must be an object")
+      }
     }
     implicit val metaSynsetRelationFormat = new MetaFormat(synsetRelationFormat)
+
     object senseRelationFormat extends JsonFormat[SenseRelation] {
-      def write(r : SenseRelation) = JsObject()
-      def read(v : JsValue) = SenseRelation("", antonym)
+      def write(r : SenseRelation) = JsObject(
+        "category" -> JsString("wn:" + r.relType.name),
+        "target" -> JsString(r.target))
+      def read(v : JsValue) = v match {
+        case JsObject(m) =>
+          SenseRelation(stringOrFail(m.getOrElse("target", throw new WNJsonException("Sense relation requires target"))),
+           SenseRelType.fromString(checkDrop("wn:", stringOrFail(m.getOrElse("category", throw new WNJsonException("Sense relation requires category"))))))
+        case _ =>
+          throw new WNJsonException("Sense relation must be an object")
+      }
     }
     implicit val metaSenseRelationFormat = new MetaFormat(senseRelationFormat)
+
     object senseFormat extends JsonFormat[Sense] {
-      def write(s : Sense) = new JsObject(
-        Map("example" -> JsArray(s.senseExamples.map(metaSenseExampleFormat.write).toList)))
+      def write(s : Sense) = new JsObject(Map(
+          "@id" -> JsString(s.id),
+          "synset" -> JsString(s.synsetRef)) ++
+          (s.counts.map(metaCountFormat.write).toList match {
+            case Nil => Map()
+            case vals => Map("count" -> JsArray(vals))
+          }) ++
+          (s.senseRelations.map(metaSenseRelationFormat.write).toList match {
+             case Nil => Map()
+             case vals => Map("link" -> JsArray(vals))
+          }) ++
+          (s.senseExamples.map(metaSenseExampleFormat.write).toList match {
+            case Nil => Map()
+            case vals => Map("example" -> JsArray(vals))
+          }))
       def read(v : JsValue) = v match {
-        case v : JsObject =>
-          Sense(Nil, v.fields.get("example") match {
-            case Some(JsArray(v)) => v.map(metaSenseExampleFormat.read)
-            case None => Nil
-            case _ => throw new WNJsonException()
-          }, "", "")
+        case JsObject(m) =>
+          Sense(
+            m.getOrElse("link", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaSenseRelationFormat.read)
+              case _ => throw new WNJsonException("Relations should be a list of values")
+            },
+            m.getOrElse("example", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaSenseExampleFormat.read)
+              case _ => throw new WNJsonException("Examples should be a list of values")
+            },
+            stringOrFail(m.getOrElse("@id", throw new WNJsonException("Sense must have an id"))),
+            stringOrFail(m.getOrElse("synset", throw new WNJsonException("Sense must have a synset"))),
+            m.getOrElse("count", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaCountFormat.read)
+              case _ => throw new WNJsonException("Counts should be a list of values")
+            })
+        case _ =>
+          throw new WNJsonException("Sense should be an object")
       }
     }
     implicit val metaSenseFormat = new MetaFormat(senseFormat)
-    implicit val syntacticBehaviourFormat = jsonFormat1(SyntacticBehaviour)
-    object lexicalEntryFormat extends JsonFormat[LexicalEntry] {
-      def write(e : LexicalEntry) = new JsObject(Map(
-        "lemma" -> lemmaFormat.write(e.lemma)))
+
+    implicit object syntacticBehaviourFormat extends JsonFormat[SyntacticBehaviour] {
+      def write(e : SyntacticBehaviour) = JsObject("label" -> JsString(e.subcategorizationFrame))
       def read(v : JsValue) = v match {
-        case v : JsObject =>
-          LexicalEntry(Lemma("", noun), Nil, Nil, Nil, "")
+        case JsObject(m) => SyntacticBehaviour(stringOrFail(m.getOrElse("label", throw new WNJsonException("Syntactic Behaviour must have a label"))))
+        case _ =>
+          throw new WNJsonException("Syntactic Behaviour must be an object")
+      }
+    }
+
+    object lexicalEntryFormat extends JsonFormat[LexicalEntry] {
+      def write(e : LexicalEntry) = JsObject(Map(
+        "lemma" -> JsObject("writtenForm" -> JsString(e.lemma.writtenForm)),
+        "partOfSpeech" -> JsString("wn:" + e.lemma.partOfSpeech.name),
+        "@id" -> JsString(e.id)) ++
+        (e.forms.map(formFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("form" -> JsArray(vals))
+        }) ++
+        (e.senses.map(metaSenseFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("sense" -> JsArray(vals))
+        }) ++
+        (e.syntacticBehaviours.map(syntacticBehaviourFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("synBehavior" -> JsArray(vals))
+        }))
+      def read(v : JsValue) = v match {
+        case JsObject(m) =>
+          LexicalEntry(
+            Lemma(m.getOrElse("lemma", throw new WNJsonException("Lexical entry must have a lemma")) match {
+              case JsObject(m) => stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Lemma must have a written form")))
+              case _ => throw new WNJsonException("Lemma must be an object")
+            },
+                  PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech")))))),
+            m.getOrElse("form", JsArray(Nil)) match {
+              case JsArray(x) => x.map(formFormat.read)
+              case _ => throw new WNJsonException("Form must be a list of objects")
+            },
+            m.getOrElse("sense", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaSenseFormat.read)
+              case _ => throw new WNJsonException("Sense must be a list of objects")
+            },
+            m.getOrElse("synBehavior", JsArray(Nil)) match {
+              case JsArray(x) => x.map(syntacticBehaviourFormat.read)
+              case _ => throw new WNJsonException("Syntactic behaviour must be a list of objects")
+            },
+            stringOrFail(m.getOrElse("@id", throw new WNJsonException("Lexical entry must have an id"))))
+        case _ =>
+          throw new WNJsonException("Lexical entry must be an object")
       }
     }
     implicit val metaLexicalEntryFormat = new MetaFormat(lexicalEntryFormat)
+
     object synsetFormat extends JsonFormat[Synset] {
-      def write(s : Synset) = JsObject()
+      def write(s : Synset) = JsObject(Map(
+        "@id" -> JsString(s.id)) ++
+        (s.definitions.map(metaDefinitionFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("definition" -> JsArray(vals))
+        }) ++
+        (s.synsetRelations.map(metaSynsetRelationFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("link" -> JsArray(vals))
+        }) ++
+        (s.ili.map(x => Map("ili" -> JsString("ili:" + x)))).getOrElse(Map()) ++
+        (s.iliDefinition.map(x => Map("iliDefinition" -> metaILIDefinitionFormat.write(x))).getOrElse(Map())))
       def read(v : JsValue) = v match {
-        case v : JsObject =>
-          Synset(Nil, None, Nil, "", "", None)
+        case JsObject(m) =>
+          Synset(
+            m.getOrElse("definition", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaDefinitionFormat.read)
+              case _ => throw new WNJsonException("Definition must be list of objects")
+            },
+            m.get("iliDefinition").map(metaILIDefinitionFormat.read),
+            m.getOrElse("link", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaSynsetRelationFormat.read)
+              case _ => throw new WNJsonException("Synset link must be list of objects")
+            },
+            stringOrFail(m.getOrElse("@id", throw new WNJsonException("Synset must have an ID"))),
+            m.get("ili").map(x => checkDrop("ili:", stringOrFail(x))))
+        case _ =>
+          throw new WNJsonException("Synset must be an object")
       }
     }
     implicit val metaSynsetFormat = new MetaFormat(synsetFormat)
+
     object lexiconFormat extends JsonFormat[Lexicon] {
-      def write(l : Lexicon) = JsObject()
+      def write(l : Lexicon) = JsObject(Map(
+        "@context" -> JsObject("@language" -> JsString(l.language)),
+        "@id" -> JsString(l.id),
+        "@type" -> JsString("ontolex:Lexicon"),
+        "label" -> JsString(l.label),
+        "language" -> JsString(l.language),
+        "email" -> JsString(l.email),
+        "license" -> JsString(l.license),
+        "version" -> JsString(l.version)) ++
+        (l.entries.map(metaLexicalEntryFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("entry" -> JsArray(vals))
+        }) ++
+        (l.synsets.map(metaSynsetFormat.write).toList match {
+          case Nil => Map()
+          case vals => Map("synset" -> JsArray(vals))
+        }) ++
+        l.url.map(u => Map("url" -> JsString(u))).getOrElse(Map()) ++
+        l.citation.map(u => Map("citation" -> JsString(u))).getOrElse(Map()))
       def read(v : JsValue) = v match {
-        case v : JsObject =>
+        case JsObject(m) =>
           Lexicon(
-            v.fields.get("entry") match {
-              case Some(JsArray(vs)) => vs.map(metaLexicalEntryFormat.read)
-            },            
-            Nil, "", "", "", "", "", "", None, None)
+            m.getOrElse("entry", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaLexicalEntryFormat.read)
+              case _ => throw new IllegalArgumentException("Entries should be a list of objects")
+            },
+            m.getOrElse("synset", JsArray(Nil)) match {
+              case JsArray(x) => x.map(metaSynsetFormat.read)
+              case _ => throw new IllegalArgumentException("Synsets should be a list of objects")
+            },
+            stringOrFail(m.getOrElse("@id", throw new WNJsonException("ID is required on a lexicon"))),
+            stringOrFail(m.getOrElse("label", throw new WNJsonException("Label is required on a lexicon"))),
+            stringOrFail(m.getOrElse("language", throw new WNJsonException("Language is required on a lexicon"))),
+            stringOrFail(m.getOrElse("email", throw new WNJsonException("Email is required on a lexicon"))),
+            stringOrFail(m.getOrElse("license", throw new WNJsonException("License is required on a lexicon"))),
+            stringOrFail(m.getOrElse("version", throw new WNJsonException("Version is required on a lexicon"))),
+            m.get("url").map(stringOrFail),
+            m.get("citation").map(stringOrFail))
+        case _ =>
+          throw new WNJsonException("Lexicon must be an object")
       }
     }
     implicit val metaLexiconFormat = new MetaFormat(lexiconFormat)
@@ -198,7 +390,11 @@ object WNJSON {
           LexicalResource(
             v.fields.get("@graph") match {
               case Some(JsArray(vs)) => vs.map(metaLexiconFormat.read)
+              case Some(x) => throw new WNJsonException("@graph is not a list of objects")
+              case None => throw new WNJsonException("No @graph")
             })
+        case _ =>
+          throw new WNJsonException("Lexical resource is not an object")
       }
     }
   }
@@ -208,4 +404,46 @@ object WNJSON {
     JsonParser(new ReaderAsSprayParserInput(input)).convertTo[LexicalResource]
   }
 
+  private def prettyWrite(out : PrintWriter, v : JsValue, indent : Int) {
+    v match {
+      case JsObject(m) =>
+        out.println("{")
+        var first = true
+        for((key, value) <- m) {
+          if(first) {
+            first = false
+          } else {
+            out.println(",")
+          } 
+          out.print("  " * (indent + 1))
+          out.print("\"")
+          out.print(key.replaceAll("\\\"","\\\\\\\""))
+          out.print("\": ")
+          prettyWrite(out, value, indent + 1)
+        }
+        out.println()
+        out.print("  " * indent)
+        out.print("}")
+      case JsArray(value) =>
+        out.print("[")
+        var first = true
+        for(v <- value) {
+          if(first) {
+            first = false
+          } else {
+            out.print(", ")
+          }
+          prettyWrite(out, v, indent)
+        }
+        out.print("]")
+      case JsString(s) =>
+        out.print("\"%s\"" format(s.replaceAll("\\\"", "\\\\\\\"")))
+    }
+  }
+
+  def write(output : Writer, resource : LexicalResource) = {
+    import WNJSONFormat._
+    prettyWrite(new PrintWriter(output), resource.toJson, 0)
+    output.flush
+  }
 }

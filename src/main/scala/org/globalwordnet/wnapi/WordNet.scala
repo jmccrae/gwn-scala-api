@@ -52,17 +52,17 @@ case class LexicalEntry(lemma : Lemma, forms : Seq[Form], senses : Seq[Sense],
 
 case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech)
 
-sealed class PartOfSpeech(val shortForm : String)
-object noun extends PartOfSpeech("n")
-object verb extends PartOfSpeech("v")
-object adjective extends PartOfSpeech("a")
-object adverb extends PartOfSpeech("r")
-object adjective_satellite extends PartOfSpeech("s")
-object multiword_expression extends PartOfSpeech("z")
-object conjunction extends PartOfSpeech("c")
-object preposition extends PartOfSpeech("p")
-object other extends PartOfSpeech("x")
-object unknown extends PartOfSpeech("u")
+sealed class PartOfSpeech(val shortForm : String, val name : String)
+object noun extends PartOfSpeech("n", "noun")
+object verb extends PartOfSpeech("v", "verb")
+object adjective extends PartOfSpeech("a", "adjective")
+object adverb extends PartOfSpeech("r", "adverb")
+object adjective_satellite extends PartOfSpeech("s", "adjective_satellite")
+object multiword_expression extends PartOfSpeech("z", "multiword_expression")
+object conjunction extends PartOfSpeech("c", "conjunction")
+object adposition extends PartOfSpeech("p", "adposition")
+object other_pos extends PartOfSpeech("x", "other_pos")
+object unknown_pos extends PartOfSpeech("u", "unknown_pos")
 
 object PartOfSpeech {
   def fromString(code : String) = code match {
@@ -73,19 +73,32 @@ object PartOfSpeech {
     case "s" => adjective_satellite
     case "z" => multiword_expression
     case "c" => conjunction
-    case "p" => preposition
-    case "x" => other
-    case "u" => unknown
+    case "p" => adposition
+    case "x" => other_pos
+    case "u" => unknown_pos
   }
+  def fromName(name : String) = name match {
+    case "noun" => noun
+    case "verb" => verb
+    case "adjective" => adjective
+    case "adverb" => adverb
+    case "adjective_satellite" => adjective_satellite
+    case "multiword_expression" => multiword_expression
+    case "conjunction" => conjunction
+    case "adposition" => adposition
+    case "other_pos" => other_pos
+    case "unknown_pos" => unknown_pos
+  }
+
 }
 
 case class Form(writtenForm : String, tag : Option[String] = None)
 
 case class Sense(senseRelations : Seq[SenseRelation], senseExamples : Seq[SenseExample],
-  id : String, synsetRef : String) extends Meta
+  id : String, synsetRef : String, counts : Seq[Count]) extends Meta
 
 case class Synset(definitions : Seq[Definition], iliDefinition : Option[ILIDefinition],
-  synsetRelations : Seq[SynsetRelation], id : String, ili : String, count : Option[String] = None) extends Meta
+  synsetRelations : Seq[SynsetRelation], id : String, ili : Option[String]) extends Meta
 
 case class Definition(content : String, language : Option[String] = None) extends Meta
 
@@ -127,7 +140,6 @@ object SynsetRelType {
     case "domain_usage" => domain_usage
     case "entails" => entails
     case "eq_synonym" => eq_synonym
-    case "fuzzynym" => fuzzynym
     case "has_domain_region" => has_domain_region
     case "has_domain_topic" => has_domain_topic
     case "has_domain_usage" => has_domain_usage
@@ -162,7 +174,7 @@ object SynsetRelType {
     case "mero_portion" => mero_portion
     case "mero_substance" => mero_substance
     case "meronym" => meronym
-    case "near_synonym" => near_synonym
+    case "similar" => similar
     case "patient" => patient
     case "restricted_by" => restricted_by
     case "restricts" => restricts
@@ -172,6 +184,8 @@ object SynsetRelType {
     case "state_of" => state_of
     case "synonym" => synonym
     case "target_direction" => target_direction
+    case "subevent" => subevent
+    case "is_subevent_of" => is_subevent_of
   }
 }
 object agent extends SynsetRelType
@@ -198,7 +212,6 @@ object domain_topic extends SynsetRelType with SenseRelType
 object domain_usage extends SynsetRelType with SenseRelType
 object entails extends SynsetRelType
 object eq_synonym extends SynsetRelType
-object fuzzynym extends SynsetRelType
 object has_domain_region extends SynsetRelType with SenseRelType
 object has_domain_topic extends SynsetRelType with SenseRelType
 object has_domain_usage extends SynsetRelType with SenseRelType
@@ -233,7 +246,7 @@ object mero_part extends SynsetRelType
 object mero_portion extends SynsetRelType
 object mero_substance extends SynsetRelType
 object meronym extends SynsetRelType
-object near_synonym extends SynsetRelType
+object similar extends SynsetRelType with SenseRelType
 case class other(`type` : String) extends SynsetRelType with SenseRelType
 object patient extends SynsetRelType
 object restricted_by extends SynsetRelType
@@ -244,6 +257,8 @@ object source_direction extends SynsetRelType
 object state_of extends SynsetRelType
 object synonym extends SynsetRelType
 object target_direction extends SynsetRelType
+object subevent extends SynsetRelType
+object is_subevent_of extends SynsetRelType
 
 case class SenseRelation(target : String, relType : SenseRelType) extends Meta
 
@@ -252,7 +267,6 @@ sealed trait SenseRelType extends RelType
 object SenseRelType {
   def fromString(name : String) = name match {
     case "antonym" => antonym
-    case "near_antonym" => near_antonym
     case "also" => also
     case "participle" => participle
     case "pertainym" => pertainym
@@ -263,13 +277,14 @@ object SenseRelType {
     case "has_domain_region" => has_domain_region
     case "domain_usage" => domain_usage
     case "has_domain_usage" => has_domain_usage
+    case "similar" => similar
   }
 }
 object antonym extends SenseRelType
-object near_antonym extends SenseRelType
 object participle extends SenseRelType
 object pertainym extends SenseRelType
 object derivation extends SenseRelType
 
 case class SyntacticBehaviour(subcategorizationFrame : String)
 
+case class Count(value : Int) extends Meta

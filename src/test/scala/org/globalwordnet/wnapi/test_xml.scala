@@ -55,7 +55,7 @@ class XMLSpec extends FlatSpec with Matchers {
   it should "produce a synset" in {
     val s = resource.lexicons(0).synsets(0)
     s.id should be ("example-10161911-n")
-    s.ili should be ("i90287")
+    s.ili should be (Some("i90287"))
     s.definitions(0).content should be ("the father of your father or mother")
     s.synsetRelations(0).relType should be (hypernym)
     s.synsetRelations(0).target should be ("example-10162692-n")
@@ -64,7 +64,6 @@ class XMLSpec extends FlatSpec with Matchers {
   f.deleteOnExit()
   "XML Writer" should "write a file" in {
     WNLMF.write(new java.io.FileWriter(f), resource)
-    println(f.getName)
   }
   it should "roundtrip" in {
     val text1 = io.Source.fromFile("src/test/resources/example.xml").getLines.mkString(" ").replaceAll("<!--[^!]*-->", "").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")

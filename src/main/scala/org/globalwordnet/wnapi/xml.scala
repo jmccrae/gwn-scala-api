@@ -77,7 +77,8 @@ object WNLMF {
       (elem \ "SenseRelation").map(readSenseRelation),
       (elem \ "SenseExample").map(readSenseExample),
       (elem \ "@id").text,
-      (elem \ "@synset").text), elem)
+      (elem \ "@synset").text,
+      (elem \ "Count").map(readCount)), elem)
   }
 
   private def readSenseRelation(elem : Node) : SenseRelation = {
@@ -108,8 +109,7 @@ object WNLMF {
       (elem \ "ILIDefinition").headOption.map(readILIDefinition),
       (elem \ "SynsetRelation").map(readSynsetRelation),
       (elem \ "@id").text,
-      (elem \ "@ili").text,
-      (elem \ "count").headOption.map(_.text)), elem)
+      (elem \ "@ili").headOption.map(_.text)), elem)
   }
 
   private def readDefinition(elem : Node) : Definition = {
@@ -134,6 +134,10 @@ object WNLMF {
     } else {
       SynsetRelType.fromString(code)
     }
+  }
+
+  private def readCount(elem : Node) : Count = {
+    readMeta(Count(elem.text.toInt), elem)
   }
 
   def write(_output : Writer, resource : LexicalResource) {
@@ -245,6 +249,9 @@ object WNLMF {
     for(x <- e.senseExamples) {
       writeSenseExample(out, x)
     }
+    for(c <- e.counts) {
+      writeCount(out, c)
+    }
     out.print("""
       </Sense>""")
   }
@@ -270,13 +277,7 @@ object WNLMF {
 
   private def writeSynset(out : PrintWriter, e : Synset) {
     out.print(s"""
-    <Synset id="${e.id}" ili="${e.ili}" """)
-    e.count match {
-      case Some(c) =>
-        out.print(s"""
-            count="$c" """)
-      case None =>
-    }
+    <Synset id="${e.id}" ili="${e.ili.getOrElse("")}" """)
     writeMeta(out, 12, e)
     out.print(">")
     for(d <- e.definitions) {
@@ -290,7 +291,7 @@ object WNLMF {
     for(r <- e.synsetRelations) {
       writeSynsetRel(out, r)
     }
-    out.print(s"""
+   out.print(s"""
     </Synset>""")
   }
 
@@ -321,4 +322,10 @@ object WNLMF {
   }
 
 
+  private def writeCount(out : PrintWriter, e : Count) {
+    out.print(s"""
+      <Count """)
+    writeMeta(out, 14, e)
+    out.print(s""">${e.value}</Count>""")
+  }
 }
