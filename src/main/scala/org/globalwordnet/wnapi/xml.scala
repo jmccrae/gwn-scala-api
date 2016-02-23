@@ -75,7 +75,7 @@ object WNLMF {
   private def readSense(elem : Node) : Sense = {
     readMeta(Sense(
       (elem \ "SenseRelation").map(readSenseRelation),
-      (elem \ "SenseExample").map(readSenseExample),
+      (elem \ "Example").map(readSenseExample),
       (elem \ "@id").text,
       (elem \ "@synset").text,
       (elem \ "Count").map(readCount)), elem)
@@ -96,7 +96,7 @@ object WNLMF {
   }
 
   private def readSenseExample(elem : Node) = {
-    readMeta(SenseExample(trim(elem).text), elem)
+    readMeta(Example(trim(elem).text), elem)
   }
 
   private def readSyntacticBehaviour(elem : Node) = {
@@ -109,7 +109,8 @@ object WNLMF {
       (elem \ "ILIDefinition").headOption.map(readILIDefinition),
       (elem \ "SynsetRelation").map(readSynsetRelation),
       (elem \ "@id").text,
-      (elem \ "@ili").headOption.map(_.text)), elem)
+      (elem \ "@ili").headOption.map(_.text),
+      (elem \ "Example").map(readSenseExample)), elem)
   }
 
   private def readDefinition(elem : Node) : Definition = {
@@ -263,11 +264,11 @@ object WNLMF {
     out.print("/>")
   }
 
-  def writeSenseExample(out : PrintWriter, e : SenseExample) {
+  def writeSenseExample(out : PrintWriter, e : Example) {
     out.print(s"""
-        <SenseExample """)
+        <Example """)
     writeMeta(out, 22, e)
-    out.print(s""">${escapeXml(e.content)}</SenseExample>""")
+    out.print(s""">${escapeXml(e.content)}</Example>""")
   }
 
   def writeSyntacticBehaviour(out : PrintWriter, e : SyntacticBehaviour) {
@@ -290,6 +291,9 @@ object WNLMF {
     }
     for(r <- e.synsetRelations) {
       writeSynsetRel(out, r)
+    }
+    for(x <- e.synsetExamples) {
+      writeSenseExample(out, x)
     }
    out.print(s"""
     </Synset>""")

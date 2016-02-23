@@ -94,17 +94,18 @@ object PartOfSpeech {
 
 case class Form(writtenForm : String, tag : Option[String] = None)
 
-case class Sense(senseRelations : Seq[SenseRelation], senseExamples : Seq[SenseExample],
+case class Sense(senseRelations : Seq[SenseRelation], senseExamples : Seq[Example],
   id : String, synsetRef : String, counts : Seq[Count]) extends Meta
 
 case class Synset(definitions : Seq[Definition], iliDefinition : Option[ILIDefinition],
-  synsetRelations : Seq[SynsetRelation], id : String, ili : Option[String]) extends Meta
+  synsetRelations : Seq[SynsetRelation], id : String, ili : Option[String],
+  synsetExamples : Seq[Example]) extends Meta
 
 case class Definition(content : String, language : Option[String] = None) extends Meta
 
 case class ILIDefinition(content : String) extends Meta
 
-case class SenseExample(content : String) extends Meta
+case class Example(content : String) extends Meta
 
 case class SynsetRelation(target : String, relType : SynsetRelType) extends Meta
 

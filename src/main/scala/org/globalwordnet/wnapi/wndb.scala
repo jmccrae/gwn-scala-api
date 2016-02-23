@@ -173,7 +173,8 @@ object WNDB {
                    if src == 0 && trg == 0) yield {
                  SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos.shortForm), relType=typ.asInstanceOf[SynsetRelType])
               }
-            })
+            }, 
+            synsetExamples=Nil)
         }
     }
 
