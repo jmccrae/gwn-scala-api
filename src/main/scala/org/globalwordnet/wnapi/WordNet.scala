@@ -183,10 +183,10 @@ object SynsetRelType {
     case "role" => role
     case "source_direction" => source_direction
     case "state_of" => state_of
-    case "synonym" => synonym
     case "target_direction" => target_direction
     case "subevent" => subevent
     case "is_subevent_of" => is_subevent_of
+    case "antonym" => antonym
   }
 }
 object agent extends SynsetRelType
@@ -256,7 +256,6 @@ object result extends SynsetRelType
 object role extends SynsetRelType
 object source_direction extends SynsetRelType
 object state_of extends SynsetRelType
-object synonym extends SynsetRelType
 object target_direction extends SynsetRelType
 object subevent extends SynsetRelType
 object is_subevent_of extends SynsetRelType
@@ -281,7 +280,7 @@ object SenseRelType {
     case "similar" => similar
   }
 }
-object antonym extends SenseRelType
+object antonym extends SenseRelType with SynsetRelType
 object participle extends SenseRelType
 object pertainym extends SenseRelType
 object derivation extends SenseRelType

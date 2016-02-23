@@ -6,4 +6,4 @@ libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
 
 libraryDependencies += "org.apache.jena" % "jena-arq" % "3.0.0"
 
-scalacOptions ++= Seq("-unchecked", "-deprecation")
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
