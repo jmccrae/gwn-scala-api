@@ -1,9 +1,9 @@
 package org.globalwordnet.api.serialize
 
-import java.io.{File, FileReader, Reader, Writer}
+import java.io.{File, FileReader, Reader, Writer, FileWriter}
 import org.globalwordnet.api.wn._
 import org.apache.jena.rdf.model.{Model, ModelFactory, Resource, Property, RDFNode, Literal}
-import org.apache.jena.vocabulary.{RDF, RDFS, DC_10, SKOS, OWL, XSD}
+import org.apache.jena.vocabulary.{RDF, RDFS, DC_11, SKOS, OWL, XSD}
 import scala.collection.JavaConversions._
 import scala.language.dynamics
 import scala.language.reflectiveCalls
@@ -21,7 +21,7 @@ object WNRDF {
       model.listObjectsOfProperty(resource, p)
     }
     def \(r : Resource)(implicit model : Model) : Iterator[RDFNode] = {
-      model.listObjectsOfProperty(resource, model.createProperty(r.getURI()))
+      \(model.createProperty(r.getURI()))
     }
     def \*(r : Property)(implicit model : Model) : Iterator[Resource] = {
       model.listObjectsOfProperty(resource, r).flatMap({
@@ -95,26 +95,31 @@ object WNRDF {
     }
   }
 
-  val WN = new NameSpace("http://globalwordnet.github.com/schemas/wn#")
+  val WN = new NameSpace("http://globalwordnet.github.io/schemas/wn#")
   val ONTOLEX = new NameSpace("http://www.w3.org/ns/lemon/ontolex#")
   val SYNSEM = new NameSpace("http://www.w3.org/ns/lemon/synsem#")
   val VARTRANS = new NameSpace("http://www.w3.org/ns/lemon/vartrans#")
   val LIME = new NameSpace("http://www.w3.org/ns/lemon/lime#")
   val SCHEMA = new NameSpace("http://schema.org/")
   val CC = new NameSpace("http://creativecommons.org/ns#")
+  val ILI = new NameSpace("http://ili.globalwordnet.org/ili/")
+
+  private def guessLang(file : File) = {
+    if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
+      "RDF/XML"
+    } else if(file.getName().endsWith(".ttl")) {
+      "TURTLE"
+    } else if(file.getName().endsWith(".nt")) {
+      "N-TRIPLE"
+    } else if(file.getName().endsWith(".n3")) {
+      "N3"
+    } else {
+      "RDF/XML"
+    }
+  }
 
   def read(file : File) : LexicalResource = {
-    if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
-      read(new FileReader(file), "RDF/XML", "file://" + file.getAbsolutePath())
-    } else if(file.getName().endsWith(".ttl")) {
-      read(new FileReader(file), "TURTLE", "file://" + file.getAbsolutePath())
-    } else if(file.getName().endsWith(".nt")) {
-      read(new FileReader(file), "N-TRIPLE", "file://" + file.getAbsolutePath())
-    } else if(file.getName().endsWith(".n3")) {
-      read(new FileReader(file), "N3", "file://" + file.getAbsolutePath())
-    } else {
-      read(new FileReader(file), "RDF/XML", "file://" + file.getAbsolutePath())
-    }
+    read(new FileReader(file), guessLang(file), file.toURI().toString() + "#")
   }
 
   def read(input : Reader, lang : String, baseUrl : String) : LexicalResource = {
@@ -132,7 +137,7 @@ object WNRDF {
   }
 
   def readLexicalResource(implicit model : Model) : LexicalResource = {
-    LexicalResource(model.listSubjectsWithProperty(RDF.`type`, ONTOLEX.Lexicon).map(readLexicon).toSeq)
+    LexicalResource(model.listSubjectsWithProperty(RDF.`type`, LIME.Lexicon).map(readLexicon).toSeq)
   }
 
   def readLexicon(r : Resource)(implicit model : Model) : Lexicon = {
@@ -140,82 +145,82 @@ object WNRDF {
       (r \* LIME.entry).map(readLexicalEntry).toSeq,
       (r / SKOS.inScheme).map(readSynset).toSeq,
       toId(r),
-      (r lit RDFS.label).next().getLexicalForm(),
-      (r lit DC_10.language).next().getLexicalForm(),
-      (r lit SCHEMA.email).next().getLexicalForm(),
-      (r lit CC.license).next().getLexicalForm(),
-      (r lit OWL.versionInfo).next().getLexicalForm(),
-      (r lit SCHEMA.url).toStream.headOption.map(_.getLexicalForm()),
-      (r lit SCHEMA.citation).toStream.headOption.map(_.getLexicalForm())), r)
+      (r lit RDFS.label).headOrElse(throw new WNRDFException("Label is required")).getLexicalForm(),
+      (r lit DC_11.language).headOrElse(throw new WNRDFException("Language is required")).getLexicalForm(),
+      (r lit SCHEMA.email).headOrElse(throw new WNRDFException("Email is required")).getLexicalForm(),
+      (r \* CC.license).headOrElse(throw new WNRDFException("License is required")).getURI(),
+      (r lit OWL.versionInfo).headOrElse(throw new WNRDFException("Version is required")).getLexicalForm(),
+      (r lit SCHEMA.url).headOption.map(_.getLexicalForm()),
+      (r lit SCHEMA.citation).headOption.map(_.getLexicalForm())), r)
   }
 
   def readMeta[A <: Meta](a : A, r : Resource)(implicit model : Model) : A = {
-    (r lit DC_10.contributor).toStream.headOption match {
+    (r lit DC_11.contributor).toStream.headOption match {
       case Some(l) => 
         a.contributor = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.coverage).toStream.headOption match {
+    (r lit DC_11.coverage).toStream.headOption match {
       case Some(l) => 
         a.coverage = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.creator).toStream.headOption match {
+    (r lit DC_11.creator).toStream.headOption match {
       case Some(l) => 
         a.creator = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.date).toStream.headOption match {
+    (r lit DC_11.date).toStream.headOption match {
       case Some(l) => 
         a.date = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.description).toStream.headOption match {
+    (r lit DC_11.description).toStream.headOption match {
       case Some(l) => 
         a.description = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.format).toStream.headOption match {
+    (r lit DC_11.format).toStream.headOption match {
       case Some(l) => 
         a.format = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.identifier).toStream.headOption match {
+    (r lit DC_11.identifier).toStream.headOption match {
       case Some(l) => 
         a.identifier = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.publisher).toStream.headOption match {
+    (r lit DC_11.publisher).toStream.headOption match {
       case Some(l) => 
         a.publisher = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.relation).toStream.headOption match {
+    (r lit DC_11.relation).toStream.headOption match {
       case Some(l) => 
         a.relation = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.rights).toStream.headOption match {
+    (r lit DC_11.rights).toStream.headOption match {
       case Some(l) => 
         a.rights = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.source).toStream.headOption match {
+    (r lit DC_11.source).toStream.headOption match {
       case Some(l) => 
         a.source = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.subject).toStream.headOption match {
+    (r lit DC_11.subject).toStream.headOption match {
       case Some(l) => 
         a.subject = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.title).toStream.headOption match {
+    (r lit DC_11.title).toStream.headOption match {
       case Some(l) => 
         a.title = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_10.`type`).toStream.headOption match {
+    (r lit DC_11.`type`).toStream.headOption match {
       case Some(l) => 
         a.`type` = Some(l.getLexicalForm())
       case None =>
@@ -299,16 +304,23 @@ object WNRDF {
     readMeta(Synset(
       (r \* WN.definition).map(readDefinition).toSeq,
       (r \* WN.iliDefinition).headOption.map(readILIDefinition),
-      (r \* VARTRANS.source).map(readSynsetRelation).toSeq,
+      (r / VARTRANS.source).map(readSynsetRelation).toSeq,
       toId(r),
-      (r lit WN.ili).headOption.map(_.getLexicalForm()),
+      (r \* WN.ili).headOption match {
+        case Some(u) if u.getURI() startsWith ILI.prefix =>
+          Some(u.getURI().drop(ILI.prefix.length))
+        case None =>
+          None
+        case u =>
+          throw new WNRDFException("ILI not in ILI namespace " + u)
+      },
       (r \* WN.example).map(readExample).toSeq), r)
   }
 
   def readDefinition(r : Resource)(implicit model : Model) : Definition = {
     readMeta(Definition(
       (r lit RDF.value).headOrElse(throw new WNRDFException("Definition without value")).getLexicalForm(),
-      (r lit DC_10.language).headOption.map(_.getLexicalForm())), r)
+      (r lit DC_11.language).headOption.map(_.getLexicalForm())), r)
   }
 
   def readILIDefinition(r : Resource)(implicit model : Model) : ILIDefinition = {
@@ -327,10 +339,99 @@ object WNRDF {
       }), r)
   }
 
-  def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String) = {
+  def write(lr : LexicalResource, output : File) {
+    write(lr, new FileWriter(output),
+          output.toURI().toString() + "#",
+          guessLang(output))
+  } 
+
+  def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String) {
     val model = writeLexicalResource(lr)(baseUrl)
     model.write(output, lang)
     output.flush()
+  }
+
+  def writeMeta(a : Meta, r : Resource)(implicit model : Model) {
+    a.contributor match {
+      case Some(l) => 
+        r + DC_11.contributor + model.createLiteral(l)
+      case None =>
+    }
+    a.coverage match {
+      case Some(l) => 
+        r + DC_11.coverage + model.createLiteral(l)
+      case None =>
+    }
+    a.creator match {
+      case Some(l) => 
+        r + DC_11.creator + model.createLiteral(l)
+      case None =>
+    }
+    a.date match {
+      case Some(l) => 
+        r + DC_11.date + model.createLiteral(l)
+      case None =>
+    }
+    a.description match {
+      case Some(l) => 
+        r + DC_11.description + model.createLiteral(l)
+      case None =>
+    }
+    a.format match {
+      case Some(l) => 
+        r + DC_11.format + model.createLiteral(l)
+      case None =>
+    }
+    a.identifier match {
+      case Some(l) => 
+        r + DC_11.identifier + model.createLiteral(l)
+      case None =>
+    }
+    a.publisher match {
+      case Some(l) => 
+        r + DC_11.publisher + model.createLiteral(l)
+      case None =>
+    }
+    a.relation match {
+      case Some(l) => 
+        r + DC_11.relation + model.createLiteral(l)
+      case None =>
+    }
+    a.rights match {
+      case Some(l) => 
+        r + DC_11.rights + model.createLiteral(l)
+      case None =>
+    }
+    a.source match {
+      case Some(l) => 
+        r + DC_11.source + model.createLiteral(l)
+      case None =>
+    }
+    a.subject match {
+      case Some(l) => 
+        r + DC_11.subject + model.createLiteral(l)
+      case None =>
+    }
+    a.title match {
+      case Some(l) => 
+        r + DC_11.title + model.createLiteral(l)
+      case None =>
+    }
+    a.`type` match {
+      case Some(l) => 
+        r + DC_11.`type` + model.createLiteral(l)
+      case None =>
+    }
+    a.status match {
+      case Some(l) => 
+        r + WN.status + model.createLiteral(l)
+      case None =>
+    }
+    a.confidenceScore match {
+      case Some(l) => 
+        r + WN.confidenceScore + model.createTypedLiteral(l : Any)
+      case None =>
+    }
   }
 
   def writeLexicalResource(lr : LexicalResource)(implicit baseUrl : String) : Model = {
@@ -343,14 +444,31 @@ object WNRDF {
 
   def writeLexicon(l : Lexicon)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + l.id)
-    r + RDF.`type` + ONTOLEX.Lexicon
-    r + ONTOLEX.entry ++ l.entries.map(writeLexicalEntry)
+    writeMeta(l, r)
+    r + RDF.`type` + LIME.Lexicon
+    r + LIME.entry ++ l.entries.map(writeLexicalEntry)
     r - SKOS.inScheme ++ l.synsets.map(writeSynset)
+    r + RDFS.label + model.createLiteral(l.label)
+    r + DC_11.language + model.createLiteral(l.language)
+    r + SCHEMA.email + model.createLiteral(l.email)
+    r + CC.license + model.createResource(l.license)
+    r + OWL.versionInfo + model.createLiteral(l.version)
+    l.url match {
+      case Some(u) =>
+        r + SCHEMA.url + model.createLiteral(u)
+      case None =>
+    }
+    l.citation match {
+      case Some(c) =>
+        r + SCHEMA.citation + model.createLiteral(c)
+      case None =>
+    }
     r
   }
 
   def writeLexicalEntry(e : LexicalEntry)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + e.id)
+    writeMeta(e, r)
     r + RDF.`type` + ONTOLEX.LexicalEntry
     r + ONTOLEX.canonicalForm + writeLemma(e.lemma)
     r + WN.partOfSpeech + writePartOfSpeech(e.lemma.partOfSpeech)
@@ -380,8 +498,9 @@ object WNRDF {
 
   def writeSense(s : Sense)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + s.id)
+    writeMeta(s, r)
     r + RDF.`type` + ONTOLEX.LexicalSense
-    r - SYNSEM.source ++ s.senseRelations.map(writeSenseRelation)
+    r - VARTRANS.source ++ s.senseRelations.map(writeSenseRelation)
     r + WN.example ++ s.senseExamples.map(writeExample)
     r + ONTOLEX.reference + model.createResource(baseUrl + s.synsetRef)
     r + WN.count ++ s.counts.map(writeCount)
@@ -397,6 +516,7 @@ object WNRDF {
 
   def writeExample(e : Example)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
+    writeMeta(e, r)
     r + RDF.`type` + WN.Example
     r + RDF.value + model.createLiteral(e.content, lexicon.language)
     r
@@ -404,6 +524,7 @@ object WNRDF {
 
   def writeSenseRelation(s : SenseRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
+    writeMeta(s, r)
     r + RDF.`type` + VARTRANS.SenseRelation
     r + VARTRANS.category + WN(s.relType.name)
     r + VARTRANS.target + model.createResource(baseUrl + s.target)
@@ -419,6 +540,7 @@ object WNRDF {
 
   def writeSynset(s : Synset)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + s.id)
+    writeMeta(s, r)
     r + RDF.`type` + ONTOLEX.LexicalConcept
     r + WN.definition ++ s.definitions.map(writeDefinition)
     s.iliDefinition match {
@@ -426,7 +548,7 @@ object WNRDF {
         r + WN.iliDefinition + writeILIDefinition(i)
       case None =>
     }
-    r + VARTRANS.target ++ s.synsetRelations.map(writeSynsetRelation)
+    r - VARTRANS.source ++ s.synsetRelations.map(writeSynsetRelation)
     s.ili match {
       case Some(i) =>
         r + WN.ili + model.createResource("http://ili.globalwordnet.org/ili/" + i)
@@ -438,6 +560,7 @@ object WNRDF {
 
   def writeDefinition(d : Definition)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
      val r = model.createResource()
+    writeMeta(d, r)
      r + RDF.`type` + WN.Definition
      r + RDF.value + model.createLiteral(d.content, d.language.getOrElse(lexicon.language))
      r
@@ -445,6 +568,7 @@ object WNRDF {
 
   def writeILIDefinition(d : ILIDefinition)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
      val r = model.createResource()
+    writeMeta(d, r)
      r + RDF.`type` + WN.ILIDefinition
      r + RDF.value + model.createLiteral(d.content, "en")
      r
@@ -452,6 +576,7 @@ object WNRDF {
 
   def writeSynsetRelation(s : SynsetRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
+    writeMeta(s, r)
     r + RDF.`type` + VARTRANS.SynsetRelation
     r + VARTRANS.category + WN(s.relType.name)
     r + VARTRANS.target + model.createResource(baseUrl + s.target)
