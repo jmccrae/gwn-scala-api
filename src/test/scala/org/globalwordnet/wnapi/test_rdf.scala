@@ -1,5 +1,6 @@
 package org.globalwordnet.api.serialize
 
+import eu.monnetproject.lang.{Language, Script}
 import org.globalwordnet.api.wn._
 import org.scalatest._
 
@@ -15,7 +16,7 @@ class RDFSpec extends FlatSpec with Matchers {
     val lexicon = resource.lexicons(0)
     lexicon.id should be ("example-en")
     lexicon.label should be ("Example wordnet (English)")
-    lexicon.language should be ("en")
+    lexicon.language should be (Language.ENGLISH)
     lexicon.email should be ("john@mccr.ae")
     lexicon.license should be ("https://creativecommons.org/publicdomain/zero/1.0/")
     lexicon.version should be ("1.0")
@@ -77,7 +78,7 @@ class RDFSpec extends FlatSpec with Matchers {
     val lexicon = resource2.lexicons.find(_.id == "example-en").get
     lexicon.id should be ("example-en")
     lexicon.label should be ("Example wordnet (English)")
-    lexicon.language should be ("en")
+    lexicon.language should be (Language.ENGLISH)
     lexicon.email should be ("john@mccr.ae")
     lexicon.license should be ("https://creativecommons.org/publicdomain/zero/1.0/")
     lexicon.version should be ("1.0")

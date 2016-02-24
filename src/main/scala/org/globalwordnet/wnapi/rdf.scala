@@ -1,5 +1,6 @@
 package org.globalwordnet.api.serialize
 
+import eu.monnetproject.lang.{Language, Script}
 import java.io.{File, FileReader, Reader, Writer, FileWriter}
 import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
@@ -137,17 +138,17 @@ object WNRDF extends Format {
     }
   }
 
-  def readLexicalResource(implicit model : Model) : LexicalResource = {
+  private def readLexicalResource(implicit model : Model) : LexicalResource = {
     LexicalResource(model.listSubjectsWithProperty(RDF.`type`, LIME.Lexicon).map(readLexicon).toSeq)
   }
 
-  def readLexicon(r : Resource)(implicit model : Model) : Lexicon = {
+  private def readLexicon(r : Resource)(implicit model : Model) : Lexicon = {
     readMeta(Lexicon(
       (r \* LIME.entry).map(readLexicalEntry).toSeq,
       (r / SKOS.inScheme).map(readSynset).toSeq,
       toId(r),
       (r lit RDFS.label).headOrElse(throw new WNRDFException("Label is required")).getLexicalForm(),
-      (r lit DC_11.language).headOrElse(throw new WNRDFException("Language is required")).getLexicalForm(),
+      Language.get((r lit DC_11.language).headOrElse(throw new WNRDFException("Language is required")).getLexicalForm()),
       (r lit SCHEMA.email).headOrElse(throw new WNRDFException("Email is required")).getLexicalForm(),
       (r \* CC.license).headOrElse(throw new WNRDFException("License is required")).getURI(),
       (r lit OWL.versionInfo).headOrElse(throw new WNRDFException("Version is required")).getLexicalForm(),
@@ -155,7 +156,7 @@ object WNRDF extends Format {
       (r lit SCHEMA.citation).headOption.map(_.getLexicalForm())), r)
   }
 
-  def readMeta[A <: Meta](a : A, r : Resource)(implicit model : Model) : A = {
+  private def readMeta[A <: Meta](a : A, r : Resource)(implicit model : Model) : A = {
     (r lit DC_11.contributor).toStream.headOption match {
       case Some(l) => 
         a.contributor = Some(l.getLexicalForm())
@@ -239,7 +240,7 @@ object WNRDF extends Format {
     a
   }
 
-  def readLexicalEntry(r : Resource)(implicit model : Model) : LexicalEntry = {
+  private def readLexicalEntry(r : Resource)(implicit model : Model) : LexicalEntry = {
     readMeta(LexicalEntry(
       readLemma(
         (r \* ONTOLEX.canonicalForm).headOrElse(throw new WNRDFException("No canonical form for " + r)),
@@ -250,23 +251,25 @@ object WNRDF extends Format {
       toId(r)), r)
   }
 
-  def readLemma(canForm : Resource, pos : Resource)(implicit model : Model) : Lemma = {
+  private def readLemma(canForm : Resource, pos : Resource)(implicit model : Model) : Lemma = {
     Lemma(
       (canForm lit ONTOLEX.writtenRep).headOrElse(throw new WNRDFException("No written representation for " + canForm)).getLexicalForm(),
       if(pos.getURI().startsWith(WN.prefix)) {
         PartOfSpeech.fromName(pos.getURI().drop(WN.prefix.length))
       } else {
         throw new WNRDFException("Non-standard part of speech " + pos)
-      })
+      },
+      (canForm lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())))
   }
 
-  def readForm(r : Resource)(implicit model : Model) : Form = {
+  private def readForm(r : Resource)(implicit model : Model) : Form = {
     Form(
       (r lit ONTOLEX.writtenRep).headOrElse(throw new WNRDFException("No written representation for " + r)).getLexicalForm(),
-      (r lit WN.tag).headOption.map(_.getLexicalForm()))
+      (r lit WN.tag).headOption.map(_.getLexicalForm()),
+      (r lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())))
   }
 
-  def readSense(r : Resource)(implicit model : Model) : Sense = {
+  private def readSense(r : Resource)(implicit model : Model) : Sense = {
     readMeta(Sense(
       (r / VARTRANS.source).map(readSenseRelation).toSeq,
       (r \* WN.example).map(readExample).toSeq,
@@ -275,7 +278,7 @@ object WNRDF extends Format {
       (r \* WN.count).map(readCount).toSeq), r)
   }
 
-  def readSenseRelation(r : Resource)(implicit model : Model) : SenseRelation = {
+  private def readSenseRelation(r : Resource)(implicit model : Model) : SenseRelation = {
     val relType = (r \* VARTRANS.category).headOrElse(throw new WNRDFException("Relation without category"))
     readMeta(SenseRelation(
       toId((r \* VARTRANS.target).headOrElse(throw new WNRDFException("Relation without target"))),
@@ -286,22 +289,23 @@ object WNRDF extends Format {
       }), r)
   }
 
-  def readExample(r : Resource)(implicit model : Model) : Example = {
+  private def readExample(r : Resource)(implicit model : Model) : Example = {
     readMeta(Example(
-      (r lit RDF.value).headOrElse(throw new WNRDFException("Example without value")).getLexicalForm()), r)
+      (r lit RDF.value).headOrElse(throw new WNRDFException("Example without value")).getLexicalForm(),
+      (r lit DC_11.language).headOption.map(l => Language.get(l.getLexicalForm()))), r)
   }
 
-  def readCount(r : Resource)(implicit model : Model) : Count = {
+  private def readCount(r : Resource)(implicit model : Model) : Count = {
     readMeta(Count(
       (r lit RDF.value).headOrElse(throw new WNRDFException("Count without value")).getInt()), r)
   }
 
-  def readSynBehavior(r : Resource)(implicit model : Model) : SyntacticBehaviour = {
+  private def readSynBehavior(r : Resource)(implicit model : Model) : SyntacticBehaviour = {
     SyntacticBehaviour(
       (r lit RDFS.label).headOrElse(throw new WNRDFException("Syntactic behaviour without label")).getLexicalForm())
   }
 
-  def readSynset(r : Resource)(implicit model : Model) : Synset = {
+  private def readSynset(r : Resource)(implicit model : Model) : Synset = {
     readMeta(Synset(
       (r \* WN.definition).map(readDefinition).toSeq,
       (r \* WN.iliDefinition).headOption.map(readILIDefinition),
@@ -318,18 +322,18 @@ object WNRDF extends Format {
       (r \* WN.example).map(readExample).toSeq), r)
   }
 
-  def readDefinition(r : Resource)(implicit model : Model) : Definition = {
+  private def readDefinition(r : Resource)(implicit model : Model) : Definition = {
     readMeta(Definition(
       (r lit RDF.value).headOrElse(throw new WNRDFException("Definition without value")).getLexicalForm(),
-      (r lit DC_11.language).headOption.map(_.getLexicalForm())), r)
+      (r lit DC_11.language).headOption.map(l => Language.get(l.getLexicalForm()))), r)
   }
 
-  def readILIDefinition(r : Resource)(implicit model : Model) : ILIDefinition = {
+  private def readILIDefinition(r : Resource)(implicit model : Model) : ILIDefinition = {
     readMeta(ILIDefinition(
       (r lit RDF.value).headOrElse(throw new WNRDFException("ILIDefinition without value")).getLexicalForm()), r)
   }
    
-  def readSynsetRelation(r : Resource)(implicit model : Model) : SynsetRelation = {
+  private def readSynsetRelation(r : Resource)(implicit model : Model) : SynsetRelation = {
     val relType = (r \* VARTRANS.category).headOrElse(throw new WNRDFException("Relation without category"))
     readMeta(SynsetRelation(
       toId((r \* VARTRANS.target).headOrElse(throw new WNRDFException("Relation without target"))),
@@ -352,7 +356,7 @@ object WNRDF extends Format {
     output.flush()
   }
 
-  def writeMeta(a : Meta, r : Resource)(implicit model : Model) {
+  private def writeMeta(a : Meta, r : Resource)(implicit model : Model) {
     a.contributor match {
       case Some(l) => 
         r + DC_11.contributor + model.createLiteral(l)
@@ -435,7 +439,7 @@ object WNRDF extends Format {
     }
   }
 
-  def writeLexicalResource(lr : LexicalResource)(implicit baseUrl : String) : Model = {
+  private def writeLexicalResource(lr : LexicalResource)(implicit baseUrl : String) : Model = {
     implicit val model = ModelFactory.createDefaultModel()
     for(l <- lr.lexicons) {
       writeLexicon(l)(model, baseUrl, l)
@@ -443,14 +447,14 @@ object WNRDF extends Format {
     model
   }
 
-  def writeLexicon(l : Lexicon)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeLexicon(l : Lexicon)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + l.id)
     writeMeta(l, r)
     r + RDF.`type` + LIME.Lexicon
     r + LIME.entry ++ l.entries.map(writeLexicalEntry)
     r - SKOS.inScheme ++ l.synsets.map(writeSynset)
     r + RDFS.label + model.createLiteral(l.label)
-    r + DC_11.language + model.createLiteral(l.language)
+    r + DC_11.language + model.createLiteral(l.language.toString())
     r + SCHEMA.email + model.createLiteral(l.email)
     r + CC.license + model.createResource(l.license)
     r + OWL.versionInfo + model.createLiteral(l.version)
@@ -467,7 +471,7 @@ object WNRDF extends Format {
     r
   }
 
-  def writeLexicalEntry(e : LexicalEntry)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeLexicalEntry(e : LexicalEntry)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + e.id)
     writeMeta(e, r)
     r + RDF.`type` + ONTOLEX.LexicalEntry
@@ -479,25 +483,35 @@ object WNRDF extends Format {
     r
   }
 
-  def writeLemma(e : Lemma)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeLemma(e : Lemma)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     r + RDF.`type` + ONTOLEX.Form
-    r + ONTOLEX.writtenRep + model.createLiteral(e.writtenForm, lexicon.language)
+    r + ONTOLEX.writtenRep + model.createLiteral(e.writtenForm, lexicon.language.toString())
+    e.script match {
+      case Some(s) =>
+        r + WN.script + model.createLiteral(s.toString())
+      case None =>
+    }
     r
   }
 
-  def writePartOfSpeech(p : PartOfSpeech)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writePartOfSpeech(p : PartOfSpeech)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
      model.createResource(WN.prefix + p.name)
   }
 
-  def writeForm(f : Form)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeForm(f : Form)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     r + RDF.`type` + ONTOLEX.Form
-    r + ONTOLEX.writtenRep + model.createLiteral(f.writtenForm, lexicon.language)
+    r + ONTOLEX.writtenRep + model.createLiteral(f.writtenForm, lexicon.language.toString())
+    f.script match {
+      case Some(s) =>
+        r + WN.script + model.createLiteral(s.toString())
+      case None =>
+    }
     r
   }
 
-  def writeSense(s : Sense)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeSense(s : Sense)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + s.id)
     writeMeta(s, r)
     r + RDF.`type` + ONTOLEX.LexicalSense
@@ -508,22 +522,27 @@ object WNRDF extends Format {
     r
   }
 
-  def writeSyntacticBehavior(s : SyntacticBehaviour)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeSyntacticBehavior(s : SyntacticBehaviour)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     r + RDF.`type` + SYNSEM.SyntacticFrame
     r + RDFS.label + model.createLiteral(s.subcategorizationFrame)
     r
   }
 
-  def writeExample(e : Example)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeExample(e : Example)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     writeMeta(e, r)
     r + RDF.`type` + WN.Example
-    r + RDF.value + model.createLiteral(e.content, lexicon.language)
+    r + RDF.value + model.createLiteral(e.content, lexicon.language.toString())
+    e.language match {
+      case Some(s) =>
+        r + DC_11.language + model.createLiteral(s.toString())
+      case None =>
+    }
     r
   }
 
-  def writeSenseRelation(s : SenseRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeSenseRelation(s : SenseRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     writeMeta(s, r)
     r + RDF.`type` + VARTRANS.SenseRelation
@@ -532,14 +551,14 @@ object WNRDF extends Format {
     r
   }
 
-  def writeCount(c : Count)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeCount(c : Count)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     r + RDF.`type` + WN.Count
     r + RDF.value + model.createTypedLiteral(c.value : Any)
     r
   }
 
-  def writeSynset(s : Synset)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeSynset(s : Synset)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource(baseUrl + s.id)
     writeMeta(s, r)
     r + RDF.`type` + ONTOLEX.LexicalConcept
@@ -559,15 +578,15 @@ object WNRDF extends Format {
     r
   }
 
-  def writeDefinition(d : Definition)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeDefinition(d : Definition)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
      val r = model.createResource()
     writeMeta(d, r)
      r + RDF.`type` + WN.Definition
-     r + RDF.value + model.createLiteral(d.content, d.language.getOrElse(lexicon.language))
+     r + RDF.value + model.createLiteral(d.content, d.language.getOrElse(lexicon.language).toString())
      r
   }
 
-  def writeILIDefinition(d : ILIDefinition)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeILIDefinition(d : ILIDefinition)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
      val r = model.createResource()
     writeMeta(d, r)
      r + RDF.`type` + WN.ILIDefinition
@@ -575,7 +594,7 @@ object WNRDF extends Format {
      r
   }
 
-  def writeSynsetRelation(s : SynsetRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+  private def writeSynsetRelation(s : SynsetRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     writeMeta(s, r)
     r + RDF.`type` + VARTRANS.SynsetRelation

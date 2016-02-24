@@ -1,22 +1,40 @@
 package org.globalwordnet.api.wn
 
+import eu.monnetproject.lang.{Language, Script}
+
 trait Meta {
   var contributor : Option[String] = None
+  def withContributor(s : String) : this.type = { contributor = Some(s) ; this }
   var coverage : Option[String] = None
+  def withCoverage(s : String) : this.type = { coverage = Some(s) ; this }
   var creator : Option[String] = None
+  def withCreator(s : String) : this.type = { creator = Some(s) ; this }
   var date : Option[String] = None
+  def withDate(s : String) : this.type = { date = Some(s) ; this }
   var description : Option[String] = None
+  def withDescription(s : String) : this.type = { description = Some(s) ; this }
   var format : Option[String] = None
+  def withFormat(s : String) : this.type = { format = Some(s) ; this }
   var identifier : Option[String] = None
+  def withIdentifier(s : String) : this.type = { identifier = Some(s) ; this }
   var publisher : Option[String] = None
+  def withPublisher(s : String) : this.type = { publisher = Some(s) ; this }
   var relation : Option[String] = None
+  def withRelation(s : String) : this.type = { relation = Some(s) ; this }
   var rights : Option[String] = None
+  def withRights(s : String) : this.type = { rights = Some(s) ; this }
   var source : Option[String] = None
+  def withSource(s : String) : this.type = { source = Some(s) ; this }
   var subject : Option[String] = None
+  def withSubject(s : String) : this.type = { subject = Some(s) ; this }
   var title : Option[String] = None
+  def withTitle(s : String) : this.type = { title = Some(s) ; this }
   var `type` : Option[String] = None
+  def withType(s : String) : this.type = { `type` = Some(s) ; this }
   var status : Option[String] = None
+  def withStatus(s : String) : this.type = { status = Some(s) ; this }
   var confidenceScore : Option[Double] = None
+  def withConfidenceScore(s : Double) : this.type = { confidenceScore = Some(s) ; this }
 }
 
 case class LexicalResource(lexicons : Seq[Lexicon]) {
@@ -41,58 +59,19 @@ case class LexicalResource(lexicons : Seq[Lexicon]) {
 }
 
 case class Lexicon(entries : Seq[LexicalEntry], synsets : Seq[Synset],
-  id : String, label : String, language : String, email : String,
+  id : String, label : String, language : Language, email : String,
   license : String, version : String, url : Option[String], 
   citation : Option[String]) extends Meta {
     assert(!entries.isEmpty)
+  lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).mapValues(_.head)
 }
  
 case class LexicalEntry(lemma : Lemma, forms : Seq[Form], senses : Seq[Sense],
    syntacticBehaviours : Seq[SyntacticBehaviour], id : String) extends Meta
 
-case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech)
+case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script])
 
-sealed class PartOfSpeech(val shortForm : String, val name : String)
-object noun extends PartOfSpeech("n", "noun")
-object verb extends PartOfSpeech("v", "verb")
-object adjective extends PartOfSpeech("a", "adjective")
-object adverb extends PartOfSpeech("r", "adverb")
-object adjective_satellite extends PartOfSpeech("s", "adjective_satellite")
-object multiword_expression extends PartOfSpeech("z", "multiword_expression")
-object conjunction extends PartOfSpeech("c", "conjunction")
-object adposition extends PartOfSpeech("p", "adposition")
-object other_pos extends PartOfSpeech("x", "other_pos")
-object unknown_pos extends PartOfSpeech("u", "unknown_pos")
-
-object PartOfSpeech {
-  def fromString(code : String) = code match {
-    case "n" => noun
-    case "v" => verb
-    case "a" => adjective
-    case "r" => adverb
-    case "s" => adjective_satellite
-    case "z" => multiword_expression
-    case "c" => conjunction
-    case "p" => adposition
-    case "x" => other_pos
-    case "u" => unknown_pos
-  }
-  def fromName(name : String) = name match {
-    case "noun" => noun
-    case "verb" => verb
-    case "adjective" => adjective
-    case "adverb" => adverb
-    case "adjective_satellite" => adjective_satellite
-    case "multiword_expression" => multiword_expression
-    case "conjunction" => conjunction
-    case "adposition" => adposition
-    case "other_pos" => other_pos
-    case "unknown_pos" => unknown_pos
-  }
-
-}
-
-case class Form(writtenForm : String, tag : Option[String] = None)
+case class Form(writtenForm : String, tag : Option[String], script : Option[Script])
 
 case class Sense(senseRelations : Seq[SenseRelation], senseExamples : Seq[Example],
   id : String, synsetRef : String, counts : Seq[Count]) extends Meta
@@ -101,13 +80,18 @@ case class Synset(definitions : Seq[Definition], iliDefinition : Option[ILIDefin
   synsetRelations : Seq[SynsetRelation], id : String, ili : Option[String],
   synsetExamples : Seq[Example]) extends Meta
 
-case class Definition(content : String, language : Option[String] = None) extends Meta
+case class Definition(content : String, language : Option[Language] = None) extends Meta
 
 case class ILIDefinition(content : String) extends Meta
 
-case class Example(content : String) extends Meta
+case class Example(content : String, language : Option[Language]) extends Meta
 
 case class SynsetRelation(target : String, relType : SynsetRelType) extends Meta
+case class SenseRelation(target : String, relType : SenseRelType) extends Meta
+
+case class SyntacticBehaviour(subcategorizationFrame : String)
+
+case class Count(value : Int) extends Meta
 
 trait RelType {
   def name = this.getClass.getSimpleName().dropRight(1)
@@ -260,7 +244,6 @@ object target_direction extends SynsetRelType
 object subevent extends SynsetRelType
 object is_subevent_of extends SynsetRelType
 
-case class SenseRelation(target : String, relType : SenseRelType) extends Meta
 
 sealed trait SenseRelType extends RelType
 
@@ -285,6 +268,44 @@ object participle extends SenseRelType
 object pertainym extends SenseRelType
 object derivation extends SenseRelType
 
-case class SyntacticBehaviour(subcategorizationFrame : String)
+sealed class PartOfSpeech(val shortForm : String, val name : String)
+object noun extends PartOfSpeech("n", "noun")
+object verb extends PartOfSpeech("v", "verb")
+object adjective extends PartOfSpeech("a", "adjective")
+object adverb extends PartOfSpeech("r", "adverb")
+object adjective_satellite extends PartOfSpeech("s", "adjective_satellite")
+object multiword_expression extends PartOfSpeech("z", "multiword_expression")
+object conjunction extends PartOfSpeech("c", "conjunction")
+object adposition extends PartOfSpeech("p", "adposition")
+object other_pos extends PartOfSpeech("x", "other_pos")
+object unknown_pos extends PartOfSpeech("u", "unknown_pos")
 
-case class Count(value : Int) extends Meta
+object PartOfSpeech {
+  def fromString(code : String) = code match {
+    case "n" => noun
+    case "v" => verb
+    case "a" => adjective
+    case "r" => adverb
+    case "s" => adjective_satellite
+    case "z" => multiword_expression
+    case "c" => conjunction
+    case "p" => adposition
+    case "x" => other_pos
+    case "u" => unknown_pos
+  }
+  def fromName(name : String) = name match {
+    case "noun" => noun
+    case "verb" => verb
+    case "adjective" => adjective
+    case "adverb" => adverb
+    case "adjective_satellite" => adjective_satellite
+    case "multiword_expression" => multiword_expression
+    case "conjunction" => conjunction
+    case "adposition" => adposition
+    case "other_pos" => other_pos
+    case "unknown_pos" => unknown_pos
+  }
+
+}
+
+

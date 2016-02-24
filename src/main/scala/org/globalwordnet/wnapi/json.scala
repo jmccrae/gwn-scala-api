@@ -1,5 +1,6 @@
 package org.globalwordnet.api.serialize
 
+import eu.monnetproject.lang.{Language, Script}
 import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
 import java.io.{Writer, Reader, PrintWriter}
@@ -154,15 +155,29 @@ object WNJSON extends Format {
     }
     implicit val metaCountFormat = new MetaFormat(countFormat)
 
-    implicit val formFormat = jsonFormat2(Form)
+    implicit object formFormat extends JsonFormat[Form] {
+      def write(f : Form) = JsObject(Map(
+        "writtenForm" -> JsString(f.writtenForm)) ++
+        f.tag.map(t => "tag" -> JsString(t)) ++
+        f.script.map(s => "script" -> JsString(s.toString())))
+      def read(v : JsValue) = v match {
+        case JsObject(m) =>
+          Form(
+            stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Form needs a written form"))),
+            m.get("tag").map(stringOrFail),
+            m.get("script").map(stringOrFail).map(Script.getByAlpha4Code))
+        case _ =>
+          throw new WNJsonException("Form must be an object")
+      }
+    }
     object definitionFormat extends JsonFormat[Definition] {
       def write(d : Definition) = JsObject(
         Map("gloss" -> JsString(d.content)) ++
-          d.language.map(l => "language" -> JsString(l)))
+          d.language.map(l => "language" -> JsString(l.toString())))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Definition(stringOrFail(m.getOrElse("gloss", throw new WNJsonException("Definition requires gloss"))), 
-                     m.get("language").map(stringOrFail))
+                     m.get("language").map(stringOrFail).map(Language.get))
         case _ =>
           throw new WNJsonException("Definition must be an object")
       }
@@ -181,11 +196,14 @@ object WNJSON extends Format {
     implicit val metaILIDefinitionFormat = new MetaFormat(iliDefinitionFormat)
 
     object senseExampleFormat extends JsonFormat[Example] {
-      def write(e : Example) = JsObject(
-        "value" -> JsString(e.content))
+      def write(e : Example) = JsObject(Map(
+        "value" -> JsString(e.content)) ++
+        e.language.map(l => "language" -> JsString(l.toString())))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          Example(stringOrFail(m.getOrElse("value", throw new WNJsonException("Example requires value"))))
+          Example(
+            stringOrFail(m.getOrElse("value", throw new WNJsonException("Example requires value"))),
+            m.get("language").map(stringOrFail).map(Language.get))
         case _ =>
           throw new WNJsonException("Sense example must be an object")
       }
@@ -269,7 +287,9 @@ object WNJSON extends Format {
 
     object lexicalEntryFormat extends JsonFormat[LexicalEntry] {
       def write(e : LexicalEntry) = JsObject(Map(
-        "lemma" -> JsObject("writtenForm" -> JsString(e.lemma.writtenForm)),
+        "lemma" -> JsObject(Map("writtenForm" -> JsString(e.lemma.writtenForm)) ++
+          e.lemma.script.map(x => "script" -> JsString(x.toString()))
+        ),
         "partOfSpeech" -> JsString("wn:" + e.lemma.partOfSpeech.name),
         "@id" -> JsString(e.id)) ++
         (e.forms.map(formFormat.write).toList match {
@@ -291,7 +311,9 @@ object WNJSON extends Format {
               case JsObject(m) => stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Lemma must have a written form")))
               case _ => throw new WNJsonException("Lemma must be an object")
             },
-                  PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech")))))),
+                  PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech"))))),
+                  m.get("script").map(stringOrFail).map(Script.getByAlpha4Code)
+                  ),
             m.getOrElse("form", JsArray()) match {
               case JsArray(x) => x.map(formFormat.read)
               case _ => throw new WNJsonException("Form must be a list of objects")
@@ -354,11 +376,11 @@ object WNJSON extends Format {
 
     object lexiconFormat extends JsonFormat[Lexicon] {
       def write(l : Lexicon) = JsObject(Map(
-        "@context" -> JsObject("@language" -> JsString(l.language)),
+        "@context" -> JsObject("@language" -> JsString(l.language.toString())),
         "@id" -> JsString(l.id),
         "@type" -> JsString("ontolex:Lexicon"),
         "label" -> JsString(l.label),
-        "language" -> JsString(l.language),
+        "language" -> JsString(l.language.toString()),
         "email" -> JsString(l.email),
         "license" -> JsString(l.license),
         "version" -> JsString(l.version)) ++
@@ -385,7 +407,7 @@ object WNJSON extends Format {
             },
             stringOrFail(m.getOrElse("@id", throw new WNJsonException("ID is required on a lexicon"))),
             stringOrFail(m.getOrElse("label", throw new WNJsonException("Label is required on a lexicon"))),
-            stringOrFail(m.getOrElse("language", throw new WNJsonException("Language is required on a lexicon"))),
+            Language.get(stringOrFail(m.getOrElse("language", throw new WNJsonException("Language is required on a lexicon")))),
             stringOrFail(m.getOrElse("email", throw new WNJsonException("Email is required on a lexicon"))),
             stringOrFail(m.getOrElse("license", throw new WNJsonException("License is required on a lexicon"))),
             stringOrFail(m.getOrElse("version", throw new WNJsonException("Version is required on a lexicon"))),

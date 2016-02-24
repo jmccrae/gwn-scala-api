@@ -1,5 +1,6 @@
 package org.globalwordnet.api.seralize
 
+import eu.monnetproject.lang.{Language, Script}
 import scala.io.Source
 import java.io.File
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml, escapeJava}
@@ -9,7 +10,7 @@ case class WNDBProperties(
   iliRef : String,
   id : String,
   label : String,
-  language : String,
+  language : Language,
   email : String,
   license : String,
   version : String,
@@ -50,12 +51,12 @@ object WNDB {
     })
   }
   
-  def loadLexname(file : String) = io.Source.fromFile(file).getLines.map({ line =>
+  private def loadLexname(file : String) = io.Source.fromFile(file).getLines.map({ line =>
     val l = line.split("\\s+")
     l(0).toInt -> l(1)
   }).toMap
 
-  def excForms(file : String) : Map[String,Seq[String]] = {
+  private def excForms(file : String) : Map[String,Seq[String]] = {
     (for(line <- Source.fromFile(file).getLines()) yield {
       line.split(" ") match {
         case Array(variant,lemma) => Some(lemma -> variant)
@@ -64,20 +65,20 @@ object WNDB {
     }).flatten.toSeq.groupBy(_._1).mapValues(_.map(_._2))
   }
 
-  def buildSatellites(items : Seq[WordNetDataItem]) = {
+  private def buildSatellites(items : Seq[WordNetDataItem]) = {
     val it2 = items.filter(_.pos == adjective)
     (for(item <- it2) yield {
       item.offset -> (item.lemmas(0).lemma, item.lexNo)
     }).toMap
   }
 
-  def loadCounts(file : String) = io.Source.fromFile(file).getLines.map({ line =>
+  private def loadCounts(file : String) = io.Source.fromFile(file).getLines.map({ line =>
     val l = line.split("\\s+")
     l(1) -> l(0).toInt
   }).toMap
 
 
-  def buildLMF(items : Seq[WordNetDataItem], 
+  private def buildLMF(items : Seq[WordNetDataItem], 
     props : WNDBProperties, sentences : Map[Int, String],
     ili : Map[(Int, String), String], lex : Int,
     exc : Map[String, Map[String, Seq[String]]],
@@ -95,7 +96,7 @@ object WNDB {
               props.citation)
   }
 
-  def buildEntries(items : Seq[WordNetDataItem], id : String,
+  private def buildEntries(items : Seq[WordNetDataItem], id : String,
     sentences : Map[Int, String], lex : Int, exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int]) = {
@@ -115,10 +116,10 @@ object WNDB {
       val pos = items(0).pos 
       LexicalEntry(
           id=id + "-" + escapeJava(lemma_key.replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-")),
-          lemma=Lemma(writtenForm=lemma, partOfSpeech=pos),
+          lemma=Lemma(writtenForm=lemma, partOfSpeech=pos, script=None),
           forms=exc.getOrElse(pos.shortForm, Map()).getOrElse(lemma, Nil).map({
             ex =>
-              Form(writtenForm=ex)
+              Form(writtenForm=ex, tag=None, script=None)
           }),
           senses=for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items) yield {
             val word = lemmas.find(_.lemma == lemma).get
@@ -144,7 +145,7 @@ object WNDB {
      }
   }
 
-  def buildSynsets(items : Seq[WordNetDataItem], id : String, language : String,
+  private def buildSynsets(items : Seq[WordNetDataItem], id : String, language : Language,
       ili : Map[(Int, String), String], lex : Int) = {
     for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items if lexNo == lex) yield {
       val iliId = ili.get((offset, pos.shortForm)) match {
@@ -177,17 +178,17 @@ object WNDB {
         }
     }
 
-  def loadSentences(fileName : String) : Map[Int, String] = {
+  private def loadSentences(fileName : String) : Map[Int, String] = {
     (io.Source.fromFile(fileName).getLines.map { line =>
       val (id, sentence) = line.splitAt(line.indexOf(" "))
       id.toInt -> sentence.drop(1)
     }).toMap
   }
 
-  val iliIdType1 = "ili:(i\\d+)".r
-  val iliIdType2 = "<(i\\d+)>".r
+  private val iliIdType1 = "ili:(i\\d+)".r
+  private val iliIdType2 = "<(i\\d+)>".r
 
-  def loadILIMap(fileName : String) : Map[(Int, String), String] = {
+  private def loadILIMap(fileName : String) : Map[(Int, String), String] = {
     (io.Source.fromFile(fileName).getLines.filter(_.contains("owl:sameAs")).flatMap { line =>
       val elems = line.split("\\s+")
       val ili = elems(0) match {
@@ -208,7 +209,7 @@ object WNDB {
     }).toMap
   }
 
-  def dumpDefinitions(items : Seq[WordNetDataItem]) {
+  private def dumpDefinitions(items : Seq[WordNetDataItem]) {
     val out = new java.io.PrintWriter("defs-wn30.csv")
     for(WordNetDataItem(offset, _, pos, _, _, _, gloss) <- items) {
       out.println("%s,%08d,%s" format (gloss.replaceAll(",",""), offset, pos.shortForm))
@@ -217,7 +218,7 @@ object WNDB {
     out.close
   }
 
-  object POS {
+  private object POS {
     def mk(s : String) = s match {
       case "n" => noun
       case "v" => verb
@@ -235,13 +236,13 @@ object WNDB {
     }
   }
     
-  case class WordNetDataItem(val offset : Int, val lexNo : Int,
+  private case class WordNetDataItem(val offset : Int, val lexNo : Int,
        val pos : PartOfSpeech, val lemmas : Seq[Word],
        val pointers : Seq[Pointer], val frames : Seq[Frame],
        val gloss : String) {
   }
        
-  object WordNetDataItem {
+  private object WordNetDataItem {
     def fromString(s : String) = s.split("\\| ") match {
       case Array(data,gloss) => {
         readData(data.split(" ")) match {
@@ -320,12 +321,12 @@ object WNDB {
     }
   }
 
-  case class Pointer(val typ : RelType, val targetOffset : Int,
+  private case class Pointer(val typ : RelType, val targetOffset : Int,
        val pos : PartOfSpeech, val src : Int, val trg : Int)
        
-  case class Frame(val frameId : Int, val wordId : Int)
+  private case class Frame(val frameId : Int, val wordId : Int)
 
-  object PointerType {
+  private object PointerType {
     var nonStandardRels = Set[String]()
     def mk(s : String, pos : String) : RelType = s match {
       case "!" => antonym 

@@ -1,5 +1,6 @@
 package org.globalwordnet.api.serialize
 
+import eu.monnetproject.lang.{Language, Script}
 import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
 import java.io.{Reader, Writer, PrintWriter, File}
@@ -26,7 +27,7 @@ object WNLMF extends Format {
       (elem \ "Synset").map(readSynset),
       (elem \ "@id").text,
       (elem \ "@label").text,
-      (elem \ "@language").text,
+      Language.get((elem \ "@language").text),
       (elem \ "@email").text,
       (elem \ "@license").text,
       (elem \ "@version").text,
@@ -66,7 +67,8 @@ object WNLMF extends Format {
   private def readLemma(elem : Node) : Lemma = {
     Lemma(
       (elem \ "@writtenForm").text,
-      readPartOfSpeech((elem \ "@partOfSpeech").text))
+      readPartOfSpeech((elem \ "@partOfSpeech").text),
+      (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)))
   }
 
   private def readPartOfSpeech(code : String) = PartOfSpeech.fromString(code)
@@ -74,7 +76,8 @@ object WNLMF extends Format {
   private def readForm(elem : Node) : Form = {
     Form(
       (elem \ "@writtenForm").text,
-      (elem \ "@tag").headOption.map(_.text))
+      (elem \ "@tag").headOption.map(_.text),
+      (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)))
   }
 
   private def readSense(elem : Node) : Sense = {
@@ -101,7 +104,8 @@ object WNLMF extends Format {
   }
 
   private def readSenseExample(elem : Node) = {
-    readMeta(Example(trim(elem).text), elem)
+    readMeta(Example(trim(elem).text,
+      (elem \ "@language").headOption.map(l => Language.get(l.text))), elem)
   }
 
   private def readSyntacticBehaviour(elem : Node) = {
@@ -121,7 +125,7 @@ object WNLMF extends Format {
   private def readDefinition(elem : Node) : Definition = {
     readMeta(Definition(
       trim(elem).text,
-      (elem \ "@language").headOption.map(_.text)), elem)
+      (elem \ "@language").headOption.map(l => Language.get(l.text))), elem)
   }
 
   private def readILIDefinition(elem : Node) : ILIDefinition = {
@@ -237,7 +241,7 @@ object WNLMF extends Format {
     </LexicalEntry>""")
   }
 
-  def writeForm(out : PrintWriter, e : Form) {
+  private def writeForm(out : PrintWriter, e : Form) {
     out.print(s"""
       <Form writtenForm="${escapeXml(e.writtenForm)}" """)
     e.tag match {
@@ -248,7 +252,7 @@ object WNLMF extends Format {
     out.print("/>")
   }
 
-  def writeSense(out : PrintWriter, e : Sense) {
+  private def writeSense(out : PrintWriter, e : Sense) {
     out.print(s"""
       <Sense id="${e.id}" synset="${e.synsetRef}" """)
     writeMeta(out, 13, e)
@@ -266,21 +270,21 @@ object WNLMF extends Format {
       </Sense>""")
   }
 
-  def writeSenseRel(out : PrintWriter, e : SenseRelation) {
+  private def writeSenseRel(out : PrintWriter, e : SenseRelation) {
     out.print(s"""
         <SenseRelation relType="${e.relType.name}" target="${e.target}" """)
     writeMeta(out, 23, e)
     out.print("/>")
   }
 
-  def writeSenseExample(out : PrintWriter, e : Example) {
+  private def writeSenseExample(out : PrintWriter, e : Example) {
     out.print(s"""
         <Example """)
     writeMeta(out, 22, e)
     out.print(s""">${escapeXml(e.content)}</Example>""")
   }
 
-  def writeSyntacticBehaviour(out : PrintWriter, e : SyntacticBehaviour) {
+  private def writeSyntacticBehaviour(out : PrintWriter, e : SyntacticBehaviour) {
     out.print(s"""
       <SyntacticBehaviour subcategorizationFrame="${e.subcategorizationFrame}"/>""")
   }
@@ -327,7 +331,7 @@ object WNLMF extends Format {
     out.print(s""">${escapeXml(e.content)}</ILIDefinition>""")
   }
 
-  def writeSynsetRel(out : PrintWriter, e : SynsetRelation) {
+  private def writeSynsetRel(out : PrintWriter, e : SynsetRelation) {
     out.print(s"""
       <SynsetRelation relType="${e.relType.name}" target="${e.target}" """)
     writeMeta(out, 22, e)
