@@ -17,7 +17,6 @@ case class WNDBProperties(
   citation : Option[String])
 
 object WNDB {
-
   def read(wnFolder : File, props : WNDBProperties) : Map[String, Lexicon] = {
     val iliRef = props.iliRef
     

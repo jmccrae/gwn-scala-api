@@ -1,6 +1,7 @@
 package org.globalwordnet.api.serialize
 
 import java.io.{File, FileReader, Reader, Writer, FileWriter}
+import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
 import org.apache.jena.rdf.model.{Model, ModelFactory, Resource, Property, RDFNode, Literal}
 import org.apache.jena.vocabulary.{RDF, RDFS, DC_11, SKOS, OWL, XSD}
@@ -10,7 +11,7 @@ import scala.language.reflectiveCalls
 
 case class WNRDFException(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)
 
-object WNRDF {
+object WNRDF extends Format {
   class NameSpace(val prefix : String) extends Dynamic {
     def apply(suffix : String)(implicit model : Model) = model.createResource(prefix + suffix)
     def selectDynamic(suffix : String)(implicit model : Model) = model.createResource(prefix + suffix)

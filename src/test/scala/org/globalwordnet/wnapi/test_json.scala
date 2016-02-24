@@ -63,7 +63,7 @@ class JsonSpec extends FlatSpec with Matchers {
   val f = java.io.File.createTempFile("lexicon", ".json")
   f.deleteOnExit()
   "JSON Writer" should "write a file" in {
-    WNJSON.write(new java.io.FileWriter(f), resource)
+    WNJSON.write(resource, f)
   }
   it should "roundtrip" in {
     val text1 = io.Source.fromFile("src/test/resources/example.json").getLines.mkString(" ").replaceAll("\\s+", "")

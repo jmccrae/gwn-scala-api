@@ -63,7 +63,7 @@ class XMLSpec extends FlatSpec with Matchers {
   val f = java.io.File.createTempFile("lexicon", ".xml")
   f.deleteOnExit()
   "XML Writer" should "write a file" in {
-    WNLMF.write(new java.io.FileWriter(f), resource)
+    WNLMF.write(resource, f)
   }
   it should "roundtrip" in {
     val text1 = io.Source.fromFile("src/test/resources/example.xml").getLines.mkString(" ").replaceAll("<!--[^!]*-->", "").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")

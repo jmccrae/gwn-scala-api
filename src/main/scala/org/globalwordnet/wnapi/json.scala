@@ -1,5 +1,6 @@
 package org.globalwordnet.api.serialize
 
+import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
 import java.io.{Writer, Reader, PrintWriter}
 import spray.json._
@@ -79,7 +80,7 @@ private class ReaderAsSprayParserInput(reader : Reader) extends ParserInput.Defa
 
 case class WNJsonException(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)
 
-object WNJSON {
+object WNJSON extends Format {
   object WNJSONFormat extends DefaultJsonProtocol {
     private def checkDrop(p : String, s : String) = if(s.startsWith(p)) {
       s.drop(p.length) 
@@ -412,6 +413,7 @@ object WNJSON {
       }
     }
   }
+  def read(file : java.io.File) : LexicalResource = read(new java.io.FileReader(file))
 
   def read(input : Reader) : LexicalResource = {
     import WNJSONFormat._
@@ -463,7 +465,10 @@ object WNJSON {
     }
   }
 
-  def write(output : Writer, resource : LexicalResource) = {
+  def write(resource : LexicalResource, file : java.io.File) = 
+    write(resource, new java.io.FileWriter(file))
+
+  def write(resource : LexicalResource, output : Writer) = {
     import WNJSONFormat._
     prettyWrite(new PrintWriter(output), resource.toJson, 0)
     output.flush

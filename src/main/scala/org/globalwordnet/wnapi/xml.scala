@@ -1,12 +1,17 @@
 package org.globalwordnet.api.serialize
 
+import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
-import java.io.{Reader, Writer, PrintWriter}
+import java.io.{Reader, Writer, PrintWriter, File}
 import scala.xml.{XML, Elem, Node}
 import scala.xml.Utility.trim
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml}
 
-object WNLMF {
+object WNLMF extends Format {
+  def read(file : File) : LexicalResource = {
+    readLexicalResource(XML.loadFile(file))
+  }
+
   def read(input : Reader) : LexicalResource = {
     readLexicalResource(XML.load(input))
   }
@@ -141,7 +146,11 @@ object WNLMF {
     readMeta(Count(elem.text.toInt), elem)
   }
 
-  def write(_output : Writer, resource : LexicalResource) {
+  def write(resource : LexicalResource, output : File) {
+    write(resource, new java.io.FileWriter(output))
+  }
+
+  def write(resource : LexicalResource, _output : Writer) {
     val out = new PrintWriter(_output)
     writeLexicalResource(out, resource)
     out.flush
