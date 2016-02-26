@@ -6,8 +6,8 @@ import org.globalwordnet.api.wn._
 import org.globalwordnet.api.Util.makeId
 
 object OpenMultilingualWordNet {
-  def read(file : File, wn30 : LexicalResource) : LexicalResource = {
-    buildRaw(readRaw(file), wn30)
+  def read(file : File, wn30 : LexicalResource, defLang : String = "und", prefix : String = "wn30-") : LexicalResource = {
+    buildRaw(readRaw(file, defLang, prefix), wn30)
   }
 
   private final val langRel = "(\\w{2,3}):(.*)".r
@@ -18,9 +18,10 @@ object OpenMultilingualWordNet {
       ss =>
         ss.map(_._2).groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
     })
+    println(m)
     val languages = m.keys.map(Language.get).toSet ++ baseResource.lexicons.map(_.language) - Language.ENGLISH
     LexicalResource(
-      Seq(buildEnLexicon(m, baseResource.lexicons.find(_.language == "en").get)) ++
+      Seq(buildEnLexicon(m, baseResource.lexicons.find(_.language == Language.ENGLISH).get)) ++
       languages.map(lang => buildLexicon(lang, 
         m.getOrElse(lang.getIso639_3(), Map()), 
         baseResource.lexicons.find(_.language == lang).getOrElse(
@@ -60,6 +61,8 @@ object OpenMultilingualWordNet {
       lexicon : Lexicon) : Lexicon = lexicon match {
     case Lexicon(entries, synsets, id, label, language, email, license, version, url, citation) =>
       val lemmas = props.getOrElse("lemma", Nil)
+      println(lang)
+      println(lemmas)
       Lexicon(
         entries ++ lemmas.map({ 
           case (synset, lemma) =>
@@ -70,10 +73,10 @@ object OpenMultilingualWordNet {
       id, label, language, email, license, version, url, citation)
   }
 
-  private def readRaw(file : File, defLang : String = "und") = {
+  private def readRaw(file : File, defLang : String, prefix : String) = {
     for(line <- io.Source.fromFile(file).getLines if !line.startsWith("#")) yield {
       val elems = line.split("\t")
-      val synset = "wn30-" + elems(0)
+      val synset = prefix + elems(0)
       val rel = elems(1)
       val target = elems.drop(2).mkString("\t")
       val (lang, relType) = rel match {

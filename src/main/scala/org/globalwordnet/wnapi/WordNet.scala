@@ -62,7 +62,6 @@ case class Lexicon(entries : Seq[LexicalEntry], synsets : Seq[Synset],
   id : String, label : String, language : Language, email : String,
   license : String, version : String, url : Option[String], 
   citation : Option[String]) extends Meta {
-    assert(!entries.isEmpty)
   lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).mapValues(_.head)
 }
  
