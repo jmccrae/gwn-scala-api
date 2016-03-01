@@ -7,31 +7,35 @@ import org.globalwordnet.api.wn._
 import scala.xml._
 
 case class PLWordNetConfig(
-  email : String = "plwordnet.pwr.wroc.pl@gmail.com",
-  license : String = "http://nlp.pwr.wroc.pl/plwordnet/license",
-  version : String = "2.3",
-  url : Option[String] = Some("http://nlp.pwr.wroc.pl/plwordnet"),
-  citation : Option[String] = None
+  val email : String = "plwordnet.pwr.wroc.pl@gmail.com",
+  val license : String = "http://nlp.pwr.wroc.pl/plwordnet/license",
+  val version : String = "2.3",
+  val url : Option[String] = Some("http://nlp.pwr.wroc.pl/plwordnet"),
+  val citation : Option[String] = None
   )
 
-object enWordNetExtract {
-  private final val plWordNetFile = "plWordNet-dev.xml.gz"
+object plWordNetReader {
 
-  def load_plwordnet(en : Boolean) = {
-    val root = XML.load(new java.util.zip.GZIPInputStream(new java.io.FileInputStream(plWordNetFile)))
+  def load_plwordnet(en : Boolean, plWordNetFile : File) = {
+    val root = if(plWordNetFile.getName().endsWith(".gz")) {
+      XML.load(new java.util.zip.GZIPInputStream(new java.io.FileInputStream(plWordNetFile)))
+    } else {
+      XML.loadFile(plWordNetFile)
+    }
     val pwn_entries = (root \\ "lexical-unit").filter(x => en == (x \ "@pos").text.endsWith(" pwn")).map(
       x => (x \ "@id").text -> ((x \ "@name").text, (x \ "@pos").text)).toMap
+    val lexicalunits = pwn_entries.keys.toSet
     val descriptions = (root \\ "lexical-unit").filter(x => en == (x \ "@pos").text.endsWith(" pwn")).map(
       x => (x \ "@id").text -> (x \ "@desc").text).toMap
     val synsets = (root \\ "synset").filter(
       x => (x \ "unit-id").exists(n => pwn_entries contains n.text)).map(
       x => (x \ "@id").text -> ((x \ "unit-id").map(_.text), (x \ "@definition").text)).toMap
     val lexrelations = (root \\ "lexicalrelations").filter(
-      x => (synsets contains (x \ "@parent").text) && (synsets contains (x \ "@child").text)).map(
-      x => ((x \ "@parent").text, (x \ "@child").text, (x \ "@relation").text)).
+      x => (lexicalunits contains (x \ "@child").text)).map(
+      x => ((x \ "@child").text, (x \ "@parent").text, (x \ "@relation").text)).
       groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
     val synrelations = (root \\ "synsetrelations").filter(
-      x => (synsets contains (x \ "@parent").text) && (synsets contains (x \ "@child").text)).map(
+      x => (synsets contains (x \ "@child").text)).map(
       x => ((x \ "@child").text, (x \ "@parent").text, (x \ "@relation").text)).
       groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
      (pwn_entries, synsets, lexrelations, synrelations, descriptions)
@@ -226,14 +230,12 @@ object enWordNetExtract {
     case "223" => other("") // automatic_prompt3
   }
 
-  def load_pwn : (Map[String, Seq[String]], Map[String, Seq[String]], Map[String, String]) = {
-    val wordnet = xml.XML.load(new java.util.zip.GZIPInputStream(new java.io.FileInputStream("wn31.xml.gz")))
+  def load_pwn(wn : LexicalResource) : (Map[String, Seq[String]], Map[String, Seq[String]], Map[String, String]) = {
+    val wordnet = wn.lexicons.find(_.language == Language.ENGLISH).get
 
-    val lemma_synsets = (wordnet \\ "LexicalEntry").map(x => ((x \ "Lemma" \ "@writtenForm").text,
-                                                              (x \ "Sense").map(s => (s \ "@synset").text)))
+    val lemma_synsets = wordnet.entries.map(x => (x.lemma.writtenForm, x.senses.map(_.synsetRef)))
 
-    val synset_definitions = (wordnet \\ "Synset").map(x => ((x \ "@id").text, (x \ "Definition").text, (x \ "@ili").text))
-
+    val synset_definitions = wordnet.synsets.map(x => (x.id, x.definitions.head.content, x.ili.get))
 
     (lemma_synsets.groupBy(_._1).mapValues(_.flatMap(_._2)),
       synset_definitions.groupBy(_._1).mapValues(_.map(_._2).toSeq),
@@ -304,14 +306,14 @@ object enWordNetExtract {
             for(((name,pos), group) <- entries_grouped) yield {
               LexicalEntry(id=name,
                 lemma=Lemma(writtenForm=name, partOfSpeech=polishToPos(pos)),
-                senses={
+                senses=Seq[Sense]() ++({
                   for(entryid <- group.keys;
                       sense <- senses.getOrElse(entryid, Nil)) yield {
                         Sense(id=entryid,
                           synsetRef=entry_mapping.getOrElse(entryid, "pl-" + sense),
                           senseRelations={
                             for((targ, relType) <- lexrelations.getOrElse(entryid, Nil)) yield {
-                              val tid = entry_mapping.getOrElse(targ, "pl-" + targ)
+                              val tid = targ
                               mapRelType(relType) match {
                                 case other("") =>
                                   None
@@ -323,15 +325,15 @@ object enWordNetExtract {
                             }
                           }.flatten)
                       }
-                }.toSeq)
+                }))
             }
           }.toSeq,
           synsets={
             for((synsetid, (_, defn)) <- synsets) yield {
               val sid = synset_mapping.getOrElse(synsetid, "pl-" + synsetid)
-              val iliid = if(en) { ili.getOrElse(sid, "in") } else { "" }
-              Synset(id=sid,ili=Some(iliid),
-                definitions=Seq(Definition(defn)),
+              val iliid = if(en) { Some(ili.getOrElse(sid, "in")) } else { None }
+              Synset(id=sid,ili=iliid,
+                definitions=if(defn matches "\\s*") { Seq() } else { Seq(Definition(defn)) },
                 synsetRelations={
                   for((targ, rel) <- synrelations.getOrElse(synsetid, Nil)) yield {
                     val tid = synset_mapping.getOrElse(targ, "pl-" + targ)
@@ -616,15 +618,14 @@ object enWordNetExtract {
     }
   }
 
-  def read(plWordNetFile : File, config : PLWordNetConfig) = {
+  def read(plWordNetFile : File, config : PLWordNetConfig, wn31 : LexicalResource) = {
     val enLexicon = {
-      System.err.println("Extracting enWordNet")
-      val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(true)
+      val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(true, plWordNetFile)
 
       for(desc <- descriptions.values) {
         parseDescription(desc)
       }
-      val (pwn_entries, pwn_defns, ili) = load_pwn
+      val (pwn_entries, pwn_defns, ili) = load_pwn(wn31)
 
       val senses = build_senses(synsets)
 
@@ -634,8 +635,7 @@ object enWordNetExtract {
         synset_mapping, ili, config)
     }
     val plLexicon = {
-      System.err.println("Extracting plWordNet")
-      val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(false)
+      val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(false, plWordNetFile)
       for(desc <- descriptions.values) {
         val p = parseDescription(desc)
       }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<array-list owner="" date="2015-07-08 16.48.52" version="WordnetLoom 1.64.4">
+    <lexical-unit id="478387" name=".22" pos="rzeczownik pwn"
+        tagcount="0" domain="wytw" desc="" workstate="Nie przetworzone"
+        source="użytkownika" variant="1"/>
+    <lexical-unit id="107360" name="dehermetyzacja" pos="rzeczownik"
+        tagcount="0" domain="zdarz" desc="" workstate="Nie przetworzone"
+        source="użytkownika" variant="1"/>
+    <synset id="309949" workstate="Nie przetworzone" split="1" owner=""
+        definition="a .22 caliber firearm (pistol or rifle)  " desc="" abstract="false">
+        <unit-id>478386</unit-id>
+        <unit-id>478387</unit-id>
+    </synset>
+    <synset id="77760" workstate="Nie przetworzone" split="1" owner=""
+        definition="" desc="" abstract="false">
+        <unit-id>107360</unit-id>
+    </synset>
+    <lexicalrelations child="107360" parent="61999" relation="104"
+        valid="true" owner=""/>
+    <synsetrelations child="309949" parent="302999" relation="173"
+        valid="true" owner=""/>
+</array-list>
+
+
