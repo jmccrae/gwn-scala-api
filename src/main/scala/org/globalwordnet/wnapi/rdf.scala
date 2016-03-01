@@ -284,14 +284,20 @@ object WNRDF extends Format {
   }
 
   private def readSenseRelation(r : Resource)(implicit model : Model) : SenseRelation = {
-    val relType = (r \* VARTRANS.category).headOrElse(throw new WNRDFException("Relation without category"))
+    val relType = (r \* VARTRANS.category).headOption match {
+      case Some(r) if r.getURI().startsWith(WN.prefix) => 
+        SenseRelType.fromString(r.getURI().drop(WN.prefix.length), None)
+      case _ => (r \* DC_11.`type`).headOption match {
+        case Some(t) => other(t.getURI())
+        case None => (r lit DC_11.`type`).headOption match {
+          case Some(l) => other(l.getLexicalForm())
+          case None => throw new WNRDFException("Relation without category or type")
+        }
+      }
+    }
     readMeta(SenseRelation(
       toId((r \* VARTRANS.target).headOrElse(throw new WNRDFException("Relation without target"))),
-      if(relType.getURI().startsWith(WN.prefix)) {
-        SenseRelType.fromString(relType.getURI().drop(WN.prefix.length))
-      } else {
-        throw new WNRDFException("Nonstandard relation type")
-      }), r)
+      relType), r)
   }
 
   private def readExample(r : Resource)(implicit model : Model) : Example = {
@@ -339,14 +345,20 @@ object WNRDF extends Format {
   }
    
   private def readSynsetRelation(r : Resource)(implicit model : Model) : SynsetRelation = {
-    val relType = (r \* VARTRANS.category).headOrElse(throw new WNRDFException("Relation without category"))
+    val relType = (r \* VARTRANS.category).headOption match {
+      case Some(r) if r.getURI().startsWith(WN.prefix) => 
+        SynsetRelType.fromString(r.getURI().drop(WN.prefix.length), None)
+      case _ => (r \* DC_11.`type`).headOption match {
+        case Some(t) => other(t.getURI())
+        case None => (r lit DC_11.`type`).headOption match {
+          case Some(l) => other(l.getLexicalForm())
+          case None => throw new WNRDFException("Relation without category or type")
+        }
+      }
+    }
     readMeta(SynsetRelation(
       toId((r \* VARTRANS.target).headOrElse(throw new WNRDFException("Relation without target"))),
-      if(relType.getURI().startsWith(WN.prefix)) {
-        SynsetRelType.fromString(relType.getURI().drop(WN.prefix.length))
-      } else {
-        throw new WNRDFException("Nonstandard relation type")
-      }), r)
+      relType), r)
   }
 
   def write(lr : LexicalResource, output : File) {
@@ -518,6 +530,11 @@ object WNRDF extends Format {
         r + WN.script + model.createLiteral(s.toString())
       case None =>
     }
+    f.tag match {
+      case Some(s) =>
+        r + WN.tag + model.createLiteral(s)
+      case None =>
+    }
     r
   }
 
@@ -556,7 +573,16 @@ object WNRDF extends Format {
     val r = model.createResource()
     writeMeta(s, r)
     r + RDF.`type` + VARTRANS.SenseRelation
-    r + VARTRANS.category + WN(s.relType.name)
+    s.relType match {
+      case other(x) =>
+        r + DC_11.`type` + (if(x.startsWith("http")) {
+          model.createResource(java.net.URI.create(x).toString)
+        } else {
+          model.createLiteral(x)
+        })
+      case _ =>
+        r + VARTRANS.category + WN(s.relType.name)
+    }
     r + VARTRANS.target + model.createResource(baseUrl + s.target)
     r
   }
@@ -593,6 +619,11 @@ object WNRDF extends Format {
     writeMeta(d, r)
      r + RDF.`type` + WN.Definition
      r + RDF.value + model.createLiteral(d.content, d.language.getOrElse(lexicon.language).toString())
+     d.language match {
+       case Some(l) => 
+         r + DC_11.language + model.createLiteral(l.toString())
+       case None =>
+     }
      r
   }
 
@@ -608,7 +639,16 @@ object WNRDF extends Format {
     val r = model.createResource()
     writeMeta(s, r)
     r + RDF.`type` + VARTRANS.SynsetRelation
-    r + VARTRANS.category + WN(s.relType.name)
+    s.relType match {
+      case other(x) =>
+        r + DC_11.`type` + (if(x.startsWith("http")) {
+          model.createResource(java.net.URI.create(x).toString)
+        } else {
+          model.createLiteral(x)
+        })
+      case _ =>
+        r + VARTRANS.category + WN(s.relType.name)
+    }
     r + VARTRANS.target + model.createResource(baseUrl + s.target)
     r
   }

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF-1.0.dtd">
+<!-- Not a real example but used for parsing and round trip coverage testing -->
+<LexicalResource xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <Lexicon id="ex2" label="Example" language="de" email="email" license="http://www.license.com/"
+        version="1.0" citation="citation" url="http://example.com/"
+        dc:contributor="contributor"
+        dc:coverage="coverage"
+        dc:creator="creator"
+        dc:date="date"
+        dc:description="description"
+        dc:format="format"
+        dc:identifier="identifier"
+        dc:publisher="publisher"
+        dc:relation="relation"
+        dc:rights="rights"
+        dc:source="source"
+        dc:subject="subject"
+        dc:title="title"
+        dc:type="type"
+        status="status"
+        note="note"
+        confidenceScore="1.0">
+        <LexicalEntry id="w1" dc:contributor="contributor"
+            dc:coverage="coverage"
+            dc:creator="creator"
+            dc:date="date"
+            dc:description="description"
+            dc:format="format"
+            dc:identifier="identifier"
+            dc:publisher="publisher"
+            dc:relation="relation"
+            dc:rights="rights"
+            dc:source="source"
+            dc:subject="subject"
+            dc:title="title"
+            dc:type="type"
+            status="status"
+            note="note"
+            confidenceScore="1.0">
+            <Lemma
+                writtenForm="test"
+                script="Latn"
+                partOfSpeech="n"/>
+            <Form
+                writtenForm="tests"
+                script="Cyrl"
+                tag="NNS"/>
+            <Sense id="ws1" synset="s1" dc:contributor="contributor"
+                dc:coverage="coverage"
+                dc:creator="creator"
+                dc:date="date"
+                dc:description="description"
+                dc:format="format"
+                dc:identifier="identifier"
+                dc:publisher="publisher"
+                dc:relation="relation"
+                dc:rights="rights"
+                dc:source="source"
+                dc:subject="subject"
+                dc:title="title"
+                dc:type="type"
+                status="status"
+                note="note"
+                confidenceScore="1.0">
+                <SenseRelation target="s1" relType="antonym" dc:contributor="contributor"
+                    dc:coverage="coverage"
+                    dc:creator="creator"
+                    dc:date="date"
+                    dc:description="description"
+                    dc:format="format"
+                    dc:identifier="identifier"
+                    dc:publisher="publisher"
+                    dc:relation="relation"
+                    dc:rights="rights"
+                    dc:source="source"
+                    dc:subject="subject"
+                    dc:title="title"
+                    dc:type="type"
+                    status="status"
+                    note="note"
+                    confidenceScore="1.0"/>
+                <SenseRelation target="s1" relType="antonym"/>
+                <SenseRelation target="s1" relType="also"/>
+                <SenseRelation target="s1" relType="participle"/>
+                <SenseRelation target="s1" relType="pertainym"/>
+                <SenseRelation target="s1" relType="derivation"/>
+                <SenseRelation target="s1" relType="domain_topic"/>
+                <SenseRelation target="s1" relType="has_domain_topic"/>
+                <SenseRelation target="s1" relType="domain_region"/>
+                <SenseRelation target="s1" relType="has_domain_region"/>
+                <SenseRelation target="s1" relType="domain_usage"/>
+                <SenseRelation target="s1" relType="has_domain_usage"/>
+                <SenseRelation target="s1" relType="similar"/>
+                <SenseRelation target="s1" relType="other" dc:type="emotion"/>
+                <Example language="fr" dc:contributor="contributor"
+                    dc:coverage="coverage"
+                    dc:creator="creator"
+                    dc:date="date"
+                    dc:description="description"
+                    dc:format="format"
+                    dc:identifier="identifier"
+                    dc:publisher="publisher"
+                    dc:relation="relation"
+                    dc:rights="rights"
+                    dc:source="source"
+                    dc:subject="subject"
+                    dc:title="title"
+                    dc:type="type"
+                    status="status"
+                    note="note"
+                    confidenceScore="1.0">
+                    example
+                </Example>
+                <Count dc:contributor="contributor"
+                    dc:coverage="coverage"
+                    dc:creator="creator"
+                    dc:date="date"
+                    dc:description="description"
+                    dc:format="format"
+                    dc:identifier="identifier"
+                    dc:publisher="publisher"
+                    dc:relation="relation"
+                    dc:rights="rights"
+                    dc:source="source"
+                    dc:subject="subject"
+                    dc:title="title"
+                    dc:type="type"
+                    status="status"
+                    note="note"
+                    confidenceScore="1.0">10</Count>
+            </Sense>
+            <SyntacticBehaviour subcategorizationFrame="subcategorizationFrame"/>
+        </LexicalEntry>
+        <LexicalEntry id="w2"><Lemma writtenForm="test" partOfSpeech="v"/></LexicalEntry>
+        <LexicalEntry id="w3"><Lemma writtenForm="test" partOfSpeech="a"/></LexicalEntry>
+        <LexicalEntry id="w4"><Lemma writtenForm="test" partOfSpeech="r"/></LexicalEntry>
+        <LexicalEntry id="w5"><Lemma writtenForm="test" partOfSpeech="s"/></LexicalEntry>
+        <LexicalEntry id="w6"><Lemma writtenForm="test" partOfSpeech="t"/></LexicalEntry>
+        <LexicalEntry id="w7"><Lemma writtenForm="test" partOfSpeech="c"/></LexicalEntry>
+        <LexicalEntry id="w8"><Lemma writtenForm="test" partOfSpeech="p"/></LexicalEntry>
+        <LexicalEntry id="w9"><Lemma writtenForm="test" partOfSpeech="x"/></LexicalEntry>
+        <LexicalEntry id="w0"><Lemma writtenForm="test" partOfSpeech="u"/></LexicalEntry>
+        <Synset id="s1" ili="i1" dc:contributor="contributor"
+            dc:coverage="coverage"
+            dc:creator="creator"
+            dc:date="date"
+            dc:description="description"
+            dc:format="format"
+            dc:identifier="identifier"
+            dc:publisher="publisher"
+            dc:relation="relation"
+            dc:rights="rights"
+            dc:source="source"
+            dc:subject="subject"
+            dc:title="title"
+            dc:type="type"
+            status="status"
+            note="note"
+            confidenceScore="1.0">
+            <Definition language="en" dc:contributor="contributor"
+                dc:coverage="coverage"
+                dc:creator="creator"
+                dc:date="date"
+                dc:description="description"
+                dc:format="format"
+                dc:identifier="identifier"
+                dc:publisher="publisher"
+                dc:relation="relation"
+                dc:rights="rights"
+                dc:source="source"
+                dc:subject="subject"
+                dc:title="title"
+                dc:type="type"
+                status="status"
+                note="note"
+                confidenceScore="1.0">definition</Definition>
+            <ILIDefinition dc:contributor="contributor"
+                dc:coverage="coverage"
+                dc:creator="creator"
+                dc:date="date"
+                dc:description="description"
+                dc:format="format"
+                dc:identifier="identifier"
+                dc:publisher="publisher"
+                dc:relation="relation"
+                dc:rights="rights"
+                dc:source="source"
+                dc:subject="subject"
+                dc:title="title"
+                dc:type="type"
+                status="status"
+                note="note"
+                confidenceScore="1.0">iliDefinition</ILIDefinition>
+            <SynsetRelation target="s1" relType="agent" dc:contributor="contributor"
+                dc:coverage="coverage"
+                dc:creator="creator"
+                dc:date="date"
+                dc:description="description"
+                dc:format="format"
+                dc:identifier="identifier"
+                dc:publisher="publisher"
+                dc:relation="relation"
+                dc:rights="rights"
+                dc:source="source"
+                dc:subject="subject"
+                dc:title="title"
+                dc:type="type"
+                status="status"
+                note="note"
+                confidenceScore="1.0"/>
+            <SynsetRelation target="s1" relType="also"/>
+            <SynsetRelation target="s1" relType="attribute"/>
+            <SynsetRelation target="s1" relType="be_in_state"/>
+            <SynsetRelation target="s1" relType="causes"/>
+            <SynsetRelation target="s1" relType="classified_by"/>
+            <SynsetRelation target="s1" relType="classifies"/>
+            <SynsetRelation target="s1" relType="co_agent_instrument"/>
+            <SynsetRelation target="s1" relType="co_agent_patient"/>
+            <SynsetRelation target="s1" relType="co_agent_result"/>
+            <SynsetRelation target="s1" relType="co_instrument_agent"/>
+            <SynsetRelation target="s1" relType="co_instrument_patient"/>
+            <SynsetRelation target="s1" relType="co_instrument_result"/>
+            <SynsetRelation target="s1" relType="co_patient_agent"/>
+            <SynsetRelation target="s1" relType="co_patient_instrument"/>
+            <SynsetRelation target="s1" relType="co_result_agent"/>
+            <SynsetRelation target="s1" relType="co_result_instrument"/>
+            <SynsetRelation target="s1" relType="co_role"/>
+            <SynsetRelation target="s1" relType="direction"/>
+            <SynsetRelation target="s1" relType="domain_region"/>
+            <SynsetRelation target="s1" relType="domain_topic"/>
+            <SynsetRelation target="s1" relType="domain_usage"/>
+            <SynsetRelation target="s1" relType="entails"/>
+            <SynsetRelation target="s1" relType="eq_synonym"/>
+            <SynsetRelation target="s1" relType="has_domain_region"/>
+            <SynsetRelation target="s1" relType="has_domain_topic"/>
+            <SynsetRelation target="s1" relType="has_domain_usage"/>
+            <SynsetRelation target="s1" relType="holo_location"/>
+            <SynsetRelation target="s1" relType="holo_member"/>
+            <SynsetRelation target="s1" relType="holo_part"/>
+            <SynsetRelation target="s1" relType="holo_portion"/>
+            <SynsetRelation target="s1" relType="holo_substance"/>
+            <SynsetRelation target="s1" relType="holonym"/>
+            <SynsetRelation target="s1" relType="hypernym"/>
+            <SynsetRelation target="s1" relType="hyponym"/>
+            <SynsetRelation target="s1" relType="in_manner"/>
+            <SynsetRelation target="s1" relType="instance_hypernym"/>
+            <SynsetRelation target="s1" relType="instance_hyponym"/>
+            <SynsetRelation target="s1" relType="instrument"/>
+            <SynsetRelation target="s1" relType="involved"/>
+            <SynsetRelation target="s1" relType="involved_agent"/>
+            <SynsetRelation target="s1" relType="involved_direction"/>
+            <SynsetRelation target="s1" relType="involved_instrument"/>
+            <SynsetRelation target="s1" relType="involved_location"/>
+            <SynsetRelation target="s1" relType="involved_patient"/>
+            <SynsetRelation target="s1" relType="involved_result"/>
+            <SynsetRelation target="s1" relType="involved_source_direction"/>
+            <SynsetRelation target="s1" relType="involved_target_direction"/>
+            <SynsetRelation target="s1" relType="is_caused_by"/>
+            <SynsetRelation target="s1" relType="is_entailed_by"/>
+            <SynsetRelation target="s1" relType="location"/>
+            <SynsetRelation target="s1" relType="manner_of"/>
+            <SynsetRelation target="s1" relType="mero_location"/>
+            <SynsetRelation target="s1" relType="mero_member"/>
+            <SynsetRelation target="s1" relType="mero_part"/>
+            <SynsetRelation target="s1" relType="mero_portion"/>
+            <SynsetRelation target="s1" relType="mero_substance"/>
+            <SynsetRelation target="s1" relType="meronym"/>
+            <SynsetRelation target="s1" relType="similar"/>
+            <SynsetRelation target="s1" relType="other" dc:type="emotion"/>
+            <SynsetRelation target="s1" relType="patient"/>
+            <SynsetRelation target="s1" relType="restricted_by"/>
+            <SynsetRelation target="s1" relType="restricts"/>
+            <SynsetRelation target="s1" relType="result"/>
+            <SynsetRelation target="s1" relType="role"/>
+            <SynsetRelation target="s1" relType="source_direction"/>
+            <SynsetRelation target="s1" relType="state_of"/>
+            <SynsetRelation target="s1" relType="target_direction"/>
+            <SynsetRelation target="s1" relType="subevent"/>
+            <SynsetRelation target="s1" relType="is_subevent_of"/>
+            <SynsetRelation target="s1" relType="antonym"/>
+            <Example language="fr" dc:contributor="contributor"
+                dc:coverage="coverage"
+                dc:creator="creator"
+                dc:date="date"
+                dc:description="description"
+                dc:format="format"
+                dc:identifier="identifier"
+                dc:publisher="publisher"
+                dc:relation="relation"
+                dc:rights="rights"
+                dc:source="source"
+                dc:subject="subject"
+                dc:title="title"
+                dc:type="type"
+                status="status"
+                note="note"
+                confidenceScore="1.0">example</Example>
+        </Synset>
+    </Lexicon>
+</LexicalResource>
+
+
+

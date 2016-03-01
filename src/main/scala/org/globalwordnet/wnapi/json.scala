@@ -13,7 +13,18 @@ private class ReaderAsSprayParserInput(reader : Reader) extends ParserInput.Defa
   private var lastChar : Char = NUL
   private var inString = false
   private var peekChar : Char = NUL
+  private final val MAX_QUEUE = 1024
+  private val queue = collection.mutable.Queue[Char]()
   def nextChar() : Char = {
+    val c = _nextChar()
+    queue.enqueue(c)
+    if(queue.size > MAX_QUEUE) {
+      queue.dequeue()
+    }
+    c
+  }
+
+  private def _nextChar() : Char = {
     peekChar match {
       case '\u0000' =>
       case c =>
@@ -63,19 +74,25 @@ private class ReaderAsSprayParserInput(reader : Reader) extends ParserInput.Defa
     }
   }
   def nextUtf8Char() = nextChar()
-  def length = throw new RuntimeException()
-  def sliceCharArray(start : Int, end : Int) : Array[Char] = throw new RuntimeException()
-  //{
-  //  println("sliceCharArray" + "-" + start + "-" + end)
-  //  if(start < _cursor) {
-  //    throw new RuntimeException()
-  //  } 
-  //  reader.skip(start - _cursor)
-  //  _cursor = start
-  //  val buf = new Array[Char](end - start)
-  //  reader.read(buf)
-  //  buf
-  //}
+  def length = throw new RuntimeException("Requesting length of reader")
+  def sliceCharArray(start : Int, end : Int) : Array[Char]= {
+    if(start < _cursor && start > _cursor - MAX_QUEUE) {
+      if(end <= _cursor) {
+        queue.takeRight(_cursor - start + 1).take(end - start).toArray
+      } else {
+        queue.takeRight(_cursor - start + 1).toArray ++ sliceCharArray(_cursor, end)
+      }
+    } else {
+      if(start < _cursor) {
+        throw new RuntimeException("Seeking backwards: " + _cursor + " " + start + " " + end)
+      } 
+      reader.skip(start - _cursor)
+      _cursor = start
+      val buf = new Array[Char](end - start)
+      reader.read(buf)
+      buf
+    }
+  }
   def sliceString(start: Int, end: Int) = new String(sliceCharArray(start, end))
 }
 
@@ -147,7 +164,7 @@ object WNJSON extends Format {
     }
 
     object countFormat extends JsonFormat[Count] {
-      def write(c : Count) = JsObject("count" -> JsNumber(c.value))
+      def write(c : Count) = JsObject("value" -> JsNumber(c.value))
       def read(v : JsValue) = v match {
         case JsObject(m) => 
           Count(numberOrFail(m.getOrElse("value", throw new WNJsonException("Count needs a value"))).toInt)
@@ -212,13 +229,21 @@ object WNJSON extends Format {
     }
     implicit val metaExampleFormat = new MetaFormat(senseExampleFormat)
     object synsetRelationFormat extends JsonFormat[SynsetRelation] {
-      def write(r : SynsetRelation) = JsObject(
-        "category" -> JsString("wn:" + r.relType.name),
-        "target" -> JsString(r.target))
+      def write(r : SynsetRelation) = r.relType match {
+        case other(x) => JsObject(
+          "type" -> JsString(x),
+          "target" -> JsString(r.target))
+        case _ => JsObject(
+          "category" -> JsString("wn:" + r.relType.name),
+          "target" -> JsString(r.target))
+      }
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           SynsetRelation(stringOrFail(m.getOrElse("target", throw new WNJsonException("Synset relation requires target"))),
-           SynsetRelType.fromString(checkDrop("wn:", stringOrFail(m.getOrElse("category", throw new WNJsonException("Synset relation requires category"))))))
+            m.get("category") match {
+              case Some(c) if stringOrFail(c).startsWith("wn:") => SynsetRelType.fromString(checkDrop("wn:", stringOrFail(c)), None)
+              case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
+            })
         case _ =>
           throw new WNJsonException("Synset relation must be an object")
       }
@@ -226,13 +251,21 @@ object WNJSON extends Format {
     implicit val metaSynsetRelationFormat = new MetaFormat(synsetRelationFormat)
 
     object senseRelationFormat extends JsonFormat[SenseRelation] {
-      def write(r : SenseRelation) = JsObject(
+      def write(r : SenseRelation) = r.relType match {
+        case other(x) => JsObject(
+          "type" -> JsString(x),
+          "target" -> JsString(r.target))
+        case _ => JsObject(
         "category" -> JsString("wn:" + r.relType.name),
         "target" -> JsString(r.target))
+      }
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           SenseRelation(stringOrFail(m.getOrElse("target", throw new WNJsonException("Sense relation requires target"))),
-           SenseRelType.fromString(checkDrop("wn:", stringOrFail(m.getOrElse("category", throw new WNJsonException("Sense relation requires category"))))))
+            m.get("category") match {
+              case Some(c) if stringOrFail(c).startsWith("wn:") => SenseRelType.fromString(checkDrop("wn:", stringOrFail(c)), None)
+              case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
+            })
         case _ =>
           throw new WNJsonException("Sense relation must be an object")
       }
@@ -314,7 +347,10 @@ object WNJSON extends Format {
               case _ => throw new WNJsonException("Lemma must be an object")
             },
                   PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech"))))),
-                  m.get("script").map(stringOrFail).map(Script.getByAlpha4Code)
+                  m.get("lemma").flatMap({
+                    case JsObject(m) => m.get("script").map(stringOrFail).map(Script.getByAlpha4Code)
+                    case _ => throw new WNJsonException("Lemma must be an object")
+                  })
                   ),
             m.getOrElse("form", JsArray()) match {
               case JsArray(x) => x.map(formFormat.read)

@@ -101,7 +101,7 @@ trait RelType {
 sealed trait SynsetRelType extends RelType
 
 object SynsetRelType {
-  def fromString(name : String) = name match {
+  def fromString(name : String, dcType : Option[String]) = name match {
     case "agent" => agent
     case "also" => also
     case "attribute" => attribute
@@ -133,7 +133,7 @@ object SynsetRelType {
     case "holo_member" => holo_member
     case "holo_part" => holo_part
     case "holo_portion" => holo_portion
-    case "holo_named_entity" => holo_substance
+    case "holo_substance" => holo_substance
     case "holonym" => holonym
     case "hypernym" => hypernym
     case "hyponym" => hyponym
@@ -172,6 +172,7 @@ object SynsetRelType {
     case "subevent" => subevent
     case "is_subevent_of" => is_subevent_of
     case "antonym" => antonym
+    case "other" => other(dcType.getOrElse(throw new RuntimeException("Other requires a dc:type")))
   }
 }
 object agent extends SynsetRelType
@@ -233,7 +234,9 @@ object mero_portion extends SynsetRelType
 object mero_substance extends SynsetRelType
 object meronym extends SynsetRelType
 object similar extends SynsetRelType with SenseRelType
-case class other(`type` : String) extends SynsetRelType with SenseRelType
+case class other(`type` : String) extends SynsetRelType with SenseRelType {
+  override def name = "other"
+}
 object patient extends SynsetRelType
 object restricted_by extends SynsetRelType
 object restricts extends SynsetRelType
@@ -249,19 +252,20 @@ object is_subevent_of extends SynsetRelType
 sealed trait SenseRelType extends RelType
 
 object SenseRelType {
-  def fromString(name : String) = name match {
+  def fromString(name : String, dcType : Option[String]) = name match {
     case "antonym" => antonym
     case "also" => also
     case "participle" => participle
     case "pertainym" => pertainym
     case "derivation" => derivation
     case "domain_topic" => domain_topic
-    case "has_domain_category" => has_domain_topic
+    case "has_domain_topic" => has_domain_topic
     case "domain_region" => domain_region
     case "has_domain_region" => has_domain_region
     case "domain_usage" => domain_usage
     case "has_domain_usage" => has_domain_usage
     case "similar" => similar
+    case "other" => other(dcType.getOrElse(throw new RuntimeException("Other requires a dc:type")))
   }
 }
 object antonym extends SenseRelType with SynsetRelType

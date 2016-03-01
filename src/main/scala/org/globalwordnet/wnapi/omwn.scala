@@ -18,7 +18,6 @@ object OpenMultilingualWordNet {
       ss =>
         ss.map(_._2).groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
     })
-    println(m)
     val languages = m.keys.map(Language.get).toSet ++ baseResource.lexicons.map(_.language) - Language.ENGLISH
     LexicalResource(
       Seq(buildEnLexicon(m, baseResource.lexicons.find(_.language == Language.ENGLISH).get)) ++
@@ -61,8 +60,6 @@ object OpenMultilingualWordNet {
       lexicon : Lexicon) : Lexicon = lexicon match {
     case Lexicon(entries, synsets, id, label, language, email, license, version, url, citation) =>
       val lemmas = props.getOrElse("lemma", Nil)
-      println(lang)
-      println(lemmas)
       Lexicon(
         entries ++ lemmas.map({ 
           case (synset, lemma) =>

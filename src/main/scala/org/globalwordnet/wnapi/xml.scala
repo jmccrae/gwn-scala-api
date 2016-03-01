@@ -97,11 +97,7 @@ object WNLMF extends Format {
   }
 
   private def readSenseRel(code : String, `type` : Option[String]) = {
-    if(code == "other") {
-      other(`type`.getOrElse(throw new IllegalArgumentException("other without type")))
-    } else {
-      SenseRelType.fromString(code)
-    }
+    SenseRelType.fromString(code, `type`)
   }
 
   private def readSenseExample(elem : Node) = {
@@ -140,11 +136,7 @@ object WNLMF extends Format {
   }
 
   private def readSynsetRelType(code : String, `type` : Option[String]) = {
-    if(code == "other") {
-      other(`type`.getOrElse(throw new IllegalArgumentException("other without type")))
-    } else {
-      SynsetRelType.fromString(code)
-    }
+    SynsetRelType.fromString(code, `type`)
   }
 
   private def readCount(elem : Node) : Count = {
