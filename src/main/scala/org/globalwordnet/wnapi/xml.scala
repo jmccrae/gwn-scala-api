@@ -23,8 +23,6 @@ object WNLMF extends Format {
 
   private def readLexicon(elem : Node) : Lexicon = {
     readMeta(Lexicon(
-      (elem \ "LexicalEntry").map(readEntry),
-      (elem \ "Synset").map(readSynset),
       (elem \ "@id").text,
       (elem \ "@label").text,
       Language.get((elem \ "@language").text),
@@ -32,7 +30,9 @@ object WNLMF extends Format {
       (elem \ "@license").text,
       (elem \ "@version").text,
       (elem \ "@url").headOption.map(_.text),
-      (elem \ "@citation").headOption.map(_.text)), elem)
+      (elem \ "@citation").headOption.map(_.text),
+      (elem \ "LexicalEntry").map(readEntry),
+      (elem \ "Synset").map(readSynset)), elem)
   }
 
   private def readMeta[A <: Meta](a : A, elem : Node) : A = {
@@ -58,11 +58,12 @@ object WNLMF extends Format {
 
   private def readEntry(elem : Node) : LexicalEntry = {
     readMeta(LexicalEntry(
-      readLemma((elem \ "Lemma").head),
+        (elem \ "@id").text,
+      readLemma(
+        (elem \ "Lemma").head),
       (elem \ "Form").map(readForm),
       (elem \ "Sense").map(readSense),
-      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour),
-      (elem \ "@id").text), elem)
+      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem)
   }
 
   private def readLemma(elem : Node) : Lemma = {
@@ -83,10 +84,10 @@ object WNLMF extends Format {
 
   private def readSense(elem : Node) : Sense = {
     readMeta(Sense(
-      (elem \ "SenseRelation").map(readSenseRelation),
-      (elem \ "Example").map(readSenseExample),
       (elem \ "@id").text,
       (elem \ "@synset").text,
+      (elem \ "SenseRelation").map(readSenseRelation),
+      (elem \ "Example").map(readSenseExample),
       (elem \ "Count").map(readCount)), elem)
   }
 
@@ -111,11 +112,11 @@ object WNLMF extends Format {
 
   private def readSynset(elem : Node) : Synset = {
     readMeta(Synset(
+      (elem \ "@id").text,
+      (elem \ "@ili").headOption.map(_.text),
       (elem \ "Definition").map(readDefinition),
       (elem \ "ILIDefinition").headOption.map(readILIDefinition),
       (elem \ "SynsetRelation").map(readSynsetRelation),
-      (elem \ "@id").text,
-      (elem \ "@ili").headOption.map(_.text),
       (elem \ "Example").map(readSenseExample)), elem)
   }
 

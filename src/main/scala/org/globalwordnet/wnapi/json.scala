@@ -182,9 +182,9 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Form(
-            stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Form needs a written form"))),
-            m.get("tag").map(stringOrFail),
-            m.get("script").map(stringOrFail).map(Script.getByAlpha4Code))
+            writtenForm=stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Form needs a written form"))),
+            tag=m.get("tag").map(stringOrFail),
+            script=m.get("script").map(stringOrFail).map(Script.getByAlpha4Code))
         case _ =>
           throw new WNJsonException("Form must be an object")
       }
@@ -195,8 +195,8 @@ object WNJSON extends Format {
           d.language.map(l => "language" -> JsString(l.toString())))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          Definition(stringOrFail(m.getOrElse("gloss", throw new WNJsonException("Definition requires gloss"))), 
-                     m.get("language").map(stringOrFail).map(Language.get))
+          Definition(content=stringOrFail(m.getOrElse("gloss", throw new WNJsonException("Definition requires gloss"))), 
+                     language=m.get("language").map(stringOrFail).map(Language.get))
         case _ =>
           throw new WNJsonException("Definition must be an object")
       }
@@ -221,8 +221,8 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Example(
-            stringOrFail(m.getOrElse("value", throw new WNJsonException("Example requires value"))),
-            m.get("language").map(stringOrFail).map(Language.get))
+            content=stringOrFail(m.getOrElse("value", throw new WNJsonException("Example requires value"))),
+            language=m.get("language").map(stringOrFail).map(Language.get))
         case _ =>
           throw new WNJsonException("Sense example must be an object")
       }
@@ -239,8 +239,9 @@ object WNJSON extends Format {
       }
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          SynsetRelation(stringOrFail(m.getOrElse("target", throw new WNJsonException("Synset relation requires target"))),
-            m.get("category") match {
+          SynsetRelation(
+            target=stringOrFail(m.getOrElse("target", throw new WNJsonException("Synset relation requires target"))),
+            relType=m.get("category") match {
               case Some(c) if stringOrFail(c).startsWith("wn:") => SynsetRelType.fromString(checkDrop("wn:", stringOrFail(c)), None)
               case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
             })
@@ -261,8 +262,9 @@ object WNJSON extends Format {
       }
       def read(v : JsValue) = v match {
         case JsObject(m) =>
-          SenseRelation(stringOrFail(m.getOrElse("target", throw new WNJsonException("Sense relation requires target"))),
-            m.get("category") match {
+          SenseRelation(
+            target=stringOrFail(m.getOrElse("target", throw new WNJsonException("Sense relation requires target"))),
+            relType=m.get("category") match {
               case Some(c) if stringOrFail(c).startsWith("wn:") => SenseRelType.fromString(checkDrop("wn:", stringOrFail(c)), None)
               case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
             })
@@ -291,17 +293,17 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Sense(
-            m.getOrElse("link", JsArray()) match {
+            senseRelations=m.getOrElse("link", JsArray()) match {
               case JsArray(x) => x.map(metaSenseRelationFormat.read)
               case _ => throw new WNJsonException("Relations should be a list of values")
             },
-            m.getOrElse("example", JsArray()) match {
+            senseExamples=m.getOrElse("example", JsArray()) match {
               case JsArray(x) => x.map(metaExampleFormat.read)
               case _ => throw new WNJsonException("Examples should be a list of values")
             },
-            stringOrFail(m.getOrElse("@id", throw new WNJsonException("Sense must have an id"))),
-            stringOrFail(m.getOrElse("synset", throw new WNJsonException("Sense must have a synset"))),
-            m.getOrElse("count", JsArray()) match {
+            id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("Sense must have an id"))),
+            synsetRef=stringOrFail(m.getOrElse("synset", throw new WNJsonException("Sense must have a synset"))),
+            counts=m.getOrElse("count", JsArray()) match {
               case JsArray(x) => x.map(metaCountFormat.read)
               case _ => throw new WNJsonException("Counts should be a list of values")
             })
@@ -342,7 +344,8 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           LexicalEntry(
-            Lemma(m.getOrElse("lemma", throw new WNJsonException("Lexical entry must have a lemma")) match {
+            lemma=Lemma(
+              m.getOrElse("lemma", throw new WNJsonException("Lexical entry must have a lemma")) match {
               case JsObject(m) => stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Lemma must have a written form")))
               case _ => throw new WNJsonException("Lemma must be an object")
             },
@@ -352,19 +355,19 @@ object WNJSON extends Format {
                     case _ => throw new WNJsonException("Lemma must be an object")
                   })
                   ),
-            m.getOrElse("form", JsArray()) match {
+            forms=m.getOrElse("form", JsArray()) match {
               case JsArray(x) => x.map(formFormat.read)
               case _ => throw new WNJsonException("Form must be a list of objects")
             },
-            m.getOrElse("sense", JsArray()) match {
+            senses=m.getOrElse("sense", JsArray()) match {
               case JsArray(x) => x.map(metaSenseFormat.read)
               case _ => throw new WNJsonException("Sense must be a list of objects")
             },
-            m.getOrElse("synBehavior", JsArray()) match {
+            syntacticBehaviours=m.getOrElse("synBehavior", JsArray()) match {
               case JsArray(x) => x.map(syntacticBehaviourFormat.read)
               case _ => throw new WNJsonException("Syntactic behaviour must be a list of objects")
             },
-            stringOrFail(m.getOrElse("@id", throw new WNJsonException("Lexical entry must have an id"))))
+            id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("Lexical entry must have an id"))))
         case _ =>
           throw new WNJsonException("Lexical entry must be an object")
       }
@@ -391,18 +394,18 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Synset(
-            m.getOrElse("definition", JsArray()) match {
+            definitions=m.getOrElse("definition", JsArray()) match {
               case JsArray(x) => x.map(metaDefinitionFormat.read)
               case _ => throw new WNJsonException("Definition must be list of objects")
             },
-            m.get("iliDefinition").map(metaILIDefinitionFormat.read),
-            m.getOrElse("link", JsArray()) match {
+            iliDefinition=m.get("iliDefinition").map(metaILIDefinitionFormat.read),
+            synsetRelations=m.getOrElse("link", JsArray()) match {
               case JsArray(x) => x.map(metaSynsetRelationFormat.read)
               case _ => throw new WNJsonException("Synset link must be list of objects")
             },
-            stringOrFail(m.getOrElse("@id", throw new WNJsonException("Synset must have an ID"))),
-            m.get("ili").map(x => checkDrop("ili:", stringOrFail(x))),
-            m.getOrElse("example", JsArray()) match {
+            id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("Synset must have an ID"))),
+            ili=m.get("ili").map(x => checkDrop("ili:", stringOrFail(x))),
+            synsetExamples=m.getOrElse("example", JsArray()) match {
               case JsArray(x) => x.map(metaExampleFormat.read)
               case _ => throw new WNJsonException("Synset exampels must be list of objects")
             })
@@ -435,22 +438,22 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Lexicon(
-            m.getOrElse("entry", JsArray()) match {
+            entries=m.getOrElse("entry", JsArray()) match {
               case JsArray(x) => x.map(metaLexicalEntryFormat.read)
               case _ => throw new IllegalArgumentException("Entries should be a list of objects")
             },
-            m.getOrElse("synset", JsArray()) match {
+            synsets=m.getOrElse("synset", JsArray()) match {
               case JsArray(x) => x.map(metaSynsetFormat.read)
               case _ => throw new IllegalArgumentException("Synsets should be a list of objects")
             },
-            stringOrFail(m.getOrElse("@id", throw new WNJsonException("ID is required on a lexicon"))),
-            stringOrFail(m.getOrElse("label", throw new WNJsonException("Label is required on a lexicon"))),
-            Language.get(stringOrFail(m.getOrElse("language", throw new WNJsonException("Language is required on a lexicon")))),
-            stringOrFail(m.getOrElse("email", throw new WNJsonException("Email is required on a lexicon"))),
-            stringOrFail(m.getOrElse("license", throw new WNJsonException("License is required on a lexicon"))),
-            stringOrFail(m.getOrElse("version", throw new WNJsonException("Version is required on a lexicon"))),
-            m.get("url").map(stringOrFail),
-            m.get("citation").map(stringOrFail))
+            id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("ID is required on a lexicon"))),
+            label=stringOrFail(m.getOrElse("label", throw new WNJsonException("Label is required on a lexicon"))),
+            language=Language.get(stringOrFail(m.getOrElse("language", throw new WNJsonException("Language is required on a lexicon")))),
+            email=stringOrFail(m.getOrElse("email", throw new WNJsonException("Email is required on a lexicon"))),
+            license=stringOrFail(m.getOrElse("license", throw new WNJsonException("License is required on a lexicon"))),
+            version=stringOrFail(m.getOrElse("version", throw new WNJsonException("Version is required on a lexicon"))),
+            url=m.get("url").map(stringOrFail),
+            citation=m.get("citation").map(stringOrFail))
         case _ =>
           throw new WNJsonException("Lexicon must be an object")
       }

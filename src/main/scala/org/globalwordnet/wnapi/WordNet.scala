@@ -60,32 +60,36 @@ case class LexicalResource(lexicons : Seq[Lexicon]) {
   }).toMap
 }
 
-case class Lexicon(entries : Seq[LexicalEntry], synsets : Seq[Synset],
-  id : String, label : String, language : Language, email : String,
-  license : String, version : String, url : Option[String], 
-  citation : Option[String]) extends Meta {
+case class Lexicon(id : String, 
+  label : String, language : Language, email : String,
+  license : String, version : String, url : Option[String] = None, 
+  citation : Option[String] = None,
+  entries : Seq[LexicalEntry] = Nil, 
+  synsets : Seq[Synset] = Nil) extends Meta {
   lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).mapValues(_.head)
 }
  
-case class LexicalEntry(lemma : Lemma, forms : Seq[Form], senses : Seq[Sense],
-   syntacticBehaviours : Seq[SyntacticBehaviour], id : String) extends Meta
+case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
+   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends Meta
 
-case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script])
+case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None)
 
-case class Form(writtenForm : String, tag : Option[String], script : Option[Script])
+case class Form(writtenForm : String, tag : Option[String] = None, script : Option[Script] = None)
 
-case class Sense(senseRelations : Seq[SenseRelation], senseExamples : Seq[Example],
-  id : String, synsetRef : String, counts : Seq[Count]) extends Meta
+case class Sense(id : String, synsetRef : String,
+  senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,
+  counts : Seq[Count] = Nil) extends Meta
 
-case class Synset(definitions : Seq[Definition], iliDefinition : Option[ILIDefinition],
-  synsetRelations : Seq[SynsetRelation], id : String, ili : Option[String],
-  synsetExamples : Seq[Example]) extends Meta
+case class Synset(id : String, ili : Option[String] = None,
+  definitions : Seq[Definition] = Nil, iliDefinition : Option[ILIDefinition] = None,
+  synsetRelations : Seq[SynsetRelation] = Nil, 
+  synsetExamples : Seq[Example] = Nil) extends Meta
 
 case class Definition(content : String, language : Option[Language] = None) extends Meta
 
 case class ILIDefinition(content : String) extends Meta
 
-case class Example(content : String, language : Option[Language]) extends Meta
+case class Example(content : String, language : Option[Language] = None) extends Meta
 
 case class SynsetRelation(target : String, relType : SynsetRelType) extends Meta
 case class SenseRelation(target : String, relType : SenseRelType) extends Meta

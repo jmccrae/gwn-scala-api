@@ -84,16 +84,16 @@ object WNDB {
     exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int]) : Lexicon = {
-      Lexicon(buildEntries(items, props.id, sentences, lex, exc, satellites, counts).toSeq,
-              buildSynsets(items, props.id, props.language, ili, lex),
-              props.id,
+      Lexicon(props.id,
               props.label,
               props.language,
               props.email,
               props.license,
               props.version,
               props.url,
-              props.citation)
+              props.citation,
+              buildEntries(items, props.id, sentences, lex, exc, satellites, counts).toSeq,
+              buildSynsets(items, props.id, props.language, ili, lex))
   }
 
   private def buildEntries(items : Seq[WordNetDataItem], id : String,

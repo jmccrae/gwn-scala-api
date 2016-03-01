@@ -144,8 +144,6 @@ object WNRDF extends Format {
 
   private def readLexicon(r : Resource)(implicit model : Model) : Lexicon = {
     readMeta(Lexicon(
-      (r \* LIME.entry).map(readLexicalEntry).toSeq,
-      (r / SKOS.inScheme).map(readSynset).toSeq,
       toId(r),
       (r lit RDFS.label).headOrElse(throw new WNRDFException("Label is required")).getLexicalForm(),
       Language.get((r lit DC_11.language).headOrElse(throw new WNRDFException("Language is required")).getLexicalForm()),
@@ -153,7 +151,9 @@ object WNRDF extends Format {
       (r \* CC.license).headOrElse(throw new WNRDFException("License is required")).getURI(),
       (r lit OWL.versionInfo).headOrElse(throw new WNRDFException("Version is required")).getLexicalForm(),
       (r lit SCHEMA.url).headOption.map(_.getLexicalForm()),
-      (r lit SCHEMA.citation).headOption.map(_.getLexicalForm())), r)
+      (r lit SCHEMA.citation).headOption.map(_.getLexicalForm()),
+      (r \* LIME.entry).map(readLexicalEntry).toSeq,
+      (r / SKOS.inScheme).map(readSynset).toSeq), r)
   }
 
   private def readMeta[A <: Meta](a : A, r : Resource)(implicit model : Model) : A = {
@@ -247,13 +247,13 @@ object WNRDF extends Format {
 
   private def readLexicalEntry(r : Resource)(implicit model : Model) : LexicalEntry = {
     readMeta(LexicalEntry(
+      toId(r),
       readLemma(
         (r \* ONTOLEX.canonicalForm).headOrElse(throw new WNRDFException("No canonical form for " + r)),
         (r \* WN.partOfSpeech).headOrElse(throw new WNRDFException("No part of speech for " + r))),
       (r \* ONTOLEX.otherForm).map(readForm).toSeq,
       (r \* ONTOLEX.sense).map(readSense).toSeq,
-      (r \* SYNSEM.synBehavior).map(readSynBehavior).toSeq,
-      toId(r)), r)
+      (r \* SYNSEM.synBehavior).map(readSynBehavior).toSeq), r)
   }
 
   private def readLemma(canForm : Resource, pos : Resource)(implicit model : Model) : Lemma = {
@@ -276,10 +276,10 @@ object WNRDF extends Format {
 
   private def readSense(r : Resource)(implicit model : Model) : Sense = {
     readMeta(Sense(
-      (r / VARTRANS.source).map(readSenseRelation).toSeq,
-      (r \* WN.example).map(readExample).toSeq,
       toId(r),
       toId((r \* ONTOLEX.reference).headOrElse(throw new WNRDFException("Sense without synset"))),
+      (r / VARTRANS.source).map(readSenseRelation).toSeq,
+      (r \* WN.example).map(readExample).toSeq,
       (r \* WN.count).map(readCount).toSeq), r)
   }
 
@@ -318,9 +318,6 @@ object WNRDF extends Format {
 
   private def readSynset(r : Resource)(implicit model : Model) : Synset = {
     readMeta(Synset(
-      (r \* WN.definition).map(readDefinition).toSeq,
-      (r \* WN.iliDefinition).headOption.map(readILIDefinition),
-      (r / VARTRANS.source).map(readSynsetRelation).toSeq,
       toId(r),
       (r \* WN.ili).headOption match {
         case Some(u) if u.getURI() startsWith ILI.prefix =>
@@ -330,7 +327,10 @@ object WNRDF extends Format {
         case u =>
           throw new WNRDFException("ILI not in ILI namespace " + u)
       },
-      (r \* WN.example).map(readExample).toSeq), r)
+      (r \* WN.definition).map(readDefinition).toSeq,
+      (r \* WN.iliDefinition).headOption.map(readILIDefinition),
+      (r / VARTRANS.source).map(readSynsetRelation).toSeq,
+     (r \* WN.example).map(readExample).toSeq), r)
   }
 
   private def readDefinition(r : Resource)(implicit model : Model) : Definition = {

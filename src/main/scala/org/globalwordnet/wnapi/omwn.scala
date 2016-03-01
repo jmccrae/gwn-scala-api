@@ -24,8 +24,8 @@ object OpenMultilingualWordNet {
       languages.map(lang => buildLexicon(lang, 
         m.getOrElse(lang.getIso639_3(), Map()), 
         baseResource.lexicons.find(_.language == lang).getOrElse(
-          Lexicon(Nil, Nil, "omwn-" + lang, "Open Multilingual Wordnet " + lang,
-            lang, "", "", "", None, None)
+          Lexicon("omwn-" + lang, "Open Multilingual Wordnet " + lang,
+            lang, "", "", "")
           )
         )))
   }
@@ -42,32 +42,38 @@ object OpenMultilingualWordNet {
       }
     ).groupBy(_._1).mapValues(_.map(_._2).groupBy(_._1).mapValues(_.map(_._2)))
     enLexicon match {
-      case Lexicon(entries, synsets, id, label, language, email, license, version, url, citation) =>
-        Lexicon(entries,
+      case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets) =>
+        Lexicon(id, label, language, email, license, version,
+          url, citation, entries,
           synsets.map({
-            case Synset(definitions, iliDefinition, synsetRelations, id, ili, synsetExamples) =>
-              Synset(definitions ++ elements.getOrElse(id, Map()).getOrElse("definition", Nil).map({
+            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples) =>
+              Synset(id, ili, definitions ++ elements.getOrElse(id, Map()).getOrElse("definition", Nil).map({
                 case (lang, value) => Definition(value, Some(lang))
-              }), iliDefinition, synsetRelations, id, ili,
+              }), iliDefinition, synsetRelations,
               synsetExamples ++ elements.getOrElse(id, Map()).getOrElse("example", Nil).map({
                 case (lang, value) => Example(value, Some(lang))
               }))
-          }), id, label, language, email, license, version, url, citation)
+          }))
     }
   }
 
   private def buildLexicon(lang : Language, props : Map[String, Seq[(String, String)]], 
       lexicon : Lexicon) : Lexicon = lexicon match {
-    case Lexicon(entries, synsets, id, label, language, email, license, version, url, citation) =>
+    case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets) =>
       val lemmas = props.getOrElse("lemma", Nil)
       Lexicon(
+        id, label, language, email, license, version, url, citation,
         entries ++ lemmas.map({ 
           case (synset, lemma) =>
-            LexicalEntry(Lemma(lemma, PartOfSpeech.fromString(synset.takeRight(1)), None), Nil, 
-              Seq(Sense(Nil, Nil, makeId("sense-%s-%s" format (language, lemma)), synset, Nil)),
-              Nil, makeId("entry-%s-%s" format (language, lemma)))
-        }), synsets,
-      id, label, language, email, license, version, url, citation)
+            LexicalEntry(
+              id=makeId("entry-%s-%s" format (language, lemma)),
+              lemma=Lemma(
+                lemma, 
+                PartOfSpeech.fromString(synset.takeRight(1))),
+              senses=Seq(
+                Sense(id=makeId("sense-%s-%s" format (language, lemma)), 
+                  synsetRef=synset)))
+        }), synsets)
   }
 
   private def readRaw(file : File, defLang : String, prefix : String) = {
