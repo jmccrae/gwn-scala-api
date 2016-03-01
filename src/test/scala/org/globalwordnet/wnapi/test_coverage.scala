@@ -123,6 +123,16 @@ class CoverageTest extends FlatSpec with Matchers {
   it should "provide coverage" in {
     testCoverage(resource)
   }
+  val xmlFile = File.createTempFile("lexicon", ".xml")
+  xmlFile.deleteOnExit()
+  it should "write the coverage model" in {
+    WNLMF.write(resource, xmlFile)
+  }
+  it should "successfully read the same data" in {
+    val r2 = WNLMF.read(xmlFile)
+    testCoverage(r2)
+  }
+
 
   val jsonFile = File.createTempFile("lexicon", ".json")
   jsonFile.deleteOnExit()

@@ -222,7 +222,13 @@ object WNLMF extends Format {
     <LexicalEntry id="${e.id}" """)
     writeMeta(out, 18, e)
     out.print(s""">
-      <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}"/>""")
+      <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}" """)
+    e.lemma.script match {
+      case Some(t) =>
+        out.print(s"""script="$t" """)
+      case None =>
+    }
+    out.print("""/>""")
     for(form <- e.forms) {
       writeForm(out, form)
     }
@@ -242,6 +248,11 @@ object WNLMF extends Format {
     e.tag match {
       case Some(t) =>
         out.print(s"""tag="$t" """)
+      case None =>
+    }
+    e.script match {
+      case Some(s) =>
+        out.print(s"""script="$s" """)
       case None =>
     }
     out.print("/>")
@@ -275,6 +286,11 @@ object WNLMF extends Format {
   private def writeSenseExample(out : PrintWriter, e : Example) {
     out.print(s"""
         <Example """)
+    e.language match {
+      case Some(l) =>
+        out.print(s"""language="$l" """)
+      case None =>
+    }
     writeMeta(out, 22, e)
     out.print(s""">${escapeXml(e.content)}</Example>""")
   }
@@ -312,7 +328,7 @@ object WNLMF extends Format {
       <Definition """)
     e.language match {
       case Some(l) =>
-        out.print("""                  language="$l" """)
+        out.print(s"""                  language="$l" """)
       case None =>
     }
     writeMeta(out, 18, e)
