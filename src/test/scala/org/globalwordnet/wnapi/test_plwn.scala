@@ -80,7 +80,6 @@ class PLWNTest extends FlatSpec with Matchers {
               id="pl-77760"))
         )
       ))
-    println(expectedValue.toString)
     resource.toString should be (expectedValue.toString)
   }
 }
