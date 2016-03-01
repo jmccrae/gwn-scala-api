@@ -51,6 +51,7 @@ object WNLMF extends Format {
     (elem \ "@{http://purl.org/dc/elements/1.1/}title").foreach(x => a.title = Some(x.text))
     (elem \ "@{http://purl.org/dc/elements/1.1/}type").foreach(x => a.`type` = Some(x.text))
     (elem \ "@status").foreach(x => a.status = Some(x.text))
+    (elem \ "@note").foreach(x => a.note = Some(x.text))
     (elem \ "@confidenceScore").foreach(x => a.confidenceScore = Some(x.text.toDouble))
     return a
   }
@@ -219,6 +220,7 @@ object WNLMF extends Format {
     writeProp(e.title, "dc:title")
     writeProp(e.`type`, "dc:type")
     writeProp(e.status, "status")
+    writeProp(e.note, "note")
     writeProp(e.confidenceScore.map(s => "%.8f" format s), "confidenceScore")
   }
  

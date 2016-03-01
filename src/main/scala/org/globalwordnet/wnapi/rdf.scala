@@ -232,6 +232,11 @@ object WNRDF extends Format {
         a.status = Some(l.getLexicalForm())
       case None =>
     }
+    (r lit WN.note).toStream.headOption match {
+      case Some(l) => 
+        a.note = Some(l.getLexicalForm())
+      case None =>
+    }
     (r lit WN.confidenceScore).toStream.headOption match {
       case Some(l) => 
         a.confidenceScore = Some(l.getDouble())
@@ -430,6 +435,11 @@ object WNRDF extends Format {
     a.status match {
       case Some(l) => 
         r + WN.status + model.createLiteral(l)
+      case None =>
+    }
+    a.note match {
+      case Some(l) => 
+        r + WN.note + model.createLiteral(l)
       case None =>
     }
     a.confidenceScore match {

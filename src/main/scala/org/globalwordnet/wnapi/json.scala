@@ -107,6 +107,7 @@ object WNJSON extends Format {
           a.title.map(x => "title" -> JsString(x)) ++
           a.`type`.map(x => "type" -> JsString(x)) ++
           a.status.map(x => "status" -> JsString(x)) ++
+          a.note.map(x => "note" -> JsString(x)) ++
           a.confidenceScore.map(x => "confidenceScore" -> JsString("%.8f" format x)))
       }
       def read(v : JsValue) = v match {
@@ -127,6 +128,7 @@ object WNJSON extends Format {
           a.title = v.fields.get("title").map(stringOrFail)
           a.`type` = v.fields.get("type").map(stringOrFail)
           a.status = v.fields.get("status").map(stringOrFail)
+          a.note = v.fields.get("note").map(stringOrFail)
           a.confidenceScore = v.fields.get("confidenceScore").map(numberOrFail).map(_.toDouble)
           a
         case _ =>

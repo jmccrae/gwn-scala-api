@@ -33,6 +33,8 @@ trait Meta {
   def withType(s : String) : this.type = { `type` = Some(s) ; this }
   var status : Option[String] = None
   def withStatus(s : String) : this.type = { status = Some(s) ; this }
+  var note : Option[String] = None
+  def withNote(s : String) : this.type = { note = Some(s) ; this }
   var confidenceScore : Option[Double] = None
   def withConfidenceScore(s : Double) : this.type = { confidenceScore = Some(s) ; this }
 }
@@ -131,7 +133,7 @@ object SynsetRelType {
     case "holo_member" => holo_member
     case "holo_part" => holo_part
     case "holo_portion" => holo_portion
-    case "holo_substance" => holo_substance
+    case "holo_named_entity" => holo_substance
     case "holonym" => holonym
     case "hypernym" => hypernym
     case "hyponym" => hyponym
@@ -273,7 +275,7 @@ object verb extends PartOfSpeech("v", "verb")
 object adjective extends PartOfSpeech("a", "adjective")
 object adverb extends PartOfSpeech("r", "adverb")
 object adjective_satellite extends PartOfSpeech("s", "adjective_satellite")
-object multiword_expression extends PartOfSpeech("z", "multiword_expression")
+object named_entity extends PartOfSpeech("t", "named_entity")
 object conjunction extends PartOfSpeech("c", "conjunction")
 object adposition extends PartOfSpeech("p", "adposition")
 object other_pos extends PartOfSpeech("x", "other_pos")
@@ -286,7 +288,7 @@ object PartOfSpeech {
     case "a" => adjective
     case "r" => adverb
     case "s" => adjective_satellite
-    case "z" => multiword_expression
+    case "t" => named_entity
     case "c" => conjunction
     case "p" => adposition
     case "x" => other_pos
@@ -298,13 +300,10 @@ object PartOfSpeech {
     case "adjective" => adjective
     case "adverb" => adverb
     case "adjective_satellite" => adjective_satellite
-    case "multiword_expression" => multiword_expression
+    case "named_entity" => named_entity
     case "conjunction" => conjunction
     case "adposition" => adposition
     case "other_pos" => other_pos
     case "unknown_pos" => unknown_pos
   }
-
 }
-
-
