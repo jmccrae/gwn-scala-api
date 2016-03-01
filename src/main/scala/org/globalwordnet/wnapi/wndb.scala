@@ -1,4 +1,4 @@
-package org.globalwordnet.api.seralize
+package org.globalwordnet.api.serialize
 
 import eu.monnetproject.lang.{Language, Script}
 import scala.io.Source
@@ -18,7 +18,8 @@ case class WNDBProperties(
   citation : Option[String])
 
 object WNDB {
-  def read(wnFolder : File, props : WNDBProperties) : Map[String, Lexicon] = {
+  var lexNames : Map[Int, String] = null
+  def read(wnFolder : File, props : WNDBProperties) : LexicalResource = {
     val iliRef = props.iliRef
     
     def words(pos : String) : Iterator[WordNetDataItem] = if(new File(wnFolder+"data."+pos).exists) {
@@ -29,7 +30,7 @@ object WNDB {
       Nil.iterator
     }
     
-    val lexNames = loadLexname(wnFolder + "lexnames")
+    lexNames = loadLexname(wnFolder + "lexnames")
     val exc = Map(
       "v" -> excForms(wnFolder + "verb.exc"),
       "n" -> excForms(wnFolder + "noun.exc"),
@@ -45,10 +46,8 @@ object WNDB {
     val satellites = buildSatellites(items)
     val counts = loadCounts(wnFolder + "cntlist")
     
-    lexNames.map({
-      case (lexId, lexName) =>
-        lexName -> buildLMF(items, props, sentences, iliMap, lexId, exc, satellites, counts)
-    })
+    LexicalResource(Seq(
+        buildLMF(items, props, sentences, iliMap, exc, satellites, counts)))
   }
   
   private def loadLexname(file : String) = io.Source.fromFile(file).getLines.map({ line =>
@@ -80,7 +79,7 @@ object WNDB {
 
   private def buildLMF(items : Seq[WordNetDataItem], 
     props : WNDBProperties, sentences : Map[Int, String],
-    ili : Map[(Int, String), String], lex : Int,
+    ili : Map[(Int, String), String], 
     exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int]) : Lexicon = {
@@ -92,12 +91,12 @@ object WNDB {
               props.version,
               props.url,
               props.citation,
-              buildEntries(items, props.id, sentences, lex, exc, satellites, counts).toSeq,
-              buildSynsets(items, props.id, props.language, ili, lex))
+              buildEntries(items, props.id, sentences, exc, satellites, counts).toSeq,
+              buildSynsets(items, props.id, props.language, ili))
   }
 
   private def buildEntries(items : Seq[WordNetDataItem], id : String,
-    sentences : Map[Int, String], lex : Int, exc : Map[String, Map[String, Seq[String]]],
+    sentences : Map[Int, String], exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int]) = {
     val map = collection.mutable.HashMap[String, Seq[WordNetDataItem]]()
@@ -111,7 +110,7 @@ object WNDB {
         }
       }
     }
-    for((lemma_key, items) <- map if items.exists(_.lexNo == lex)) yield {
+    for((lemma_key, items) <- map/* if items.exists(_.lexNo == lex)*/) yield {
       val lemma = lemma_key.dropRight(2)
       val pos = items(0).pos 
       LexicalEntry(
@@ -146,8 +145,8 @@ object WNDB {
   }
 
   private def buildSynsets(items : Seq[WordNetDataItem], id : String, language : Language,
-      ili : Map[(Int, String), String], lex : Int) = {
-    for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items if lexNo == lex) yield {
+      ili : Map[(Int, String), String]) = {
+    for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items/* if lexNo == lex*/) yield {
       val iliId = ili.get((offset, pos.shortForm)) match {
         case Some(id) =>
           id
@@ -174,7 +173,7 @@ object WNDB {
                  SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos.shortForm), relType=typ.asInstanceOf[SynsetRelType])
               }
             }, 
-            synsetExamples=Nil)
+            synsetExamples=Nil).withSubject(lexNames(lexNo))
         }
     }
 

@@ -193,9 +193,15 @@ object WNLMF extends Format {
   }
 
   private def writeMeta(out : PrintWriter, indent : Int, e : Meta) {
+    var line = false
     def writeProp(v : Option[String], n : String) = v match {
       case Some(x) =>
-        out.print("\n" + (" " * indent) + n + "=\"" + escapeXml(x) + "\"")
+        if(line) {
+          out.print("\n" + (" " * indent) + n + "=\"" + escapeXml(x) + "\"")
+        } else {
+          line = true
+          out.print(n + "=\"" + escapeXml(x) + "\"")
+        }
       case None =>
     }
     writeProp(e.contributor, "dc:contributor")
