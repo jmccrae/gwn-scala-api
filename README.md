@@ -1,4 +1,4 @@
-# gwn-scala-api
+# Global WordNet Converter and Validator
 
 API and command line tool for working with Global WordNet Interlingual Index 
 formats 
