@@ -89,7 +89,7 @@ object Main {
 
       opt[String]("email") valueName("<address>") action { (x, c) =>
         c.copy(email = x)
-      } text("The email address for this resource")
+      } text("The email address of the creator of the resource")
 
       opt[String]("license") valueName("<url>") action { (x, c) =>
         c.copy(license = x)
