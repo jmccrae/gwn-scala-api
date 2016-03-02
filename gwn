@@ -1,14 +1,16 @@
 #!/bin/bash
 
-cd "$(dirname "$0")"
+GWN_HOME="$(dirname "$0")"
 
 SCALA_VERSION=2.10
 JAVA_OPTS=-Xmx4g
 VERSION=0.1-SNAPSHOT
 
-if [ ! -e target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar ]
+if [ ! -e $GWN_HOME/target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar ]
 then
+    cd $GWN_HOME
     sbt assembly
+    cd -
 fi
 
-java -jar target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar $@
+java -jar $GWN_HOME/target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar $@

@@ -106,7 +106,7 @@ object WNRDF extends Format {
   val CC = new NameSpace("http://creativecommons.org/ns#")
   val ILI = new NameSpace("http://ili.globalwordnet.org/ili/")
 
-  private def guessLang(file : File) = {
+  def guessLang(file : File) = {
     if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
       "RDF/XML"
     } else if(file.getName().endsWith(".ttl")) {
@@ -122,6 +122,14 @@ object WNRDF extends Format {
 
   def read(file : File) : LexicalResource = {
     read(new FileReader(file), guessLang(file), file.toURI().toString() + "#")
+  }
+
+  def read(file : File, lang : String) : LexicalResource = {
+    read(new FileReader(file), lang, file.toURI().toString() + "#")
+  }
+
+  def read(file : File, lang : String, baseUrl : String) : LexicalResource = {
+    read(new FileReader(file), lang, baseUrl)
   }
 
   def read(input : Reader, lang : String, baseUrl : String) : LexicalResource = {
@@ -368,6 +376,17 @@ object WNRDF extends Format {
           output.toURI().toString() + "#",
           guessLang(output))
   } 
+
+  def write(lr : LexicalResource, output : File, lang : String) {
+    write(lr, new FileWriter(output),
+      output.toURI().toString() + "#",
+      lang)
+  }
+
+  def write(lr : LexicalResource, output : File, baseUrl : String, lang : String) {
+    write(lr, new FileWriter(output),
+      baseUrl, lang)
+  }
 
   def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String) {
     val model = writeLexicalResource(lr)(baseUrl)

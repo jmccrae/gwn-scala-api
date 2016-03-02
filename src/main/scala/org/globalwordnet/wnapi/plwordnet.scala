@@ -179,8 +179,8 @@ object plWordNetReader {
     case "217" => mero_part
     case "218" => mero_member
     case "219" => mero_substance
-    case "225" => near_synonym
-    case "226" => near_synonym
+    case "225" => other("near_synonym")
+    case "226" => other("near_synonym")
     case "228" => other("inter_register_synonym")
     case "229" => other("inter_register_synonym")
     case "230" => instance_hypernym // To Sumo
@@ -219,8 +219,8 @@ object plWordNetReader {
     case "189" => entails
     case "190" => causes
     case "191" => also
-    case "192" => fuzzynym
-    case "193" => fuzzynym
+    case "192" => similar
+    case "193" => similar
     case "195" => pertainym
     case "208" => eq_synonym // eq_synonym2
     case "209" => eq_synonym // eq_synonym3

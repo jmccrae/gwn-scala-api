@@ -283,7 +283,7 @@ object WNDB {
     }
     
     private def getHead(ptrs : Seq[Pointer]) : Option[Int] = {
-      ptrs.find(_.typ == fuzzynym) match {
+      ptrs.find(_.typ == similar) match {
         case Some(Pointer(_,offset,_,_,_)) => Some(offset)
         case _ => None
       }
@@ -350,8 +350,8 @@ object WNDB {
       case "*" =>  entails 
       case ">" => causes
       case "^" => also
-      case "$" => fuzzynym 
-      case "&" => fuzzynym 
+      case "$" => similar 
+      case "&" => similar 
       case "<" => participle 
       case "\\" => if(pos == "a" || pos == "s" || pos == "n") {
           pertainym

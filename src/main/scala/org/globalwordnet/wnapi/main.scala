@@ -20,7 +20,12 @@ object Main {
     license : String = "https://creativecommons.org/licenses/by/4.0/",
     version : String = "0.1",
     url : Option[String] = None,
-    citation : Option[String] = None
+    citation : Option[String] = None,
+    inputRdfLang : String = "",
+    outputRdfLang : String = "RDF/XML",
+    inputRdfBaseUrl : String = "",
+    outputRdfBaseUrl : String = "",
+    validate : Boolean = false
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN")
@@ -29,6 +34,10 @@ object Main {
   def main(args : Array[String]) {
     val parser = new scopt.OptionParser[GWNAPIConfig]("gwn") {
       head("Global WordNet Converter and Validator", "0.1")
+
+      opt[Unit]('v', "validate") action { (x, c) =>
+        c.copy(validate = true)
+      } text("Validate the input file only")
 
       opt[File]('i', "input") required() valueName("<inputFile>") action { (x, c) =>
         c.copy(inputFile = x)
@@ -97,11 +106,32 @@ object Main {
       opt[String]("citation") valueName("<paper>") action { (x, c) =>
         c.copy(citation = Some(x))
       } text("The citation string of the resource")
+
+      opt[String]("input-rdf-lang") valueName("<RDF/XML|TURTLE|N-TRIPLE|N3>") action { (x, c) =>
+        c.copy(inputRdfLang = x)
+      } text("The RDF language to serialize from")
+
+      opt[String]("output-rdf-lang") valueName("<RDF/XML|TURTLE|N-TRIPLE|N3>") action { (x, c) =>
+        c.copy(outputRdfLang = x)
+      } text("The RDF language to serialize to")
+
+      opt[String]("input-base-url") valueName("<url>") action { (x, c) =>
+        c.copy(inputRdfBaseUrl = x)
+      } text("The Base URL, i.e., where the file is on the Web, for the input file")
+
+      opt[String]("output-base-url") valueName("<url>") action { (x, c) =>
+        c.copy(outputRdfBaseUrl = x)
+      } text("The Base URL, i.e., where the file is on the Web, for the output file")
+
     }
 
     parser.parse(args, GWNAPIConfig()) match {
       case Some(config) =>
-        convertFormat(config)
+        if(config.validate) {
+          validate(config)
+        } else {
+          convertFormat(config)
+        }
       case None =>
         System.exit(-1)
     }
@@ -122,6 +152,46 @@ object Main {
     }
   }
 
+  def validate(config : GWNAPIConfig) {
+    try {
+      val resource : LexicalResource = config.inputFormat match {
+        case "WNLMF" =>
+          WNLMF.read(config.inputFile)
+        case "JSON" =>
+          WNJSON.read(config.inputFile)
+        case "RDF" =>
+          val rdfType = config.inputRdfLang match {
+            case "" => 
+              WNRDF.guessLang(config.inputFile)
+            case format =>
+              format
+          }
+          if(config.outputRdfBaseUrl != "") {
+            WNRDF.read(config.inputFile, rdfType, config.outputRdfBaseUrl)
+          } else {
+            WNRDF.read(config.inputFile, rdfType)
+          }
+        case format =>
+          System.err.println("Validation of unexpected format: " + format)
+          System.exit(-1)
+          null
+      }
+      System.out.println("Validation successful")
+      val maxIdSize = resource.lexicons.map(_.id.size).max
+      System.out.println("| " + (" " * maxIdSize) + " | Lang | Words     | Synsets   |")
+      System.out.println("|:" + ("-" * maxIdSize) + "-|:----:|:---------:|:---------:|")
+      for(lexicon <- resource.lexicons) {
+        System.out.println(("| %" + maxIdSize + "s | %3s  | % 9d | % 9d |" format 
+          (lexicon.id, lexicon.language.toString(), lexicon.entries.size, lexicon.synsets.size)))
+      }
+    } catch {
+      case x : Exception =>
+        x.printStackTrace()
+        System.out.println("Validation failed: " + x.getMessage())
+        System.exit(-1)
+    }
+  }
+ 
   def convertFormat(config : GWNAPIConfig) {
     val resource : LexicalResource = config.inputFormat match {
       case "WNLMF" =>
@@ -129,7 +199,17 @@ object Main {
       case "JSON" =>
         WNJSON.read(config.inputFile)
       case "RDF" =>
-        WNRDF.read(config.inputFile)
+        val rdfType = config.inputRdfLang match {
+          case "" => 
+            WNRDF.guessLang(config.inputFile)
+          case format =>
+            format
+        }
+        if(config.outputRdfBaseUrl != "") {
+          WNRDF.read(config.inputFile, rdfType, config.outputRdfBaseUrl)
+        } else {
+          WNRDF.read(config.inputFile, rdfType)
+        }
       case "WNDB" =>
         if(!config.inputFile.isDirectory) {
           System.err.println("For WNDB format please point to the directory giving the WordNet files")
@@ -180,10 +260,26 @@ object Main {
           WNJSON.write(resource, new PrintWriter(System.out))
         }
       case "RDF" =>
-        if(config.outputFile != null) {
-          WNRDF.write(resource, config.outputFile)
+        val rdfType = config.outputRdfLang match {
+          case "" => 
+            if(config.outputFile != null) {
+              WNRDF.guessLang(config.outputFile)
+            } else {
+              "RDF/XML"
+            }
+          case format =>
+            format
+        }
+        if(config.outputRdfBaseUrl != "") {
+          if(config.outputFile != null) {
+            WNRDF.write(resource, config.outputFile, rdfType, config.outputRdfBaseUrl)
+          } else {
+            WNRDF.write(resource, new PrintWriter(System.out), rdfType, config.outputRdfBaseUrl)
+          }
+        } else if(config.outputFile != null) {
+          WNRDF.write(resource, config.outputFile, rdfType)
         } else {
-          System.err.println("RDF can only be written to a file: Please specify a file with -o")
+          System.err.println("RDF can only be written to a file: Please specify a file with -o or URL with --output-base-url")
           System.exit(-1)
         }
       case _ =>
