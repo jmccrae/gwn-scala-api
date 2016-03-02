@@ -96,6 +96,7 @@ class CoverageTest extends FlatSpec with Matchers {
     d.language should be (Some(Language.ENGLISH))
     testMetaData(d)
     d.content should be ("definition")
+    d.sourceSense should be (Some("ws1"))
 
     s.iliDefinition should not be None
     testMetaData(s.iliDefinition.get)

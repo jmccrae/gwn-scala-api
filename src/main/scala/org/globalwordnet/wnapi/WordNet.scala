@@ -85,7 +85,8 @@ case class Synset(id : String, ili : Option[String] = None,
   synsetRelations : Seq[SynsetRelation] = Nil, 
   synsetExamples : Seq[Example] = Nil) extends Meta
 
-case class Definition(content : String, language : Option[Language] = None) extends Meta
+case class Definition(content : String, language : Option[Language] = None,
+  sourceSense : Option[String] = None) extends Meta
 
 case class ILIDefinition(content : String) extends Meta
 

@@ -336,7 +336,9 @@ object WNRDF extends Format {
   private def readDefinition(r : Resource)(implicit model : Model) : Definition = {
     readMeta(Definition(
       (r lit RDF.value).headOrElse(throw new WNRDFException("Definition without value")).getLexicalForm(),
-      (r lit DC_11.language).headOption.map(l => Language.get(l.getLexicalForm()))), r)
+      (r lit DC_11.language).headOption.map(l => Language.get(l.getLexicalForm())),
+      (r \* WN.sourceSense).headOption.map(toId)
+    ), r)
   }
 
   private def readILIDefinition(r : Resource)(implicit model : Model) : ILIDefinition = {
@@ -622,6 +624,11 @@ object WNRDF extends Format {
      d.language match {
        case Some(l) => 
          r + DC_11.language + model.createLiteral(l.toString())
+       case None =>
+     }
+     d.sourceSense match {
+       case Some(l) => 
+         r + WN.sourceSense + model.createResource(baseUrl + l.toString())
        case None =>
      }
      r

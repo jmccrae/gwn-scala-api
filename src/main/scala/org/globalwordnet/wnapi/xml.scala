@@ -123,7 +123,8 @@ object WNLMF extends Format {
   private def readDefinition(elem : Node) : Definition = {
     readMeta(Definition(
       trim(elem).text,
-      (elem \ "@language").headOption.map(l => Language.get(l.text))), elem)
+      (elem \ "@language").headOption.map(l => Language.get(l.text)),
+      (elem \ "@sourceSense").headOption.map(_.text)), elem)
   }
 
   private def readILIDefinition(elem : Node) : ILIDefinition = {
@@ -334,7 +335,12 @@ object WNLMF extends Format {
       <Definition """)
     e.language match {
       case Some(l) =>
-        out.print(s"""                  language="$l" """)
+        out.print(s"""language="$l" """)
+      case None =>
+    }
+    e.sourceSense match {
+      case Some(l) =>
+        out.print(s"""sourceSense="$l" """)
       case None =>
     }
     writeMeta(out, 18, e)

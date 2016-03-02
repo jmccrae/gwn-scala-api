@@ -173,6 +173,7 @@
                 dc:title="title"
                 dc:type="type"
                 status="status"
+                sourceSense="ws1"
                 note="note"
                 confidenceScore="1.0">definition</Definition>
             <ILIDefinition dc:contributor="contributor"

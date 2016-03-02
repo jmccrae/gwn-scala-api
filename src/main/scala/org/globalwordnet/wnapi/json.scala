@@ -192,11 +192,13 @@ object WNJSON extends Format {
     object definitionFormat extends JsonFormat[Definition] {
       def write(d : Definition) = JsObject(
         Map("gloss" -> JsString(d.content)) ++
-          d.language.map(l => "language" -> JsString(l.toString())))
+          d.language.map(l => "language" -> JsString(l.toString())) ++
+          d.sourceSense.map(s => "sourceSense" -> JsString(s)))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Definition(content=stringOrFail(m.getOrElse("gloss", throw new WNJsonException("Definition requires gloss"))), 
-                     language=m.get("language").map(stringOrFail).map(Language.get))
+                     language=m.get("language").map(stringOrFail).map(Language.get),
+                     sourceSense=m.get("sourceSense").map(stringOrFail))
         case _ =>
           throw new WNJsonException("Definition must be an object")
       }
