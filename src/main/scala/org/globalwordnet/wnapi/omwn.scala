@@ -3,7 +3,7 @@ package org.globalwordnet.api.serialize
 import eu.monnetproject.lang.Language
 import java.io.File
 import org.globalwordnet.api.wn._
-import org.globalwordnet.api.Util.makeId
+import org.globalwordnet.api.util.makeId
 
 object OpenMultilingualWordNet {
   def read(file : File, wn30 : LexicalResource, defLang : String = "und", prefix : String = "wn30-") : LexicalResource = {

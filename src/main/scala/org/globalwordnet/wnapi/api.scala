@@ -11,12 +11,14 @@ trait Format {
   def write(lr : LexicalResource, file : File) : Unit
 }
 
-object Util {
+package object util {
   private lazy val digestor = java.security.MessageDigest.getInstance("SHA-256")
   private lazy val encoder  = java.util.Base64.getEncoder()
   /* Generate a highly collision-resistant identifier from a string */
-  def makeId(key : String) = {
+  def makeId(key : String) : String= {
     encoder.encode(digestor.digest(key.getBytes()).take(9)).
       map(_.toChar).mkString.replaceAll("\\+", "_").replaceAll("/", ":")
   }
+
+  def merge(lr1 : LexicalResource, lr2 : LexicalResource) = Merge.merge(lr1, lr2)
 }

@@ -13,4 +13,4 @@ then
     cd -
 fi
 
-java -jar $GWN_HOME/target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar $@
+java -jar $GWN_HOME/target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar "$@"

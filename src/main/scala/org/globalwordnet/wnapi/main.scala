@@ -171,7 +171,7 @@ object Main {
               format
           }
           if(config.outputRdfBaseUrl != "") {
-            WNRDF.read(config.inputFile, rdfType, config.outputRdfBaseUrl)
+            WNRDF.read(config.inputFile, rdfType, config.inputRdfBaseUrl)
           } else {
             WNRDF.read(config.inputFile, rdfType)
           }
@@ -281,9 +281,9 @@ object Main {
         }
         if(config.outputRdfBaseUrl != "") {
           if(config.outputFile != null) {
-            WNRDF.write(resource, config.outputFile, rdfType, config.outputRdfBaseUrl)
+            WNRDF.write(resource, config.outputFile, config.outputRdfBaseUrl, rdfType)
           } else {
-            WNRDF.write(resource, new PrintWriter(System.out), rdfType, config.outputRdfBaseUrl)
+            WNRDF.write(resource, new PrintWriter(System.out), config.outputRdfBaseUrl, rdfType)
           }
         } else if(config.outputFile != null) {
           WNRDF.write(resource, config.outputFile, rdfType)
