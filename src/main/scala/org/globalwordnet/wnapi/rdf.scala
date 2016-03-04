@@ -13,6 +13,9 @@ import scala.language.reflectiveCalls
 case class WNRDFException(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)
 
 object WNRDF extends Format {
+  // To make log4j shut up :)
+  org.apache.log4j.BasicConfigurator.configure()
+
   class NameSpace(val prefix : String) extends Dynamic {
     def apply(suffix : String)(implicit model : Model) = model.createResource(prefix + suffix)
     def selectDynamic(suffix : String)(implicit model : Model) = model.createResource(prefix + suffix)
@@ -105,6 +108,9 @@ object WNRDF extends Format {
   val SCHEMA = new NameSpace("http://schema.org/")
   val CC = new NameSpace("http://creativecommons.org/ns#")
   val ILI = new NameSpace("http://ili.globalwordnet.org/ili/")
+  val namespaces = Map("wn" -> WN, "ontolex" -> ONTOLEX, "synsem" -> SYNSEM,
+    "vartrans" -> VARTRANS, "lime" -> LIME, "schema" -> SCHEMA, 
+    "cc" -> CC, "ili" -> ILI)
 
   def guessLang(file : File) = {
     if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
@@ -390,6 +396,9 @@ object WNRDF extends Format {
 
   def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String) {
     val model = writeLexicalResource(lr)(baseUrl)
+    for((prefix, ns) <- namespaces) {
+      model.setNsPrefix(prefix, ns.prefix)
+    }
     model.write(output, lang)
     output.flush()
   }

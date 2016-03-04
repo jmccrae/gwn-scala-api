@@ -25,7 +25,8 @@ object Main {
     outputRdfLang : String = "RDF/XML",
     inputRdfBaseUrl : String = "",
     outputRdfBaseUrl : String = "",
-    validate : Boolean = false
+    validate : Boolean = false,
+    coreWordNetFilter : Option[File] = None
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN")
@@ -123,6 +124,9 @@ object Main {
         c.copy(outputRdfBaseUrl = x)
       } text("The Base URL, i.e., where the file is on the Web, for the output file")
 
+      opt[File]("core-wordnet") valueName("<core-wordnet.txt>") action { (x, c) =>
+        c.copy(coreWordNetFilter = Some(x))
+      } text("[WNDB Only] The Core WordNet file to select only the Core entries and synsets")
     }
 
     parser.parse(args, GWNAPIConfig()) match {
@@ -215,8 +219,12 @@ object Main {
           System.err.println("For WNDB format please point to the directory giving the WordNet files")
           System.exit(-1)
         }
+        if(config.auxFile == null) {
+          System.err.println("Need an auxiliary file for WNDB conversion")
+          System.exit(-1)
+        }
         WNDB.read(config.inputFile, new WNDBProperties(
-          config.auxFile.getAbsolutePath(),
+          config.auxFile,
           config.id,
           config.label,
           config.language,
@@ -224,7 +232,8 @@ object Main {
           config.license,
           config.version,
           config.url,
-          config.citation))
+          config.citation,
+          config.coreWordNetFilter))
       case "OMWN" =>
         OpenMultilingualWordNet.read(
             config.inputFile,
