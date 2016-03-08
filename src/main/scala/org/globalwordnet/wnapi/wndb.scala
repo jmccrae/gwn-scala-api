@@ -221,7 +221,13 @@ object WNDB {
         case iliIdType1(id) => id
         case iliIdType2(id) => id
       }
-      val offset = elems(2).drop(7).dropRight(2).toInt
+      val offset = if(elems(2).startsWith("pwn31:")) {
+        elems(2).drop(7).dropRight(2).toInt
+      } else if(elems(2).startsWith("pwn30:")) {
+        elems(2).drop(6).dropRight(2).toInt
+      } else {
+        throw new RuntimeException(elems(2))
+      }
       val pos = elems(2).takeRight(1)
       if(elems(1) == "owl:sameAs") {
         if(pos == "s") {
