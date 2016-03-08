@@ -627,6 +627,8 @@ package serialize {
 
     def read(plWordNetFile : File, config : PLWordNetConfig, wn31 : LexicalResource) :
       LexicalResource = {
+      var entry_mapping : Map[String, String] = null
+      var synset_mapping : Map[String, String] = null
       val enLexicon = {
         val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(true, plWordNetFile)
 
@@ -635,7 +637,9 @@ package serialize {
 
         val senses = build_senses(synsets)
 
-        val (entry_mapping, synset_mapping) = map_plwordnet_to_pwn(entries, senses, synsets, pwn_entries, pwn_defns)
+        val (em, sm) = map_plwordnet_to_pwn(entries, senses, synsets, pwn_entries, pwn_defns)
+        entry_mapping = em
+        synset_mapping = sm
 
         build_lexicon(true, entries, synsets, senses, lexrelations, synrelations, entry_mapping,
           synset_mapping, ili, config, enD)
@@ -651,7 +655,7 @@ package serialize {
         val senses = build_senses(synsets)
 
         build_lexicon(false, entries, synsets, senses, lexrelations, synrelations, 
-          Map(), Map(), Map(), config, plD)
+          em, sm, Map(), config, plD)
       }
       LexicalResource(Seq(enLexicon, plLexicon))
     }
