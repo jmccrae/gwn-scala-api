@@ -655,7 +655,7 @@ package serialize {
         val senses = build_senses(synsets)
 
         build_lexicon(false, entries, synsets, senses, lexrelations, synrelations, 
-          em, sm, Map(), config, plD)
+          entry_mapping, synset_mapping, Map(), config, plD)
       }
       LexicalResource(Seq(enLexicon, plLexicon))
     }
