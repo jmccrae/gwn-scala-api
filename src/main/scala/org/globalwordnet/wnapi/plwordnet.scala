@@ -30,26 +30,46 @@ package plwn {
     sealed trait EmotionValue
     sealed class PlutchikEmotion(val wnId : String) extends EmotionValue
     sealed trait PuzyninaEmotion extends EmotionValue
-    object anticipation extends PlutchikEmotion("wn31-07526319-n")
-    object joy extends PlutchikEmotion("wn31-07542591-n")
-    object trust extends PlutchikEmotion("wn31-13952885-n")
-    object fear extends PlutchikEmotion("wn31-07534492-n")
-    object surprise extends PlutchikEmotion("wn31-07525587-n")
-    object sadness extends PlutchikEmotion("wn31-07547828-n")
-    object disgust extends PlutchikEmotion("wn31-07518499-n")
-    object anger extends PlutchikEmotion("wn31-07531593-n")
-    object beauty extends PuzyninaEmotion
-    object ugliness extends PuzyninaEmotion
-    object utility extends PuzyninaEmotion
-    object futility extends PuzyninaEmotion
-    object error extends PuzyninaEmotion
-    object truth extends PuzyninaEmotion
-    object harm extends PuzyninaEmotion
-    object anothers_good extends PuzyninaEmotion
-    object ignorance extends PuzyninaEmotion
-    object knowledge extends PuzyninaEmotion
-    object happiness extends PuzyninaEmotion
-    object misfortune extends PuzyninaEmotion
+    object anticipation extends PlutchikEmotion("wn31-07526319-n") {
+      override def toString = "anticipation" }
+    object joy extends PlutchikEmotion("wn31-07542591-n") {
+      override def toString = "joy" }
+    object trust extends PlutchikEmotion("wn31-13952885-n") {
+      override def toString = "trust" }
+    object fear extends PlutchikEmotion("wn31-07534492-n") {
+      override def toString = "fear" }
+    object surprise extends PlutchikEmotion("wn31-07525587-n") {
+      override def toString = "surprise" }
+    object sadness extends PlutchikEmotion("wn31-07547828-n") {
+      override def toString = "sadness" }
+    object disgust extends PlutchikEmotion("wn31-07518499-n") {
+      override def toString = "disgust" }
+    object anger extends PlutchikEmotion("wn31-07531593-n") {
+      override def toString = "anger" }
+    object beauty extends PuzyninaEmotion {
+      override def toString = "beauty" }
+    object ugliness extends PuzyninaEmotion {
+      override def toString = "ugliness" }
+    object utility extends PuzyninaEmotion {
+      override def toString = "utility" }
+    object futility extends PuzyninaEmotion {
+      override def toString = "futility" }
+    object error extends PuzyninaEmotion {
+      override def toString = "error" }
+    object truth extends PuzyninaEmotion {
+      override def toString = "truth" }
+    object harm extends PuzyninaEmotion {
+      override def toString = "harm" }
+    object anothers_good extends PuzyninaEmotion {
+      override def toString = "anothers_good" }
+    object ignorance extends PuzyninaEmotion {
+      override def toString = "ignorance" }
+    object knowledge extends PuzyninaEmotion {
+      override def toString = "knowledge" }
+    object happiness extends PuzyninaEmotion {
+      override def toString = "happiness" }
+    object misfortune extends PuzyninaEmotion {
+      override def toString = "misfortune" }
 }
 
 package serialize {
