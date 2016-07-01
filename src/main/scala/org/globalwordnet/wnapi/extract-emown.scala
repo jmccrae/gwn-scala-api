@@ -8,7 +8,9 @@ object EmoWNExtract {
   def findPWN(synset : String,
     synset_mapping : Map[String,String],
     synrelations : Map[String, Seq[(String, String)]]) : Seq[String] = {
-      synrelations.getOrElse(synset, Seq()).filter(x => x._2 == "208" || x._2 == "209").map(_._1)
+      synrelations.getOrElse(synset, Seq()).filter(x => x._2 == "208" || 
+        x._2 == "209" || x._2 == "210" || x._2 == "211" || x._2 == "212" ||
+        x._2 == "213").map(_._1)
   }
 
   def main(args : Array[String]) {
@@ -30,23 +32,30 @@ object EmoWNExtract {
 
     val plD = pdescriptions.mapValues(parseDescription)
  
+    var nolink = 0
+    var noili = 0
+    var emo = 0
+    var emouniq = 0
     val out = new java.io.PrintWriter("emos.txt")
     for((key, descs) <- plD) {
       for(desc <- descs) {
         desc match {
           case Emotion(an, p, u, _, _) =>
+            emo += 1
             if(!descs.exists({
               case Emotion(an2, _, _, _, _) if an2 > an =>
                 true
               case _ =>
                 false
             })) {
+              emouniq += 1
               if(psenses(key).isEmpty) {
                 System.err.println("No Synset: " + key)
               }
               for(ss <- psenses(key)) {
                 if(findPWN(ss, sm, psynrelations).isEmpty) {
                   System.err.println("No link to PWN: " + ss)
+                  nolink += 1
                 }
                 for(t <- findPWN(ss, sm, psynrelations)) {
                   val i = ili.getOrElse(sm.getOrElse(t, "in"), "in")
@@ -54,6 +63,7 @@ object EmoWNExtract {
                     out.println("%s %s %s" format (i, p.mkString(" "), u.mkString(" ")))
                   } else {
                     System.err.println("Not linked to ILI: " + t)
+                    noili += 1
                   }
                 }
               }
@@ -62,6 +72,10 @@ object EmoWNExtract {
         }
       }
     }
+    println(nolink)
+    println(noili)
+    println(emo)
+    println(emouniq)
     out.flush
     out.close
   }

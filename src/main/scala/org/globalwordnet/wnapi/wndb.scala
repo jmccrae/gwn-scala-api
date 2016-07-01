@@ -136,7 +136,7 @@ object WNDB {
           lemma=Lemma(writtenForm=lemma, partOfSpeech=pos, script=None),
           forms=exc.getOrElse(pos.shortForm, Map()).getOrElse(lemma, Nil).map({
             ex =>
-              Form(writtenForm=ex, tag=None, script=None)
+              Form(writtenForm=ex, tag=Nil, script=None)
           }),
           senses=for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items) yield {
             val word = lemmas.find(_.lemma == lemma).get
@@ -230,7 +230,7 @@ object WNDB {
       }
       val pos = elems(2).takeRight(1)
       if(elems(1) == "owl:sameAs") {
-        if(pos == "s") {
+        if(pos == "s" && elems(2).startsWith("pwn31")) {
           Some((offset, "a") -> ili)
         } else {
           Some((offset, pos) -> ili)

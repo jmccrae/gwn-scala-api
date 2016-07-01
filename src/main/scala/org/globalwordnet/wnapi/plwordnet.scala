@@ -234,6 +234,8 @@ package serialize {
       case "168" => other("markedness_of_intensity")
       case "169" => other("cross_category_synonym_for_relational_adjectives")
       case "194" => other("participle_of_verb")
+      case "197" => eq_synonym
+      case "198" => eq_synonym
       case "201" => holo_part
       case "202" => holo_member
       case "203" => holo_substance

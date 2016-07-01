@@ -174,16 +174,34 @@ object WNJSON extends Format {
     }
     implicit val metaCountFormat = new MetaFormat(countFormat)
 
+    implicit object tagFormat extends JsonFormat[Tag] {
+      def write(t : Tag) = JsObject(Map(
+        "category" -> JsString(t.category),
+        "value" -> JsString(t.value)))
+
+      def read(v : JsValue) = v match {
+        case JsObject(m) => 
+          Tag(
+            category=stringOrFail(m.getOrElse("category", throw new WNJsonException("Tag needs a category"))),
+            value=stringOrFail(m.getOrElse("value", throw new WNJsonException("Tag needs a value"))))
+        case _ => throw new WNJsonException("Tag must be an object")
+      }
+    }
+
     implicit object formFormat extends JsonFormat[Form] {
       def write(f : Form) = JsObject(Map(
         "writtenForm" -> JsString(f.writtenForm)) ++
-        f.tag.map(t => "tag" -> JsString(t)) ++
+        (if(f.tag.isEmpty) Map[String,JsValue]() else Map("tag" -> JsArray(
+          f.tag.map(tagFormat.write):_*))) ++
         f.script.map(s => "script" -> JsString(s.toString())))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Form(
             writtenForm=stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Form needs a written form"))),
-            tag=m.get("tag").map(stringOrFail),
+            tag=m.getOrElse("tag", JsArray()) match {
+              case JsArray(x) => x.map(tagFormat.read)
+              case _ => throw new WNJsonException("Tag must be list of objects")
+            },
             script=m.get("script").map(stringOrFail).map(Script.getByAlpha4Code))
         case _ =>
           throw new WNJsonException("Form must be an object")
@@ -286,7 +304,7 @@ object WNJSON extends Format {
           }) ++
           (s.senseRelations.map(metaSenseRelationFormat.write).toList match {
              case Nil => Map()
-             case vals => Map("link" -> JsArray(vals:_*))
+             case vals => Map("relations" -> JsArray(vals:_*))
           }) ++
           (s.senseExamples.map(metaExampleFormat.write).toList match {
             case Nil => Map()
@@ -295,7 +313,7 @@ object WNJSON extends Format {
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Sense(
-            senseRelations=m.getOrElse("link", JsArray()) match {
+            senseRelations=m.getOrElse("relations", JsArray()) match {
               case JsArray(x) => x.map(metaSenseRelationFormat.read)
               case _ => throw new WNJsonException("Relations should be a list of values")
             },
@@ -327,7 +345,9 @@ object WNJSON extends Format {
     object lexicalEntryFormat extends JsonFormat[LexicalEntry] {
       def write(e : LexicalEntry) = JsObject(Map(
         "lemma" -> JsObject(Map("writtenForm" -> JsString(e.lemma.writtenForm)) ++
-          e.lemma.script.map(x => "script" -> JsString(x.toString()))
+          e.lemma.script.map(x => "script" -> JsString(x.toString())) ++
+          (if(e.lemma.tag.isEmpty) Map[String, JsValue]() else Map("tag" ->
+            JsArray(e.lemma.tag.map(tagFormat.write):_*)))
         ),
         "partOfSpeech" -> JsString("wn:" + e.lemma.partOfSpeech.name),
         "@id" -> JsString(e.id)) ++
@@ -348,15 +368,23 @@ object WNJSON extends Format {
           LexicalEntry(
             lemma=Lemma(
               m.getOrElse("lemma", throw new WNJsonException("Lexical entry must have a lemma")) match {
-              case JsObject(m) => stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Lemma must have a written form")))
-              case _ => throw new WNJsonException("Lemma must be an object")
-            },
-                  PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech"))))),
-                  m.get("lemma").flatMap({
-                    case JsObject(m) => m.get("script").map(stringOrFail).map(Script.getByAlpha4Code)
-                    case _ => throw new WNJsonException("Lemma must be an object")
-                  })
-                  ),
+                case JsObject(m) => stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Lemma must have a written form")))
+                case _ => throw new WNJsonException("Lemma must be an object")
+              },
+              PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech"))))),
+              m.get("lemma").flatMap({
+                  case JsObject(m) => m.get("script").map(stringOrFail).map(Script.getByAlpha4Code)
+                  case _ => throw new WNJsonException("Lemma must be an object")
+                }),
+              m.get("lemma").flatMap({
+                case JsObject(m) => m.get("tag")
+                case _ => throw new WNJsonException("Lemma must be an object")
+              }) match {
+                case Some(JsArray(v)) => v.map(tagFormat.read)
+                case None => Nil
+                case _ => throw new WNJsonException("Tag must be an array")
+              }
+            ),
             forms=m.getOrElse("form", JsArray()) match {
               case JsArray(x) => x.map(formFormat.read)
               case _ => throw new WNJsonException("Form must be a list of objects")
@@ -385,7 +413,7 @@ object WNJSON extends Format {
         }) ++
         (s.synsetRelations.map(metaSynsetRelationFormat.write).toList match {
           case Nil => Map()
-          case vals => Map("link" -> JsArray(vals:_*))
+          case vals => Map("relations" -> JsArray(vals:_*))
         }) ++
         (s.ili.map(x => Map("ili" -> JsString("ili:" + x)))).getOrElse(Map()) ++
         (s.synsetExamples.map(metaExampleFormat.write).toList match {
@@ -401,7 +429,7 @@ object WNJSON extends Format {
               case _ => throw new WNJsonException("Definition must be list of objects")
             },
             iliDefinition=m.get("iliDefinition").map(metaILIDefinitionFormat.read),
-            synsetRelations=m.getOrElse("link", JsArray()) match {
+            synsetRelations=m.getOrElse("relations", JsArray()) match {
               case JsArray(x) => x.map(metaSynsetRelationFormat.read)
               case _ => throw new WNJsonException("Synset link must be list of objects")
             },

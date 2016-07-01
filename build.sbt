@@ -9,3 +9,5 @@ libraryDependencies += "org.apache.jena" % "jena-arq" % "3.0.0"
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.3.0" 
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+
+mainClass in assembly := Some("org.globalwordnet.api.Main")

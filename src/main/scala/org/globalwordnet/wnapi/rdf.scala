@@ -278,14 +278,21 @@ object WNRDF extends Format {
       } else {
         throw new WNRDFException("Non-standard part of speech " + pos)
       },
-      (canForm lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())))
+      (canForm lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())),
+      (canForm \* WN.tag).map(readTag).toSeq)
   }
 
   private def readForm(r : Resource)(implicit model : Model) : Form = {
     Form(
       (r lit ONTOLEX.writtenRep).headOrElse(throw new WNRDFException("No written representation for " + r)).getLexicalForm(),
-      (r lit WN.tag).headOption.map(_.getLexicalForm()),
+      (r \* WN.tag).map(readTag).toSeq,
       (r lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())))
+  }
+
+  private def readTag(r : Resource)(implicit model : Model) : Tag = {
+    Tag(
+      (r lit WN.category).headOrElse(throw new WNRDFException("No category for " + r)).getLexicalForm(),
+      (r lit RDF.value).headOrElse(throw new WNRDFException("No value for " + r)).getLexicalForm())
   }
 
   private def readSense(r : Resource)(implicit model : Model) : Sense = {
@@ -544,6 +551,12 @@ object WNRDF extends Format {
         r + WN.script + model.createLiteral(s.toString())
       case None =>
     }
+    e.tag foreach { v =>
+        val t = model.createResource()
+        r + WN.tag + t
+        t + WN.category + model.createLiteral(v.category)
+        t + RDF.value + model.createLiteral(v.value)
+    }
     r
   }
 
@@ -560,10 +573,11 @@ object WNRDF extends Format {
         r + WN.script + model.createLiteral(s.toString())
       case None =>
     }
-    f.tag match {
-      case Some(s) =>
-        r + WN.tag + model.createLiteral(s)
-      case None =>
+    f.tag foreach { v =>
+        val t = model.createResource()
+        r + WN.tag + t
+        t + WN.category + model.createLiteral(v.category)
+        t + RDF.value + model.createLiteral(v.value)
     }
     r
   }

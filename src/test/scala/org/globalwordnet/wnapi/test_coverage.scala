@@ -3,7 +3,7 @@ package org.globalwordnet.api.serialize
 import eu.monnetproject.lang.{Language, Script}
 import java.io.File
 import org.globalwordnet.api.wn._
-import org.scalatest._
+import org.scalatest.{Tag => _, _}
 
 class CoverageTest extends FlatSpec with Matchers {
   var resource : LexicalResource = null
@@ -46,10 +46,11 @@ class CoverageTest extends FlatSpec with Matchers {
     e.lemma.script should be (Some(Script.LATIN))
     e.lemma.partOfSpeech should be (noun)
     e.forms should have size (1)
+    e.lemma.tag should be (Seq(Tag("penn", "NN")))
     val f = e.forms(0)
     f.writtenForm should be ("tests")
     f.script should be (Some(Script.CYRILLIC))
-    f.tag should be (Some("NNS"))
+    f.tag should be (Seq(Tag("penn","NNS")))
     e.senses should have size (1)
     val ws = e.senses(0)
     ws.id should be ("ws1")

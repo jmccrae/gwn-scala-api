@@ -41,11 +41,14 @@
             <Lemma
                 writtenForm="test"
                 script="Latn"
-                partOfSpeech="n"/>
+                partOfSpeech="n">
+                <Tag category="penn">NN</Tag>
+            </Lemma>
             <Form
                 writtenForm="tests"
-                script="Cyrl"
-                tag="NNS"/>
+                script="Cyrl">
+                <Tag category="penn">NNS</Tag>
+            </Form>
             <Sense id="ws1" synset="s1" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"

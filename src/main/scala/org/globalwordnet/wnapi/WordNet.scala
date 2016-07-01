@@ -72,9 +72,11 @@ case class Lexicon(id : String,
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
    syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends Meta
 
-case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None)
+case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None, tag : Seq[Tag] = Nil)
 
-case class Form(writtenForm : String, tag : Option[String] = None, script : Option[Script] = None)
+case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None)
+
+case class Tag(category : String, value : String)
 
 case class Sense(id : String, synsetRef : String,
   senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,

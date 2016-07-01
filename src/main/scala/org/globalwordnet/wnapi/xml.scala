@@ -66,11 +66,18 @@ object WNLMF extends Format {
       (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem)
   }
 
+  private def readTag(elem : Node) : Tag = {
+    Tag(
+      (elem \ "@category").text,
+      trim(elem).text)
+  }
+
   private def readLemma(elem : Node) : Lemma = {
     Lemma(
       (elem \ "@writtenForm").text,
       readPartOfSpeech((elem \ "@partOfSpeech").text),
-      (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)))
+      (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)),
+      (elem \ "Tag").map(readTag))
   }
 
   private def readPartOfSpeech(code : String) = PartOfSpeech.fromString(code)
@@ -78,7 +85,7 @@ object WNLMF extends Format {
   private def readForm(elem : Node) : Form = {
     Form(
       (elem \ "@writtenForm").text,
-      (elem \ "@tag").headOption.map(_.text),
+      (elem \ "Tag").map(readTag),
       (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)))
   }
 
@@ -235,7 +242,17 @@ object WNLMF extends Format {
         out.print(s"""script="$t" """)
       case None =>
     }
-    out.print("""/>""")
+    if(e.lemma.tag.isEmpty) {
+      out.print("/>")
+    } else {
+      out.print(">")
+      for(t <- e.lemma.tag) {
+        out.print(s"""
+        <Tag category="${t.category}">${t.value}</Tag>""")
+      }
+      out.print("""
+      </Lemma>""")
+    }
     for(form <- e.forms) {
       writeForm(out, form)
     }
@@ -252,17 +269,22 @@ object WNLMF extends Format {
   private def writeForm(out : PrintWriter, e : Form) {
     out.print(s"""
       <Form writtenForm="${escapeXml(e.writtenForm)}" """)
-    e.tag match {
-      case Some(t) =>
-        out.print(s"""tag="$t" """)
-      case None =>
-    }
     e.script match {
       case Some(s) =>
         out.print(s"""script="$s" """)
       case None =>
     }
-    out.print("/>")
+    if(e.tag.isEmpty) {
+      out.print("/>")
+    } else {
+      out.print(">")
+      for(t <- e.tag) {
+        out.print(s"""
+        <Tag category="${t.category}">${t.value}</Tag>""")
+      }
+      out.print("""
+      </Form>""")
+    }
   }
 
   private def writeSense(out : PrintWriter, e : Sense) {
