@@ -128,8 +128,8 @@ package serialize {
       case "przysłówek"  => adverb
     }
 
-      val coreSynRels = Set("agent", "also", "attribute", "be_in_state", "causes", "classified_by", "classifies", "co_agent_instrument", "co_agent_patient", "co_agent_result", "co_instrument_agent", "co_instrument_patient", "co_instrument_result", "co_patient_agent", "co_patient_instrument", "co_result_agent", "co_result_instrument", "co_role", "derivation", "direction", "domain_region", "domain_topic", "domain_usage", "entails", "eq_synonym", "fuzzynym", "has_domain_region", "has_domain_topic", "has_domain_usage", "holo_location", "holo_member", "holo_part", "holo_portion", "holo_substance", "holonym", "hypernym", "hyponym", "in_manner", "instance_hypernym", "instance_hyponym", "instrument", "involved", "involved_agent", "involved_direction", "involved_instrument", "involved_location", "involved_patient", "involved_result", "involved_source_direction", "involved_target_direction", "is_caused_by", "is_entailed_by", "location", "manner_of", "mero_location", "mero_member", "mero_part", "mero_portion", "mero_substance", "meronym", "near_synonym", "other", "patient", "restricted_by", "restricts", "result", "role", "source_direction", "state_of", "target_direction")
-      val coreSenseRels = Set("antonym", "near_antonym", "also", "participle", "pertainym", "derivation", "domain_topic", "has_domain_topic", "domain_region", "has_domain_region", "domain_usage", "has_domain_usage", "other")
+      val coreSynRels = Set("agent", "also", "attribute", "be_in_state", "causes", "classified_by", "classifies", "co_agent_instrument", "co_agent_patient", "co_agent_result", "co_instrument_agent", "co_instrument_patient", "co_instrument_result", "co_patient_agent", "co_patient_instrument", "co_result_agent", "co_result_instrument", "co_role", "derivation", "direction", "domain_region", "domain_topic", "exemplifies", "entails", "eq_synonym", "fuzzynym", "has_domain_region", "has_domain_topic", "is_exemplified_by", "holo_location", "holo_member", "holo_part", "holo_portion", "holo_substance", "holonym", "hypernym", "hyponym", "in_manner", "instance_hypernym", "instance_hyponym", "instrument", "involved", "involved_agent", "involved_direction", "involved_instrument", "involved_location", "involved_patient", "involved_result", "involved_source_direction", "involved_target_direction", "is_caused_by", "is_entailed_by", "location", "manner_of", "mero_location", "mero_member", "mero_part", "mero_portion", "mero_substance", "meronym", "near_synonym", "other", "patient", "restricted_by", "restricts", "result", "role", "source_direction", "state_of", "target_direction")
+      val coreSenseRels = Set("antonym", "near_antonym", "also", "participle", "pertainym", "derivation", "domain_topic", "has_domain_topic", "domain_region", "has_domain_region", "exemplifies", "is_exemplified_by", "other")
 
     def mapRelType(relType : String) = relType match {
       // Relations only in plWordNet
@@ -285,8 +285,8 @@ package serialize {
       case "184" => domain_topic
       case "185" => has_domain_region
       case "186" => domain_region
-      case "187" => has_domain_usage
-      case "188" => domain_usage
+      case "187" => is_exemplified_by
+      case "188" => exemplifies
       case "189" => entails
       case "190" => causes
       case "191" => also

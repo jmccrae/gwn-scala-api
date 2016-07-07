@@ -378,8 +378,8 @@ object WNDB {
       case "-c" => has_domain_topic
       case ";r" => domain_region
       case "-r" => has_domain_region
-      case ";u" => domain_usage
-      case "-u" => has_domain_usage
+      case ";u" => exemplifies
+      case "-u" => is_exemplified_by
       case "*" =>  entails 
       case ">" => causes
       case "^" => also

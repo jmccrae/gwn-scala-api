@@ -158,12 +158,12 @@ object SynsetRelType {
     case "direction" => direction
     case "domain_region" => domain_region
     case "domain_topic" => domain_topic
-    case "domain_usage" => domain_usage
+    case "exemplifies" => exemplifies
     case "entails" => entails
     case "eq_synonym" => eq_synonym
     case "has_domain_region" => has_domain_region
     case "has_domain_topic" => has_domain_topic
-    case "has_domain_usage" => has_domain_usage
+    case "is_exemplified_by" => is_exemplified_by
     case "holo_location" => holo_location
     case "holo_member" => holo_member
     case "holo_part" => holo_part
@@ -231,12 +231,12 @@ object co_role extends SynsetRelType
 object direction extends SynsetRelType
 object domain_region extends SynsetRelType with SenseRelType
 object domain_topic extends SynsetRelType with SenseRelType
-object domain_usage extends SynsetRelType with SenseRelType
+object exemplifies extends SynsetRelType with SenseRelType
 object entails extends SynsetRelType
 object eq_synonym extends SynsetRelType
 object has_domain_region extends SynsetRelType with SenseRelType
 object has_domain_topic extends SynsetRelType with SenseRelType
-object has_domain_usage extends SynsetRelType with SenseRelType
+object is_exemplified_by extends SynsetRelType with SenseRelType
 object holo_location extends SynsetRelType
 object holo_member extends SynsetRelType
 object holo_part extends SynsetRelType
@@ -297,8 +297,8 @@ object SenseRelType {
     case "has_domain_topic" => has_domain_topic
     case "domain_region" => domain_region
     case "has_domain_region" => has_domain_region
-    case "domain_usage" => domain_usage
-    case "has_domain_usage" => has_domain_usage
+    case "exemplifies" => exemplifies
+    case "is_exemplified_by" => is_exemplified_by
     case "similar" => similar
     case "other" => other(dcType.getOrElse(throw new RuntimeException("Other requires a dc:type")))
   }
