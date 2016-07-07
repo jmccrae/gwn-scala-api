@@ -67,33 +67,62 @@ case class Lexicon(id : String,
   entries : Seq[LexicalEntry] = Nil, 
   synsets : Seq[Synset] = Nil) extends Meta {
   lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).mapValues(_.head)
+
+  override def toString = s"""Lexicon(id=$id label=$label language=$language email=$email license=$license version=$version ${url.map("url=" + _).getOrElse("")}${citation.map("citation" + _).getOrElse("")}
+ENTRIES
+${entries.mkString("\n")}
+SYNSETS
+${synsets.mkString("\n")}"""
+
 }
  
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
-   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends Meta
+   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends Meta {
+  override def toString = s"""LexicalEntry[$id](${(Seq(lemma.toString) ++ forms.map(_.toString) ++ senses.map(_.toString) ++ syntacticBehaviours.map(_.toString)).mkString(", ")})"""
+}
 
-case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None)
+case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None, tag : Seq[Tag] = Nil) {
+  override def toString = s"""Lemma(${(Seq(writtenForm, partOfSpeech.toString) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
+}
 
-case class Form(writtenForm : String, tag : Option[String] = None, script : Option[Script] = None)
+case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None) {
+  override def toString = s"""Form(${(Seq(writtenForm) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
+}
+
+case class Tag(category : String, value : String) {
+  override def toString = s"""$category=$value"""
+}
 
 case class Sense(id : String, synsetRef : String,
   senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,
-  counts : Seq[Count] = Nil) extends Meta
+  counts : Seq[Count] = Nil) extends Meta {
+  override def toString = s"""Sense[$id](${(Seq(synsetRef) ++ senseRelations.map(_.toString) ++ senseExamples.map(_.toString) ++ counts.map(_.toString)).mkString(", ")})"""
+}
 
 case class Synset(id : String, ili : Option[String] = None,
   definitions : Seq[Definition] = Nil, iliDefinition : Option[ILIDefinition] = None,
   synsetRelations : Seq[SynsetRelation] = Nil, 
-  synsetExamples : Seq[Example] = Nil) extends Meta
+  synsetExamples : Seq[Example] = Nil) extends Meta {
+  override def toString = s"""Synset[$id](${(ili.toSeq ++ definitions.map(_.toString) ++
+    iliDefinition.map(_.toString) ++ synsetRelations.map(_.toString) ++ synsetExamples.map(_.toString)).mkString(", ")})"""
+  }
 
 case class Definition(content : String, language : Option[Language] = None,
-  sourceSense : Option[String] = None) extends Meta
+  sourceSense : Option[String] = None) extends Meta {
+  override def toString = s"""Definition(${content}${language.map("@" + _).getOrElse("")}${sourceSense.map(" [" + _ + "]").getOrElse("")})"""
+}
 
 case class ILIDefinition(content : String) extends Meta
 
 case class Example(content : String, language : Option[Language] = None) extends Meta
 
-case class SynsetRelation(target : String, relType : SynsetRelType) extends Meta
-case class SenseRelation(target : String, relType : SenseRelType) extends Meta
+case class SynsetRelation(target : String, relType : SynsetRelType) extends Meta {
+  override def toString = s"""$relType -> $target"""
+}
+
+case class SenseRelation(target : String, relType : SenseRelType) extends Meta {
+  override def toString = s"""$relType -> $target"""
+}
 
 case class SyntacticBehaviour(subcategorizationFrame : String)
 
@@ -101,6 +130,7 @@ case class Count(value : Int) extends Meta
 
 trait RelType {
   def name = this.getClass.getSimpleName().dropRight(1)
+  override def toString = name
 }
 
 sealed trait SynsetRelType extends RelType
@@ -128,12 +158,12 @@ object SynsetRelType {
     case "direction" => direction
     case "domain_region" => domain_region
     case "domain_topic" => domain_topic
-    case "domain_usage" => domain_usage
+    case "exemplifies" => exemplifies
     case "entails" => entails
     case "eq_synonym" => eq_synonym
     case "has_domain_region" => has_domain_region
     case "has_domain_topic" => has_domain_topic
-    case "has_domain_usage" => has_domain_usage
+    case "is_exemplified_by" => is_exemplified_by
     case "holo_location" => holo_location
     case "holo_member" => holo_member
     case "holo_part" => holo_part
@@ -201,12 +231,12 @@ object co_role extends SynsetRelType
 object direction extends SynsetRelType
 object domain_region extends SynsetRelType with SenseRelType
 object domain_topic extends SynsetRelType with SenseRelType
-object domain_usage extends SynsetRelType with SenseRelType
+object exemplifies extends SynsetRelType with SenseRelType
 object entails extends SynsetRelType
 object eq_synonym extends SynsetRelType
 object has_domain_region extends SynsetRelType with SenseRelType
 object has_domain_topic extends SynsetRelType with SenseRelType
-object has_domain_usage extends SynsetRelType with SenseRelType
+object is_exemplified_by extends SynsetRelType with SenseRelType
 object holo_location extends SynsetRelType
 object holo_member extends SynsetRelType
 object holo_part extends SynsetRelType
@@ -267,8 +297,8 @@ object SenseRelType {
     case "has_domain_topic" => has_domain_topic
     case "domain_region" => domain_region
     case "has_domain_region" => has_domain_region
-    case "domain_usage" => domain_usage
-    case "has_domain_usage" => has_domain_usage
+    case "exemplifies" => exemplifies
+    case "is_exemplified_by" => is_exemplified_by
     case "similar" => similar
     case "other" => other(dcType.getOrElse(throw new RuntimeException("Other requires a dc:type")))
   }
@@ -278,7 +308,9 @@ object participle extends SenseRelType
 object pertainym extends SenseRelType
 object derivation extends SenseRelType
 
-sealed class PartOfSpeech(val shortForm : String, val name : String)
+sealed class PartOfSpeech(val shortForm : String, val name : String) {
+  override def toString = this.getClass.getSimpleName().dropRight(1)
+}
 object noun extends PartOfSpeech("n", "noun")
 object verb extends PartOfSpeech("v", "verb")
 object adjective extends PartOfSpeech("a", "adjective")

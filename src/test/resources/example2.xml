@@ -41,11 +41,14 @@
             <Lemma
                 writtenForm="test"
                 script="Latn"
-                partOfSpeech="n"/>
+                partOfSpeech="n">
+                <Tag category="penn">NN</Tag>
+            </Lemma>
             <Form
                 writtenForm="tests"
-                script="Cyrl"
-                tag="NNS"/>
+                script="Cyrl">
+                <Tag category="penn">NNS</Tag>
+            </Form>
             <Sense id="ws1" synset="s1" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"
@@ -89,8 +92,8 @@
                 <SenseRelation target="s1" relType="has_domain_topic"/>
                 <SenseRelation target="s1" relType="domain_region"/>
                 <SenseRelation target="s1" relType="has_domain_region"/>
-                <SenseRelation target="s1" relType="domain_usage"/>
-                <SenseRelation target="s1" relType="has_domain_usage"/>
+                <SenseRelation target="s1" relType="exemplifies"/>
+                <SenseRelation target="s1" relType="is_exemplified_by"/>
                 <SenseRelation target="s1" relType="similar"/>
                 <SenseRelation target="s1" relType="other" dc:type="emotion"/>
                 <Example language="fr" dc:contributor="contributor"
@@ -230,12 +233,12 @@
             <SynsetRelation target="s1" relType="direction"/>
             <SynsetRelation target="s1" relType="domain_region"/>
             <SynsetRelation target="s1" relType="domain_topic"/>
-            <SynsetRelation target="s1" relType="domain_usage"/>
+            <SynsetRelation target="s1" relType="exemplifies"/>
             <SynsetRelation target="s1" relType="entails"/>
             <SynsetRelation target="s1" relType="eq_synonym"/>
             <SynsetRelation target="s1" relType="has_domain_region"/>
             <SynsetRelation target="s1" relType="has_domain_topic"/>
-            <SynsetRelation target="s1" relType="has_domain_usage"/>
+            <SynsetRelation target="s1" relType="is_exemplified_by"/>
             <SynsetRelation target="s1" relType="holo_location"/>
             <SynsetRelation target="s1" relType="holo_member"/>
             <SynsetRelation target="s1" relType="holo_part"/>

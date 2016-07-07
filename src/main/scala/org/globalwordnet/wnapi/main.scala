@@ -142,6 +142,11 @@ object Main {
   }
 
   def loadAuxiliary(config : GWNAPIConfig) : LexicalResource = {
+    if(config.auxFile == null ||
+       !config.auxFile.exists) {
+        System.err.println("Auxiliary file is required")
+        System.exit(-1)
+    }
     config.auxFormat match {
       case "WNLMF" =>
         WNLMF.read(config.auxFile)
