@@ -254,7 +254,7 @@ object WNJSON extends Format {
           "type" -> JsString(x),
           "target" -> JsString(r.target))
         case _ => JsObject(
-          "category" -> JsString("wn:" + r.relType.name),
+          "category" -> JsString(r.relType.name),
           "target" -> JsString(r.target))
       }
       def read(v : JsValue) = v match {
@@ -262,7 +262,7 @@ object WNJSON extends Format {
           SynsetRelation(
             target=stringOrFail(m.getOrElse("target", throw new WNJsonException("Synset relation requires target"))),
             relType=m.get("category") match {
-              case Some(c) if stringOrFail(c).startsWith("wn:") => SynsetRelType.fromString(checkDrop("wn:", stringOrFail(c)), None)
+              case Some(c) => SynsetRelType.fromString(stringOrFail(c), None)
               case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
             })
         case _ =>
@@ -277,7 +277,7 @@ object WNJSON extends Format {
           "type" -> JsString(x),
           "target" -> JsString(r.target))
         case _ => JsObject(
-        "category" -> JsString("wn:" + r.relType.name),
+        "category" -> JsString(r.relType.name),
         "target" -> JsString(r.target))
       }
       def read(v : JsValue) = v match {
@@ -285,7 +285,7 @@ object WNJSON extends Format {
           SenseRelation(
             target=stringOrFail(m.getOrElse("target", throw new WNJsonException("Sense relation requires target"))),
             relType=m.get("category") match {
-              case Some(c) if stringOrFail(c).startsWith("wn:") => SenseRelType.fromString(checkDrop("wn:", stringOrFail(c)), None)
+              case Some(c)  => SenseRelType.fromString(stringOrFail(c), None)
               case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
             })
         case _ =>
@@ -349,7 +349,7 @@ object WNJSON extends Format {
           (if(e.lemma.tag.isEmpty) Map[String, JsValue]() else Map("tag" ->
             JsArray(e.lemma.tag.map(tagFormat.write):_*)))
         ),
-        "partOfSpeech" -> JsString("wn:" + e.lemma.partOfSpeech.name),
+        "partOfSpeech" -> JsString(e.lemma.partOfSpeech.name),
         "@id" -> JsString(e.id)) ++
         (e.forms.map(formFormat.write).toList match {
           case Nil => Map()
@@ -371,7 +371,7 @@ object WNJSON extends Format {
                 case JsObject(m) => stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Lemma must have a written form")))
                 case _ => throw new WNJsonException("Lemma must be an object")
               },
-              PartOfSpeech.fromName(checkDrop("wn:", stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech"))))),
+              PartOfSpeech.fromName(stringOrFail(m.getOrElse("partOfSpeech", throw new WNJsonException("Lexical entry must have a part of speech")))),
               m.get("lemma").flatMap({
                   case JsObject(m) => m.get("script").map(stringOrFail).map(Script.getByAlpha4Code)
                   case _ => throw new WNJsonException("Lemma must be an object")
