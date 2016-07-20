@@ -106,7 +106,16 @@ case class Synset(id : String, ili : Option[String] = None,
   partOfSpeech : Option[PartOfSpeech] = None) extends Meta {
   override def toString = s"""Synset[$id](${(ili.toSeq ++ definitions.map(_.toString) ++
     iliDefinition.map(_.toString) ++ synsetRelations.map(_.toString) ++ synsetExamples.map(_.toString)).mkString(", ")})"""
-  }
+
+  def pos(lexicon : Lexicon) = partOfSpeech.getOrElse({
+    lexicon.entries.filter(_.senses.exists(_.synsetRef == id)).headOption match {
+      case Some(entry) =>
+        entry.lemma.partOfSpeech
+      case None =>
+        throw new RuntimeException("Empty synset without part-of-speech")
+    }
+  })
+}
 
 case class Definition(content : String, language : Option[Language] = None,
   sourceSense : Option[String] = None) extends Meta {
