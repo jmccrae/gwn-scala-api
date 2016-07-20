@@ -254,16 +254,16 @@ object WNJSON extends Format {
           "type" -> JsString(x),
           "target" -> JsString(r.target))
         case _ => JsObject(
-          "category" -> JsString(r.relType.name),
+          "relType" -> JsString(r.relType.name),
           "target" -> JsString(r.target))
       }
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           SynsetRelation(
             target=stringOrFail(m.getOrElse("target", throw new WNJsonException("Synset relation requires target"))),
-            relType=m.get("category") match {
+            relType=m.get("relType") match {
               case Some(c) => SynsetRelType.fromString(stringOrFail(c), None)
-              case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
+              case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have relType or type"))))
             })
         case _ =>
           throw new WNJsonException("Synset relation must be an object")
@@ -277,16 +277,16 @@ object WNJSON extends Format {
           "type" -> JsString(x),
           "target" -> JsString(r.target))
         case _ => JsObject(
-        "category" -> JsString(r.relType.name),
+        "relType" -> JsString(r.relType.name),
         "target" -> JsString(r.target))
       }
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           SenseRelation(
             target=stringOrFail(m.getOrElse("target", throw new WNJsonException("Sense relation requires target"))),
-            relType=m.get("category") match {
+            relType=m.get("relType") match {
               case Some(c)  => SenseRelType.fromString(stringOrFail(c), None)
-              case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have category or type"))))
+              case _ => other(stringOrFail(m.getOrElse("type", throw new WNJsonException("Relation must have relType or type"))))
             })
         case _ =>
           throw new WNJsonException("Sense relation must be an object")
@@ -407,6 +407,7 @@ object WNJSON extends Format {
     object synsetFormat extends JsonFormat[Synset] {
       def write(s : Synset) = JsObject(Map(
         "@id" -> JsString(s.id)) ++
+        (s.partOfSpeech.map(pos => "partOfSpeech" -> JsString(pos.name))) ++
         (s.definitions.map(metaDefinitionFormat.write).toList match {
           case Nil => Map()
           case vals => Map("definition" -> JsArray(vals:_*))
@@ -438,7 +439,8 @@ object WNJSON extends Format {
             synsetExamples=m.getOrElse("example", JsArray()) match {
               case JsArray(x) => x.map(metaExampleFormat.read)
               case _ => throw new WNJsonException("Synset exampels must be list of objects")
-            })
+            },
+            partOfSpeech=m.get("partOfSpeech").map(pos => PartOfSpeech.fromName(stringOrFail(pos))))
         case _ =>
           throw new WNJsonException("Synset must be an object")
       }

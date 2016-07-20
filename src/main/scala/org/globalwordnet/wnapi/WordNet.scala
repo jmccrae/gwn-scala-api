@@ -102,7 +102,8 @@ case class Sense(id : String, synsetRef : String,
 case class Synset(id : String, ili : Option[String] = None,
   definitions : Seq[Definition] = Nil, iliDefinition : Option[ILIDefinition] = None,
   synsetRelations : Seq[SynsetRelation] = Nil, 
-  synsetExamples : Seq[Example] = Nil) extends Meta {
+  synsetExamples : Seq[Example] = Nil,
+  partOfSpeech : Option[PartOfSpeech] = None) extends Meta {
   override def toString = s"""Synset[$id](${(ili.toSeq ++ definitions.map(_.toString) ++
     iliDefinition.map(_.toString) ++ synsetRelations.map(_.toString) ++ synsetExamples.map(_.toString)).mkString(", ")})"""
   }

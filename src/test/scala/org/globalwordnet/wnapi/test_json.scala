@@ -68,8 +68,15 @@ class JsonSpec extends FlatSpec with Matchers {
   }
   it should "roundtrip" in {
     val text1 = io.Source.fromFile("src/test/resources/example.json").getLines.mkString(" ").replaceAll("\\s+", "")
-    val text2 = io.Source.fromFile(f).getLines.mkString("\n")
-    text2.replaceAll("\\s+", "").length should be (text1.length - 40)
+    val text2 = io.Source.fromFile(f).getLines.mkString("\n").replaceAll("\\s+","")
+    text1.split(",").filter({ x =>
+      !text2.split(",").contains(x)
+    }).foreach(println)
+    println("--------")
+    text2.split(",").filter({ x =>
+      !text1.split(",").contains(x)
+    }).foreach(println)
+    text2.length should be (text1.length)
     //val f1 = text1.groupBy(x => x).mapValues(_.size)
     //val f2 = text2.groupBy(x => x).mapValues(_.size)
     //for(k <- f1.keys) {

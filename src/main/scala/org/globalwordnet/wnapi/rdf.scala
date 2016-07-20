@@ -351,7 +351,8 @@ object WNRDF extends Format {
       (r \* WN.definition).map(readDefinition).toSeq,
       (r \* WN.iliDefinition).headOption.map(readILIDefinition),
       (r / VARTRANS.source).map(readSynsetRelation).toSeq,
-     (r \* WN.example).map(readExample).toSeq), r)
+      (r \* WN.example).map(readExample).toSeq,
+      (r \* WN.partOfSpeech).headOption.map(pos => PartOfSpeech.fromName(pos.getURI().drop(WN.prefix.length)))), r)
   }
 
   private def readDefinition(r : Resource)(implicit model : Model) : Definition = {
@@ -654,6 +655,9 @@ object WNRDF extends Format {
         r + WN.ili + model.createResource("http://ili.globalwordnet.org/ili/" + i)
       case None =>
     }
+    s.partOfSpeech.foreach({ pos =>
+      r + WN.partOfSpeech + writePartOfSpeech(pos)
+    })
     r + WN.example ++ s.synsetExamples.map(writeExample)
     r
   }

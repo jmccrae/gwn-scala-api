@@ -117,6 +117,7 @@ object Merge {
 
   def mergeSynset(s1 : Synset, s2 : Synset, lookup : String => String) : Synset = {
     assert(s1.ili == s2.ili)
+    assert(s1.partOfSpeech == s2.partOfSpeech)
     println(s1)
     println(s2)
     Synset(
@@ -124,7 +125,8 @@ object Merge {
       ili=s1.ili,
       definitions=(s1.definitions ++ s2.definitions).toSet.toSeq,
       synsetRelations=(s1.synsetRelations ++ s2.synsetRelations).map(mapSynsetRelation(_, lookup)).toSet.toSeq,
-      synsetExamples=(s1.synsetExamples ++ s2.synsetExamples).toSet.toSeq)
+      synsetExamples=(s1.synsetExamples ++ s2.synsetExamples).toSet.toSeq,
+      partOfSpeech=s1.partOfSpeech)
   }
 
   def mapSynsetRelation(sr : SynsetRelation, lookup : String => String) = {

@@ -46,13 +46,13 @@ object OpenMultilingualWordNet {
         Lexicon(id, label, language, email, license, version,
           url, citation, entries,
           synsets.map({
-            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples) =>
+            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples, partOfSpeech) =>
               Synset(id, ili, definitions ++ elements.getOrElse(id, Map()).getOrElse("definition", Nil).map({
                 case (lang, value) => Definition(value, Some(lang))
               }), iliDefinition, synsetRelations,
               synsetExamples ++ elements.getOrElse(id, Map()).getOrElse("example", Nil).map({
                 case (lang, value) => Example(value, Some(lang))
-              }))
+              }), partOfSpeech)
           }))
     }
   }

@@ -160,7 +160,8 @@
             dc:type="type"
             status="status"
             note="note"
-            confidenceScore="1.0">
+            confidenceScore="1.0"
+            partOfSpeech="n">
             <Definition language="en" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"

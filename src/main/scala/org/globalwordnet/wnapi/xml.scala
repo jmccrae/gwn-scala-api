@@ -124,7 +124,8 @@ object WNLMF extends Format {
       (elem \ "Definition").map(readDefinition),
       (elem \ "ILIDefinition").headOption.map(readILIDefinition),
       (elem \ "SynsetRelation").map(readSynsetRelation),
-      (elem \ "Example").map(readSenseExample)), elem)
+      (elem \ "Example").map(readSenseExample),
+      (elem \ "@partOfSpeech").headOption.map(e => readPartOfSpeech(e.text))), elem)
   }
 
   private def readDefinition(elem : Node) : Definition = {
@@ -332,6 +333,7 @@ object WNLMF extends Format {
   private def writeSynset(out : PrintWriter, e : Synset) {
     out.print(s"""
     <Synset id="${e.id}" ili="${e.ili.getOrElse("")}" """)
+    e.partOfSpeech.foreach(x => out.print(s"""partOfSpeech="${x.shortForm}" """))
     writeMeta(out, 12, e)
     out.print(">")
     for(d <- e.definitions) {

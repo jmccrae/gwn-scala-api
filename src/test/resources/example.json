@@ -7,8 +7,7 @@
       "label": "Example wordnet (English)",
       "language": "en",
       "email": "john@mccr.ae",
-      /* This is partial quote */
-      "license": "https://creativecommons.org/publicdomain/zero/1.0/", // This is a line quote
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/", 
       "version": "1.0",
       "citation": "CILI: the Collaborative Interlingual Index. Francis Bond, Piek Vossen, John P. McCrae and Christiane Fellbaum, Proceedings of the Global WordNet Conference 2016, (2016).",
       "url": "http://globalwordnet.github.io/schemas/",
@@ -29,7 +28,7 @@
               "@id": "example-1-n-1",
               "synset": "example-1-n",
               "relations": [{
-                  "category": "derivation",
+                  "relType": "derivation",
                   "target": "example-10161911-n-1",
                   "creator": "John McCrae"
               }]
@@ -47,14 +46,16 @@
       "synset": [{
           "@id": "example-10161911-n",
           "ili": "ili:i90287",
+          "partOfSpeech": "noun",
           "definition": [{
               "gloss": "the father of your father or mother"
           }],
           "relations": [{
-              "category": "hypernym", "target": "example-10162692-n"
+              "relType": "hypernym", "target": "example-10162692-n"
           }]
       }, {
           "@id": "example-1-n",
+          "partOfSpeech": "noun",
           "definition": [{
               "gloss": "the father of your father or mother"
           }],
@@ -63,7 +64,7 @@
               "source": "https://en.wiktionary.org/wiki/farfar"
           },
           "relations": [
-            { "category": "hypernym", "target": "example-10162692-n" }
+            { "relType": "hypernym", "target": "example-10162692-n" }
           ]
       }]
   }, {
@@ -81,8 +82,7 @@
       "entry": [{
           "@id" : "w4",
           "lemma": { "writtenForm": "farfar" }, 
-          "form": [{ "writtenForm": "farfäder", "tag": 
-              [{ "category": "penn", "value": "NNS" }] }],
+          "form": [{ "writtenForm": "farfäder", "tag": [{ "category": "penn", "value": "NNS" }] }],
           "partOfSpeech": "noun",
           "sense": [{
               "@id": "example-2-n-1",

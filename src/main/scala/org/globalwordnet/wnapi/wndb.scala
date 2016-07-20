@@ -200,7 +200,8 @@ object WNDB {
                  SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos.shortForm), relType=typ.asInstanceOf[SynsetRelType])
               }
             }, 
-            synsetExamples=Nil).withSubject(lexNames(lexNo))
+            synsetExamples=Nil,
+            partOfSpeech=Some(pos)).withSubject(lexNames(lexNo))
         }
     }
 
