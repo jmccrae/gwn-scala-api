@@ -40,6 +40,7 @@ class PLWNTest extends FlatSpec with Matchers {
           Synset(
             id="pl-309949",
             ili=Some("in"),
+            iliDefinition=Some(ILIDefinition("a .22 caliber firearm (pistol or rifle)  ")),
             definitions=Seq(Definition("a .22 caliber firearm (pistol or rifle)  ")),
             synsetRelations=Seq(
               SynsetRelation(

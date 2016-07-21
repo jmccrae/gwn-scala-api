@@ -104,6 +104,12 @@ case class Synset(id : String, ili : Option[String] = None,
   synsetRelations : Seq[SynsetRelation] = Nil, 
   synsetExamples : Seq[Example] = Nil,
   partOfSpeech : Option[PartOfSpeech] = None) extends Meta {
+  ili match {
+    case Some("in") if iliDefinition == None =>
+      throw new WordNetFormatException("If the ILI is set to \"in\" there must be an ILI Definition [" + id + "]")
+    case _ =>
+  }
+
   override def toString = s"""Synset[$id](${(ili.toSeq ++ definitions.map(_.toString) ++
     iliDefinition.map(_.toString) ++ synsetRelations.map(_.toString) ++ synsetExamples.map(_.toString)).mkString(", ")})"""
 
@@ -112,7 +118,7 @@ case class Synset(id : String, ili : Option[String] = None,
       case Some(entry) =>
         entry.lemma.partOfSpeech
       case None =>
-        throw new RuntimeException("Empty synset without part-of-speech")
+        throw new WordNetFormatException("Empty synset without part-of-speech")
     }
   })
 }
@@ -217,7 +223,8 @@ object SynsetRelType {
     case "subevent" => subevent
     case "is_subevent_of" => is_subevent_of
     case "antonym" => antonym
-    case "other" => other(dcType.getOrElse(throw new RuntimeException("Other requires a dc:type")))
+    case "other" => other(dcType.getOrElse(throw new WordNetFormatException("Other requires a dc:type")))
+    case other => throw new WordNetFormatException("Unsupported relation type: " + other)
   }
 }
 object agent extends SynsetRelType
@@ -358,3 +365,5 @@ object PartOfSpeech {
     case "unknown_pos" => unknown_pos
   }
 }
+
+case class WordNetFormatException(msg : String = null, cause : Throwable = null) extends RuntimeException(msg, cause)

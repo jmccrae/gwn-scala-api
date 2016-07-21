@@ -405,6 +405,7 @@ package serialize {
                 val sid = synset_mapping.getOrElse(synsetid, "pl-" + synsetid)
                 val iliid = if(en) { Some(ili.getOrElse(sid, "in")) } else { None }
                 Synset(id=sid,ili=iliid,
+                  iliDefinition=(if(iliid == Some("in") && defn.matches("\\s*")) { Some(ILIDefinition("")) } else if (iliid == Some("in")) { Some(ILIDefinition(defn)) } else { None} ),
                   definitions=if(defn matches "\\s*") { Seq() } else { Seq(Definition(defn)) },
                   synsetRelations={
                     for((targ, rel) <- synrelations.getOrElse(synsetid, Nil)) yield {
