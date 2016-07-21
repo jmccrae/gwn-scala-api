@@ -35,19 +35,19 @@ class RDFSpec extends FlatSpec with Matchers {
     e.id should be ("w1")
     e.lemma.writtenForm should be ("grandfather")
     e.lemma.partOfSpeech should be (noun)
-    e.senses(0).id should be ("example-10161911-n-1")
-    e.senses(0).synsetRef should be ("example-10161911-n")
+    e.senses(0).id should be ("example-en-10161911-n-1")
+    e.senses(0).synsetRef should be ("example-en-10161911-n")
   }
   it should "produce a sense" in {
     val s = resource.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w2").get.senses(0)
-    s.id should be ("example-1-n-1")
-    s.synsetRef should be ("example-1-n")
+    s.id should be ("example-en-1-n-1")
+    s.synsetRef should be ("example-en-1-n")
   }
   it should "produce a sense relation" in {
     val s = resource.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w2").get.senses(0)
     val r = s.senseRelations(0)
     r.relType should be (derivation)
-    r.target should be ("example-10161911-n-1")
+    r.target should be ("example-en-10161911-n-1")
   }
   it should "produce syntactic behavior" in {
     resource.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w3").get.syntacticBehaviours.size should be (3)
@@ -55,12 +55,12 @@ class RDFSpec extends FlatSpec with Matchers {
     s should not be (None)
   }
   it should "produce a synset" in {
-    val s = resource.lexicons.find(_.id == "example-en").get.synsets.find(_.id == "example-10161911-n").get
-    s.id should be ("example-10161911-n")
+    val s = resource.lexicons.find(_.id == "example-en").get.synsets.find(_.id == "example-en-10161911-n").get
+    s.id should be ("example-en-10161911-n")
     s.ili should be (Some("i90287"))
     s.definitions(0).content should be ("the father of your father or mother")
     s.synsetRelations(0).relType should be (hypernym)
-    s.synsetRelations(0).target should be ("example-10162692-n")
+    s.synsetRelations(0).target should be ("example-en-10162692-n")
   }
   val f = java.io.File.createTempFile("lexicon", ".ttl")
   f.deleteOnExit()
@@ -97,19 +97,19 @@ class RDFSpec extends FlatSpec with Matchers {
     e.id should be ("w1")
     e.lemma.writtenForm should be ("grandfather")
     e.lemma.partOfSpeech should be (noun)
-    e.senses(0).id should be ("example-10161911-n-1")
-    e.senses(0).synsetRef should be ("example-10161911-n")
+    e.senses(0).id should be ("example-en-10161911-n-1")
+    e.senses(0).synsetRef should be ("example-en-10161911-n")
   }
   it should "produce a sense" in {
     val s = resource2.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w2").get.senses(0)
-    s.id should be ("example-1-n-1")
-    s.synsetRef should be ("example-1-n")
+    s.id should be ("example-en-1-n-1")
+    s.synsetRef should be ("example-en-1-n")
   }
   it should "produce a sense relation" in {
     val s = resource2.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w2").get.senses(0)
     val r = s.senseRelations(0)
     r.relType should be (derivation)
-    r.target should be ("example-10161911-n-1")
+    r.target should be ("example-en-10161911-n-1")
   }
   it should "produce syntactic behavior" in {
     resource2.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w3").get.syntacticBehaviours.size should be (3)
@@ -117,11 +117,11 @@ class RDFSpec extends FlatSpec with Matchers {
     s should not be (None)
   }
   it should "produce a synset" in {
-    val s = resource2.lexicons.find(_.id == "example-en").get.synsets.find(_.id == "example-10161911-n").get
-    s.id should be ("example-10161911-n")
+    val s = resource2.lexicons.find(_.id == "example-en").get.synsets.find(_.id == "example-en-10161911-n").get
+    s.id should be ("example-en-10161911-n")
     s.ili should be (Some("i90287"))
     s.definitions(0).content should be ("the father of your father or mother")
     s.synsetRelations(0).relType should be (hypernym)
-    s.synsetRelations(0).target should be ("example-10162692-n")
+    s.synsetRelations(0).target should be ("example-en-10162692-n")
   }
  }

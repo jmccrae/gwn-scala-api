@@ -34,11 +34,11 @@ class PLWNTest extends FlatSpec with Matchers {
             senses=Seq(
               Sense(
                 id="478387",
-                synsetRef="pl-309949",
+                synsetRef="enWordNet-pl-309949",
                 senseRelations=Seq())))),
         synsets=Seq(
           Synset(
-            id="pl-309949",
+            id="enWordNet-pl-309949",
             ili=Some("in"),
             iliDefinition=Some(ILIDefinition("a .22 caliber firearm (pistol or rifle)  ")),
             definitions=Seq(Definition("a .22 caliber firearm (pistol or rifle)  ")),
@@ -65,7 +65,7 @@ class PLWNTest extends FlatSpec with Matchers {
               senses=Seq(
                 Sense(
                   id="107360",
-                  synsetRef="pl-77760",
+                  synsetRef="plWordNet-pl-77760",
                   senseRelations=Seq(
                     SenseRelation(
                       target="61999",
@@ -78,7 +78,7 @@ class PLWNTest extends FlatSpec with Matchers {
           ),
           synsets=Seq(
             Synset(
-              id="pl-77760"))
+              id="plWordNet-pl-77760"))
         )
       ))
     resource.toString should be (expectedValue.toString)

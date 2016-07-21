@@ -39,14 +39,26 @@ object Merge {
     val synsets1 = l1.synsets.filter(_.ili != None).groupBy(s => s.ili.get)
     val synsets2 = l2.synsets.filter(_.ili != None).groupBy(s => s.ili.get)
     def lookupSynset(id : String) : String = {
-      val s = lr1.synsetLookup.getOrElse(id, 
-        lr2.synsetLookup.getOrElse(id,
-          throw new RuntimeException("Reference to unknown synset")))
-      s.ili match {
-        case None =>
-          s.id
+      lr1.synsetLookup.get(id) match {
         case Some(s) =>
-          makeId(s)
+          s.ili match {
+            case None =>
+              l1.id + "+" + l2.id + "-" + s.id.drop(l1.id.length)
+            case Some(s) =>
+              l1.id + "+" + l2.id + "-" + makeId(s)
+          }
+        case None =>
+          lr2.synsetLookup.get(id) match {
+            case Some(s) =>
+              s.ili match {
+                case None =>
+                  l1.id + "+" + s.id
+                case Some(s) =>
+                  l1.id + "+" + l2.id + "-" + makeId(s)
+              }
+            case None =>
+              throw new RuntimeException("Reference to unknown synset")
+          }
       }
     }
 

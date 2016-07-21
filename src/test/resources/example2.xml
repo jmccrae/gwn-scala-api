@@ -49,7 +49,7 @@
                 script="Cyrl">
                 <Tag category="penn">NNS</Tag>
             </Form>
-            <Sense id="ws1" synset="s1" dc:contributor="contributor"
+            <Sense id="ws1" synset="ex2-s1" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"
                 dc:date="date"
@@ -66,7 +66,7 @@
                 status="status"
                 note="note"
                 confidenceScore="1.0">
-                <SenseRelation target="s1" relType="antonym" dc:contributor="contributor"
+                <SenseRelation target="ws1" relType="antonym" dc:contributor="contributor"
                     dc:coverage="coverage"
                     dc:creator="creator"
                     dc:date="date"
@@ -83,19 +83,19 @@
                     status="status"
                     note="note"
                     confidenceScore="1.0"/>
-                <SenseRelation target="s1" relType="antonym"/>
-                <SenseRelation target="s1" relType="also"/>
-                <SenseRelation target="s1" relType="participle"/>
-                <SenseRelation target="s1" relType="pertainym"/>
-                <SenseRelation target="s1" relType="derivation"/>
-                <SenseRelation target="s1" relType="domain_topic"/>
-                <SenseRelation target="s1" relType="has_domain_topic"/>
-                <SenseRelation target="s1" relType="domain_region"/>
-                <SenseRelation target="s1" relType="has_domain_region"/>
-                <SenseRelation target="s1" relType="exemplifies"/>
-                <SenseRelation target="s1" relType="is_exemplified_by"/>
-                <SenseRelation target="s1" relType="similar"/>
-                <SenseRelation target="s1" relType="other" dc:type="emotion"/>
+                <SenseRelation target="ws1" relType="antonym"/>
+                <SenseRelation target="ws1" relType="also"/>
+                <SenseRelation target="ws1" relType="participle"/>
+                <SenseRelation target="ws1" relType="pertainym"/>
+                <SenseRelation target="ws1" relType="derivation"/>
+                <SenseRelation target="ws1" relType="domain_topic"/>
+                <SenseRelation target="ws1" relType="has_domain_topic"/>
+                <SenseRelation target="ws1" relType="domain_region"/>
+                <SenseRelation target="ws1" relType="has_domain_region"/>
+                <SenseRelation target="ws1" relType="exemplifies"/>
+                <SenseRelation target="ws1" relType="is_exemplified_by"/>
+                <SenseRelation target="ws1" relType="similar"/>
+                <SenseRelation target="ws1" relType="other" dc:type="emotion"/>
                 <Example language="fr" dc:contributor="contributor"
                     dc:coverage="coverage"
                     dc:creator="creator"
@@ -144,7 +144,7 @@
         <LexicalEntry id="w8"><Lemma writtenForm="test" partOfSpeech="p"/></LexicalEntry>
         <LexicalEntry id="w9"><Lemma writtenForm="test" partOfSpeech="x"/></LexicalEntry>
         <LexicalEntry id="w0"><Lemma writtenForm="test" partOfSpeech="u"/></LexicalEntry>
-        <Synset id="s1" ili="i1" dc:contributor="contributor"
+        <Synset id="ex2-s1" ili="i1" dc:contributor="contributor"
             dc:coverage="coverage"
             dc:creator="creator"
             dc:date="date"
@@ -197,7 +197,7 @@
                 status="status"
                 note="note"
                 confidenceScore="1.0">iliDefinition</ILIDefinition>
-            <SynsetRelation target="s1" relType="agent" dc:contributor="contributor"
+            <SynsetRelation target="ex2-s1" relType="agent" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"
                 dc:date="date"
@@ -214,76 +214,76 @@
                 status="status"
                 note="note"
                 confidenceScore="1.0"/>
-            <SynsetRelation target="s1" relType="also"/>
-            <SynsetRelation target="s1" relType="attribute"/>
-            <SynsetRelation target="s1" relType="be_in_state"/>
-            <SynsetRelation target="s1" relType="causes"/>
-            <SynsetRelation target="s1" relType="classified_by"/>
-            <SynsetRelation target="s1" relType="classifies"/>
-            <SynsetRelation target="s1" relType="co_agent_instrument"/>
-            <SynsetRelation target="s1" relType="co_agent_patient"/>
-            <SynsetRelation target="s1" relType="co_agent_result"/>
-            <SynsetRelation target="s1" relType="co_instrument_agent"/>
-            <SynsetRelation target="s1" relType="co_instrument_patient"/>
-            <SynsetRelation target="s1" relType="co_instrument_result"/>
-            <SynsetRelation target="s1" relType="co_patient_agent"/>
-            <SynsetRelation target="s1" relType="co_patient_instrument"/>
-            <SynsetRelation target="s1" relType="co_result_agent"/>
-            <SynsetRelation target="s1" relType="co_result_instrument"/>
-            <SynsetRelation target="s1" relType="co_role"/>
-            <SynsetRelation target="s1" relType="direction"/>
-            <SynsetRelation target="s1" relType="domain_region"/>
-            <SynsetRelation target="s1" relType="domain_topic"/>
-            <SynsetRelation target="s1" relType="exemplifies"/>
-            <SynsetRelation target="s1" relType="entails"/>
-            <SynsetRelation target="s1" relType="eq_synonym"/>
-            <SynsetRelation target="s1" relType="has_domain_region"/>
-            <SynsetRelation target="s1" relType="has_domain_topic"/>
-            <SynsetRelation target="s1" relType="is_exemplified_by"/>
-            <SynsetRelation target="s1" relType="holo_location"/>
-            <SynsetRelation target="s1" relType="holo_member"/>
-            <SynsetRelation target="s1" relType="holo_part"/>
-            <SynsetRelation target="s1" relType="holo_portion"/>
-            <SynsetRelation target="s1" relType="holo_substance"/>
-            <SynsetRelation target="s1" relType="holonym"/>
-            <SynsetRelation target="s1" relType="hypernym"/>
-            <SynsetRelation target="s1" relType="hyponym"/>
-            <SynsetRelation target="s1" relType="in_manner"/>
-            <SynsetRelation target="s1" relType="instance_hypernym"/>
-            <SynsetRelation target="s1" relType="instance_hyponym"/>
-            <SynsetRelation target="s1" relType="instrument"/>
-            <SynsetRelation target="s1" relType="involved"/>
-            <SynsetRelation target="s1" relType="involved_agent"/>
-            <SynsetRelation target="s1" relType="involved_direction"/>
-            <SynsetRelation target="s1" relType="involved_instrument"/>
-            <SynsetRelation target="s1" relType="involved_location"/>
-            <SynsetRelation target="s1" relType="involved_patient"/>
-            <SynsetRelation target="s1" relType="involved_result"/>
-            <SynsetRelation target="s1" relType="involved_source_direction"/>
-            <SynsetRelation target="s1" relType="involved_target_direction"/>
-            <SynsetRelation target="s1" relType="is_caused_by"/>
-            <SynsetRelation target="s1" relType="is_entailed_by"/>
-            <SynsetRelation target="s1" relType="location"/>
-            <SynsetRelation target="s1" relType="manner_of"/>
-            <SynsetRelation target="s1" relType="mero_location"/>
-            <SynsetRelation target="s1" relType="mero_member"/>
-            <SynsetRelation target="s1" relType="mero_part"/>
-            <SynsetRelation target="s1" relType="mero_portion"/>
-            <SynsetRelation target="s1" relType="mero_substance"/>
-            <SynsetRelation target="s1" relType="meronym"/>
-            <SynsetRelation target="s1" relType="similar"/>
-            <SynsetRelation target="s1" relType="other" dc:type="emotion"/>
-            <SynsetRelation target="s1" relType="patient"/>
-            <SynsetRelation target="s1" relType="restricted_by"/>
-            <SynsetRelation target="s1" relType="restricts"/>
-            <SynsetRelation target="s1" relType="result"/>
-            <SynsetRelation target="s1" relType="role"/>
-            <SynsetRelation target="s1" relType="source_direction"/>
-            <SynsetRelation target="s1" relType="state_of"/>
-            <SynsetRelation target="s1" relType="target_direction"/>
-            <SynsetRelation target="s1" relType="subevent"/>
-            <SynsetRelation target="s1" relType="is_subevent_of"/>
-            <SynsetRelation target="s1" relType="antonym"/>
+            <SynsetRelation target="ex2-s1" relType="also"/>
+            <SynsetRelation target="ex2-s1" relType="attribute"/>
+            <SynsetRelation target="ex2-s1" relType="be_in_state"/>
+            <SynsetRelation target="ex2-s1" relType="causes"/>
+            <SynsetRelation target="ex2-s1" relType="classified_by"/>
+            <SynsetRelation target="ex2-s1" relType="classifies"/>
+            <SynsetRelation target="ex2-s1" relType="co_agent_instrument"/>
+            <SynsetRelation target="ex2-s1" relType="co_agent_patient"/>
+            <SynsetRelation target="ex2-s1" relType="co_agent_result"/>
+            <SynsetRelation target="ex2-s1" relType="co_instrument_agent"/>
+            <SynsetRelation target="ex2-s1" relType="co_instrument_patient"/>
+            <SynsetRelation target="ex2-s1" relType="co_instrument_result"/>
+            <SynsetRelation target="ex2-s1" relType="co_patient_agent"/>
+            <SynsetRelation target="ex2-s1" relType="co_patient_instrument"/>
+            <SynsetRelation target="ex2-s1" relType="co_result_agent"/>
+            <SynsetRelation target="ex2-s1" relType="co_result_instrument"/>
+            <SynsetRelation target="ex2-s1" relType="co_role"/>
+            <SynsetRelation target="ex2-s1" relType="direction"/>
+            <SynsetRelation target="ex2-s1" relType="domain_region"/>
+            <SynsetRelation target="ex2-s1" relType="domain_topic"/>
+            <SynsetRelation target="ex2-s1" relType="exemplifies"/>
+            <SynsetRelation target="ex2-s1" relType="entails"/>
+            <SynsetRelation target="ex2-s1" relType="eq_synonym"/>
+            <SynsetRelation target="ex2-s1" relType="has_domain_region"/>
+            <SynsetRelation target="ex2-s1" relType="has_domain_topic"/>
+            <SynsetRelation target="ex2-s1" relType="is_exemplified_by"/>
+            <SynsetRelation target="ex2-s1" relType="holo_location"/>
+            <SynsetRelation target="ex2-s1" relType="holo_member"/>
+            <SynsetRelation target="ex2-s1" relType="holo_part"/>
+            <SynsetRelation target="ex2-s1" relType="holo_portion"/>
+            <SynsetRelation target="ex2-s1" relType="holo_substance"/>
+            <SynsetRelation target="ex2-s1" relType="holonym"/>
+            <SynsetRelation target="ex2-s1" relType="hypernym"/>
+            <SynsetRelation target="ex2-s1" relType="hyponym"/>
+            <SynsetRelation target="ex2-s1" relType="in_manner"/>
+            <SynsetRelation target="ex2-s1" relType="instance_hypernym"/>
+            <SynsetRelation target="ex2-s1" relType="instance_hyponym"/>
+            <SynsetRelation target="ex2-s1" relType="instrument"/>
+            <SynsetRelation target="ex2-s1" relType="involved"/>
+            <SynsetRelation target="ex2-s1" relType="involved_agent"/>
+            <SynsetRelation target="ex2-s1" relType="involved_direction"/>
+            <SynsetRelation target="ex2-s1" relType="involved_instrument"/>
+            <SynsetRelation target="ex2-s1" relType="involved_location"/>
+            <SynsetRelation target="ex2-s1" relType="involved_patient"/>
+            <SynsetRelation target="ex2-s1" relType="involved_result"/>
+            <SynsetRelation target="ex2-s1" relType="involved_source_direction"/>
+            <SynsetRelation target="ex2-s1" relType="involved_target_direction"/>
+            <SynsetRelation target="ex2-s1" relType="is_caused_by"/>
+            <SynsetRelation target="ex2-s1" relType="is_entailed_by"/>
+            <SynsetRelation target="ex2-s1" relType="location"/>
+            <SynsetRelation target="ex2-s1" relType="manner_of"/>
+            <SynsetRelation target="ex2-s1" relType="mero_location"/>
+            <SynsetRelation target="ex2-s1" relType="mero_member"/>
+            <SynsetRelation target="ex2-s1" relType="mero_part"/>
+            <SynsetRelation target="ex2-s1" relType="mero_portion"/>
+            <SynsetRelation target="ex2-s1" relType="mero_substance"/>
+            <SynsetRelation target="ex2-s1" relType="meronym"/>
+            <SynsetRelation target="ex2-s1" relType="similar"/>
+            <SynsetRelation target="ex2-s1" relType="other" dc:type="emotion"/>
+            <SynsetRelation target="ex2-s1" relType="patient"/>
+            <SynsetRelation target="ex2-s1" relType="restricted_by"/>
+            <SynsetRelation target="ex2-s1" relType="restricts"/>
+            <SynsetRelation target="ex2-s1" relType="result"/>
+            <SynsetRelation target="ex2-s1" relType="role"/>
+            <SynsetRelation target="ex2-s1" relType="source_direction"/>
+            <SynsetRelation target="ex2-s1" relType="state_of"/>
+            <SynsetRelation target="ex2-s1" relType="target_direction"/>
+            <SynsetRelation target="ex2-s1" relType="subevent"/>
+            <SynsetRelation target="ex2-s1" relType="is_subevent_of"/>
+            <SynsetRelation target="ex2-s1" relType="antonym"/>
             <Example language="fr" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"

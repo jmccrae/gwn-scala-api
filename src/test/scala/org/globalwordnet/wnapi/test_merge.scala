@@ -40,13 +40,13 @@ class MergeTest extends FlatSpec with Matchers {
     entry.senses should have size 1
     val sense = entry.senses(0)
     sense.id should be (makeId(makeId("cat-n") + makeId("i46593")))
-    sense.synsetRef should be (makeId("i46593"))
+    sense.synsetRef should be ("wn30+wn31-" + makeId("i46593"))
     sense.senseRelations should have size 1
     val senseR = sense.senseRelations(0)
     senseR should be (SenseRelation(sense.id, derivation))
     lexicon.synsets should have size 1
     val synset = lexicon.synsets(0)
-    synset.id should be (makeId("i46593"))
+    synset.id should be ("wn30+wn31-"+makeId("i46593"))
     synset.ili should be (Some("i46593"))
     synset.synsetRelations should have size 1
     synset.synsetRelations(0) should be (SynsetRelation(synset.id, hypernym))

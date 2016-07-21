@@ -54,14 +54,14 @@ class CoverageTest extends FlatSpec with Matchers {
     e.senses should have size (1)
     val ws = e.senses(0)
     ws.id should be ("ws1")
-    ws.synsetRef should be ("s1")
+    ws.synsetRef should be ("ex2-s1")
     testMetaData(ws)
     ws.senseRelations should have size (14)
     for(r <- ws.senseRelations) {
       if(r.note != None) {
         testMetaData(r)
       }
-      r.target should be ("s1")
+      r.target should be ("ws1")
     }
     ws.senseRelations.exists(_.note != None) should be (true)
     ws.senseExamples should have size 1
@@ -88,7 +88,7 @@ class CoverageTest extends FlatSpec with Matchers {
 
     l.synsets should have size 1
     val s = l.synsets(0)
-    s.id should be ("s1")
+    s.id should be ("ex2-s1")
     s.ili should be (Some("i1"))
     testMetaData(s)
     
@@ -108,7 +108,7 @@ class CoverageTest extends FlatSpec with Matchers {
       if(r.note != None) {
         testMetaData(r)
       }
-      r.target should be ("s1")
+      r.target should be ("ex2-s1")
     }
     s.synsetRelations.exists(_.note != None) should be (true)
  

@@ -382,7 +382,7 @@ package serialize {
                     for(entryid <- group.keys;
                         sense <- senses.getOrElse(entryid, Nil)) yield {
                           Sense(id=entryid,
-                            synsetRef=entry_mapping.getOrElse(entryid, "pl-" + sense),
+                            synsetRef=(if(en) { "enWordNet-"} else { "plWordNet-" }) + entry_mapping.getOrElse(entryid, "pl-" + sense),
                             senseRelations={
                               for((targ, relType) <- lexrelations.getOrElse(entryid, Nil)) yield {
                                 val tid = targ
@@ -402,7 +402,7 @@ package serialize {
             }.toSeq,
             synsets={
               for((synsetid, (_, defn)) <- synsets) yield {
-                val sid = synset_mapping.getOrElse(synsetid, "pl-" + synsetid)
+                val sid = (if(en) { "enWordNet-"} else { "plWordNet-" }) + synset_mapping.getOrElse(synsetid, "pl-" + synsetid)
                 val iliid = if(en) { Some(ili.getOrElse(sid, "in")) } else { None }
                 Synset(id=sid,ili=iliid,
                   iliDefinition=(if(iliid == Some("in") && defn.matches("\\s*")) { Some(ILIDefinition("")) } else if (iliid == Some("in")) { Some(ILIDefinition(defn)) } else { None} ),

@@ -35,18 +35,18 @@ class JsonSpec extends FlatSpec with Matchers {
     e.id should be ("w1")
     e.lemma.writtenForm should be ("grandfather")
     e.lemma.partOfSpeech should be (noun)
-    e.senses(0).id should be ("example-10161911-n-1")
-    e.senses(0).synsetRef should be ("example-10161911-n")
+    e.senses(0).id should be ("example-en-10161911-n-1")
+    e.senses(0).synsetRef should be ("example-en-10161911-n")
   }
   it should "produce a sense" in {
     val s = resource.lexicons(0).entries(1).senses(0)
-    s.id should be ("example-1-n-1")
-    s.synsetRef should be ("example-1-n")
+    s.id should be ("example-en-1-n-1")
+    s.synsetRef should be ("example-en-1-n")
   }
   it should "produce a sense relation" in {
     val r = resource.lexicons(0).entries(1).senses(0).senseRelations(0)
     r.relType should be (derivation)
-    r.target should be ("example-10161911-n-1")
+    r.target should be ("example-en-10161911-n-1")
   }
   it should "produce syntactic behavior" in {
     resource.lexicons(0).entries(2).syntacticBehaviours.size should be (3)
@@ -55,11 +55,11 @@ class JsonSpec extends FlatSpec with Matchers {
   }
   it should "produce a synset" in {
     val s = resource.lexicons(0).synsets(0)
-    s.id should be ("example-10161911-n")
+    s.id should be ("example-en-10161911-n")
     s.ili should be (Some("i90287"))
     s.definitions(0).content should be ("the father of your father or mother")
     s.synsetRelations(0).relType should be (hypernym)
-    s.synsetRelations(0).target should be ("example-10162692-n")
+    s.synsetRelations(0).target should be ("example-en-10162692-n")
   }
   val f = java.io.File.createTempFile("lexicon", ".json")
   f.deleteOnExit()

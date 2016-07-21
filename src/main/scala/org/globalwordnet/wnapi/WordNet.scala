@@ -66,6 +66,10 @@ case class Lexicon(id : String,
   citation : Option[String] = None,
   entries : Seq[LexicalEntry] = Nil, 
   synsets : Seq[Synset] = Nil) extends Meta {
+  if(!synsets.forall(_.id.startsWith(id + "-"))) {
+    throw new WordNetFormatException("Synset identifiers do not start with %s-" format id)
+  }
+
   lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).mapValues(_.head)
 
   override def toString = s"""Lexicon(id=$id label=$label language=$language email=$email license=$license version=$version ${url.map("url=" + _).getOrElse("")}${citation.map("citation" + _).getOrElse("")}
