@@ -66,7 +66,7 @@ case class Lexicon(id : String,
   citation : Option[String] = None,
   entries : Seq[LexicalEntry] = Nil, 
   synsets : Seq[Synset] = Nil) extends Meta {
-  if(!synsets.forall(_.id.startsWith(id + "-"))) {
+  if(!synsets.forall(synset => synset.ili != Some("in") || synset.id.startsWith(id + "-"))) {
     throw new WordNetFormatException("Synset identifiers do not start with %s-" format id)
   }
 
