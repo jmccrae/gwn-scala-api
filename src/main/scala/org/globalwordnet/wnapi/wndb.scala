@@ -131,8 +131,9 @@ object WNDB {
     for((lemma_key, items) <- map/* if items.exists(_.lexNo == lex)*/) yield {
       val lemma = lemma_key.dropRight(2)
       val pos = items(0).pos 
+      val lexEntId = id + "-" + escapeJava(lemma_key.replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"))
       LexicalEntry(
-          id=id + "-" + escapeJava(lemma_key.replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-")),
+          id=lexEntId,
           lemma=Lemma(writtenForm=lemma, partOfSpeech=pos, script=None),
           forms=exc.getOrElse(pos.shortForm, Map()).getOrElse(lemma, Nil).map({
             ex =>
@@ -141,7 +142,7 @@ object WNDB {
           senses=for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items) yield {
             val word = lemmas.find(_.lemma == lemma).get
             val srcIdx = word.synNo
-            Sense(id="%s-%08d-%s-%d" format (id, offset, pos.shortForm, srcIdx),
+            Sense(id="%s#%08d" format (lexEntId, offset),
              synsetRef="%s-%08d-%s" format (id, offset, pos.shortForm),
              senseRelations={
                for(Pointer(typ, targetOffset, pos, src, trg) <- pointers 

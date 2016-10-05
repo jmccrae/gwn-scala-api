@@ -78,6 +78,7 @@ ${entries.mkString("\n")}
 SYNSETS
 ${synsets.mkString("\n")}"""
 
+  def metadata : Lexicon = this.copy(entries = Nil, synsets = Nil)
 }
  
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,

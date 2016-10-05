@@ -3,7 +3,7 @@ package org.globalwordnet.api.serialize
 import eu.monnetproject.lang.{Language, Script}
 import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
-import java.io.{Writer, Reader, PrintWriter}
+import java.io.{Writer, Reader, PrintWriter, File}
 import spray.json._
 import java.nio.charset.Charset
 
@@ -508,7 +508,7 @@ object WNJSON extends Format {
       }
     }
   }
-  def read(file : java.io.File) : LexicalResource = read(new java.io.FileReader(file))
+  def read(file : File) : LexicalResource = read(new java.io.FileReader(file))
 
   def read(input : Reader) : LexicalResource = {
     import WNJSONFormat._
@@ -560,12 +560,50 @@ object WNJSON extends Format {
     }
   }
 
-  def write(resource : LexicalResource, file : java.io.File) = 
+  def write(resource : LexicalResource, file : File) = 
     write(resource, new java.io.FileWriter(file))
 
   def write(resource : LexicalResource, output : Writer) = {
     import WNJSONFormat._
     prettyWrite(new PrintWriter(output), resource.toJson, 0)
     output.flush
+  }
+
+  def writeAsZIP(resource : LexicalResource, output : File) = {
+    import java.util.zip._
+    import WNJSONFormat._
+
+    val zip = new ZipOutputStream(new java.io.FileOutputStream(output))
+    val pw = new PrintWriter(zip)
+
+    for(lexicon <- resource.lexicons) {
+      zip.putNextEntry(new ZipEntry(lexicon.id + ".json"))
+      prettyWrite(pw, lexicon.metadata.toJson, 0)
+      pw.flush()
+      zip.closeEntry()
+      for(entry <- lexicon.entries) {
+        zip.putNextEntry(new ZipEntry(lexicon.id + File.separator + entry.id + ".json"))
+        prettyWrite(pw, entry.toJson, 0)
+        pw.flush()
+        zip.closeEntry()
+      }
+      for(synset <- lexicon.synsets) {
+        zip.putNextEntry(new ZipEntry(lexicon.id + File.separator + synset.id + ".json"))
+        prettyWrite(pw, synset.toJson, 0)
+        pw.flush()
+        zip.closeEntry()
+      }
+    }
+    zip.putNextEntry(new ZipEntry("context.json"))
+    try {
+      val contextIn = new java.net.URL("http://globalwordnet.github.io/schemas/wn-json-context-1.0.json").openStream()
+      Iterator.continually(contextIn.read).takeWhile(_ != -1).foreach(zip.write)
+      zip.flush()
+    } catch {
+      case x : java.io.IOException =>
+        System.err.println("Failed to write context")
+    }
+    zip.close()
+
   }
 }

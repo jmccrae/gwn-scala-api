@@ -268,7 +268,9 @@ object Main {
           WNLMF.write(resource, new PrintWriter(System.out))
         }
       case "JSON" =>
-        if(config.outputFile != null) {
+        if(config.outputFile != null && config.outputFile.getName().endsWith(".zip")) {
+          WNJSON.writeAsZIP(resource, config.outputFile)
+        } else if(config.outputFile != null) {
           WNJSON.write(resource, config.outputFile)
         } else {
           WNJSON.write(resource, new PrintWriter(System.out))
