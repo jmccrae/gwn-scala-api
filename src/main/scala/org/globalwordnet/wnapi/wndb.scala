@@ -48,9 +48,13 @@ object WNDB {
 
     val satellites = buildSatellites(items)
     val counts = loadCounts(new File(wnFolder, "cntlist"))
+
+    val lemmas = buildLemmas(items)
+
+    val posMap = buildPosMap(items)
     
     LexicalResource(Seq(
-        buildLMF(items, props, sentences, iliMap, exc, satellites, counts, filter)))
+        buildLMF(items, props, sentences, iliMap, exc, satellites, counts, filter, lemmas, posMap)))
   }
   
   private final val filterLine = "([nvar]) \\[(.*)%(.*)\\] \\[(.*)\\]( .*)?".r
@@ -80,11 +84,31 @@ object WNDB {
     }).toMap
   }
 
+  private def buildLemmas(items : Seq[WordNetDataItem]) : Map[(Int, PartOfSpeech, Int), String] = {
+    items.flatMap({
+      case  WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) =>
+        lemmas.map({
+          case Word(lemma, _, lexNo, _, pos, _) =>
+            (offset, pos, lexNo) -> lemma
+        })
+    }).toMap
+  }
+
+  private def buildPosMap(items : Seq[WordNetDataItem]) : Map[(Int, PartOfSpeech), PartOfSpeech] =
+    items.map({
+      case WordNetDataItem(offset, _, pos, _, _, _, _) =>
+        if(pos == adjective_satellite) {
+          (offset, adjective) -> pos
+        } else {
+          (offset, pos) -> pos
+        }
+    }).toMap
+
+
   private def loadCounts(file : File) = io.Source.fromFile(file).getLines.map({ line =>
     val l = line.split("\\s+")
     l(1) -> l(0).toInt
   }).toMap
-
 
   private def buildLMF(items : Seq[WordNetDataItem], 
     props : WNDBProperties, sentences : Map[Int, String],
@@ -92,7 +116,9 @@ object WNDB {
     exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int],
-    filter : Option[Set[String]]) : Lexicon = {
+    filter : Option[Set[String]],
+    lemmas : Map[(Int, PartOfSpeech, Int), String],
+    posMap : Map[(Int, PartOfSpeech), PartOfSpeech]) : Lexicon = {
       Lexicon(props.id,
               props.label,
               props.language,
@@ -101,15 +127,17 @@ object WNDB {
               props.version,
               props.url,
               props.citation,
-              buildEntries(items, props.id, sentences, exc, satellites, counts, filter).toSeq,
-              buildSynsets(items, props.id, props.language, ili, satellites, filter))
+              buildEntries(items, props.id, sentences, exc, satellites, counts, filter, lemmas, posMap).toSeq,
+              buildSynsets(items, props.id, props.language, ili, satellites, filter, posMap))
   }
 
   private def buildEntries(items : Seq[WordNetDataItem], id : String,
     sentences : Map[Int, String], exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
     counts : Map[String, Int],
-    filter : Option[Set[String]]) = {
+    filter : Option[Set[String]],
+    lemmaMap : Map[(Int, PartOfSpeech, Int), String],
+    posMap : Map[(Int, PartOfSpeech), PartOfSpeech]) = {
     val inItems : Map[(Int, Int), WordNetDataItem] = filter match {
       case Some(f) =>
         items.flatMap(item => item.lemmas.filter(l => f.contains(l.senseIdx(satellites))).
@@ -147,11 +175,15 @@ object WNDB {
              senseRelations={
                for(Pointer(typ, targetOffset, pos, src, trg) <- pointers 
                    if srcIdx == src && inItems.contains(targetOffset, trg)) yield {
-                 SenseRelation(target="%s-%08d-%s-%d" format (id, targetOffset, pos.shortForm, trg), relType=typ.asInstanceOf[SenseRelType])
+                     val pos2 = posMap(targetOffset, pos)
+                 SenseRelation(
+                   target="%s-%s#%08d" format (lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset),
+                   //target="%s-%08d-%s-%d" format (id, targetOffset, pos.shortForm, trg), 
+                   relType=typ.asInstanceOf[SenseRelType])
                }
              },
              senseExamples=Nil,
-             counts=counts.get(word.senseIdx(satellites)).map(x => Count(x)).toSeq)
+             counts=counts.get(word.senseIdx(satellites)).map(x => Count(x)).toSeq).withIdentifier(word.senseKey(satellites))
           },
           syntacticBehaviours={
             val frames = items.flatMap(_.frames).toSet
@@ -164,7 +196,8 @@ object WNDB {
   }
 
   private def buildSynsets(items : Seq[WordNetDataItem], id : String, language : Language,
-      ili : Map[(Int, String), String], satellites : Map[Int, (String, Int)], filter : Option[Set[String]]) = {
+      ili : Map[(Int, String), String], satellites : Map[Int, (String, Int)], 
+      filter : Option[Set[String]], posMap : Map[(Int, PartOfSpeech), PartOfSpeech]) = {
     val inItems : Map[Int, WordNetDataItem] = filter match {
       case Some(f) =>
         items.filter(item => item.lemmas.exists(l => f contains l.senseIdx(satellites))).
@@ -198,7 +231,8 @@ object WNDB {
              synsetRelations={
                for(Pointer(typ, targetOffset, pos, src, trg) <- pointers 
                    if src == 0 && trg == 0 && (inItems contains targetOffset)) yield {
-                 SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos.shortForm), relType=typ.asInstanceOf[SynsetRelType])
+                     val pos2 = posMap((targetOffset, pos))
+                 SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos2.shortForm), relType=typ.asInstanceOf[SynsetRelType])
               }
             }, 
             synsetExamples=Nil,
@@ -353,6 +387,16 @@ object WNDB {
         "%s-%s#%s:%02d:%02d::" format (lemma.replaceAll(" ","_"), pos.shortForm, POS.code(pos), lexNo, lexId)
       }
     }
+    def senseKey(sattelites : Map[Int,(String,Int)]) = {
+      if(head != None) {
+        "%s%%%s:%02d:%02d:%s:%02d" format (lemma.replaceAll(" ","_").toLowerCase, POS.code(pos), lexNo, lexId, sattelites(head.get)._1,
+        sattelites(head.get)._2)
+      } else {
+        "%s%%%s:%02d:%02d::" format (lemma.replaceAll(" ","_").toLowerCase, POS.code(pos), lexNo, lexId)
+      }
+    }
+
+
   }
 
   private case class Pointer(val typ : RelType, val targetOffset : Int,
