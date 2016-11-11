@@ -211,8 +211,14 @@ object WNDB {
       val iliId = ili.get((offset, pos.shortForm)) match {
         case Some(id) =>
           id
+        case None if pos.shortForm == "s" =>
+          ili.get((offset, "a")) match {
+            case Some(id) =>
+              id
+            case None =>
+              "in"
+          }
         case None =>
-//          System.err.println("new,,,%08d-%s,%s" format (offset, pos.shortForm, lemmas.map(_.lemma).mkString("/")))
           "in"
       }
       Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
