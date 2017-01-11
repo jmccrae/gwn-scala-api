@@ -177,7 +177,7 @@ object WNDB {
                    if srcIdx == src && inItems.contains(targetOffset, trg)) yield {
                      val pos2 = posMap(targetOffset, pos)
                  SenseRelation(
-                   target="%s-%s#%08d" format (lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset),
+                   target="%s-%s-%s#%08d" format (id, lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset),
                    //target="%s-%08d-%s-%d" format (id, targetOffset, pos.shortForm, trg), 
                    relType=typ.asInstanceOf[SenseRelType])
                }
