@@ -356,6 +356,7 @@ object PartOfSpeech {
     case "p" => adposition
     case "x" => other_pos
     case "u" => unknown_pos
+    case _ => throw new IllegalArgumentException(code + " is not a valid pos code")
   }
   def fromName(name : String) = name match {
     case "noun" => noun
@@ -368,6 +369,7 @@ object PartOfSpeech {
     case "adposition" => adposition
     case "other_pos" => other_pos
     case "unknown_pos" => unknown_pos
+    case _ => throw new IllegalArgumentException(name + " is not a valid pos name")
   }
 }
 
