@@ -13,12 +13,12 @@ object Main {
     outputFormat : String = "WNLMF",
     auxFile : File = null,
     auxFormat : String = "WNLMF",
-    id : String = "my-awesome-wordnet",
-    label : String = "My Awesome WordNet",
+    id : String = "default-wordnet-id",
+    label : String = "An Example Wordnet",
     language : Language = Language.ENGLISH,
     email : String = "user@example.com",
     license : String = "https://creativecommons.org/licenses/by/4.0/",
-    version : String = "0.1",
+    version : String = "0.0",
     url : Option[String] = None,
     citation : Option[String] = None,
     inputRdfLang : String = "",
@@ -29,7 +29,7 @@ object Main {
     coreWordNetFilter : Option[File] = None
   )
 
-  final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN")
+  final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC")
   final val supportedOutputFormats = Seq("WNLMF", "JSON", "RDF")
 
   def main(args : Array[String]) {
@@ -61,13 +61,13 @@ object Main {
       opt[String]('f', "from") valueName("<format>") action { (x, c) =>
         c.copy(inputFormat = x.toUpperCase)
       } validate { x =>
-        if(supportedInputFormats contains (x.toUpperCase)) { success } else { failure("Not a supported format") }
+        if(supportedInputFormats contains (x.toUpperCase)) { success } else { failure("Not a supported output format") }
       } text("The format of the input file: " + supportedInputFormats.mkString(", "))
 
       opt[String]('t', "to") valueName("<format>") action { (x, c) =>
         c.copy(outputFormat = x.toUpperCase)
       } validate { x =>
-        if(supportedOutputFormats contains (x.toUpperCase)) { success } else { failure("Not a supported format") }
+        if(supportedOutputFormats contains (x.toUpperCase)) { success } else { failure("Not a supported output format") }
       } text("The format of the output file: " + supportedOutputFormats.mkString(", "))
 
       opt[String]("aux-format") valueName("<format>") action { (x, c) =>
@@ -255,10 +255,19 @@ object Main {
             config.url,
             config.citation),
           loadAuxiliary(config))
+      case "DEBVISDIC" =>
+        val dvdReader = new DebVisDic(
+          config.id,
+          config.label,
+          config.language,
+          config.email,
+          config.license,
+          config.version,
+          config.url,
+          config.citation)
+        dvdReader.read(config.inputFile)
       case _ =>
-        System.err.println("TODO")
-        System.exit(-1)
-        null
+        throw new RuntimeException("Unreachable")
     }
     config.outputFormat match {
       case "WNLMF" =>

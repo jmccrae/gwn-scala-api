@@ -29,9 +29,14 @@ class DebVisDic(id : String, label : String, language : Language,
     Lexicon(id, label, language, email, license, version, url, citation, entries, synsets)
   }
 
+
+  private def xmlClean(form : String) : String = {
+    escapeXml(form.replaceAll(" ", "_").replaceAll("'", "-ap-").replaceAll("\\(","-lb-").replaceAll("\\)","-rb-").replaceAll("/","-sl-").replaceAll(";","-sc-"))
+  }
+
   private def makeId(form : String, pos : String) : String = {
     val lemma_key = form + "-" + pos
-    return id + "-" + escapeJava(lemma_key.replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"))
+    return id + "-" + xmlClean(lemma_key)
   }
 
   private def mergeEntries(entries : Seq[LexicalEntry]) = 
@@ -53,14 +58,22 @@ class DebVisDic(id : String, label : String, language : Language,
         // TODO relationships
         Nil,
         Seq(Sense(
-          (elem \ "ID").text + "-" + (l \ "@sense").text,
-          (elem \ "ID").text)))
+          checkAdd(id + "-", (elem \ "ID").text + "-" + (l \ "@sense").text + "-" + xmlClean(form)),
+          checkAdd(id + "-", (elem \ "ID").text))))
     })
+  }
+
+  private def checkAdd(pre : String, target : String) = {
+    if(target startsWith pre) {
+      target
+    } else {
+      pre + target
+    }
   }
 
   private def readSynset(elem : Node) : Synset = {
     Synset(
-      id=(elem \ "ID").text,
+      id=checkAdd(id + "-", (elem \ "ID").text),
       ili=None,
       definitions=(elem \ "DEF").map(x => trim(x).text).filter(_.length > 0).map(Definition(_)),
       synsetExamples=(elem \ "USAGE").map(x => trim(x).text).filter(_.length > 0).map(Example(_)),

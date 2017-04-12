@@ -7,7 +7,7 @@ import java.io.File
 
 class DebVisDicSpec extends FlatSpec with Matchers {
   var resource : LexicalResource = null
-  val dvdReader = new DebVisDic("id", "label", Language.ENGLISH,
+  val dvdReader = new DebVisDic("example-en", "label", Language.ENGLISH,
     "e@ma.il", "CC-Zero", "0.0")
   "DebVisDic reader" should "successfully read a DebVisDic file" in {
     resource = dvdReader.read(new java.io.FileReader("src/test/resources/wnven.xml"))
@@ -21,26 +21,26 @@ class DebVisDicSpec extends FlatSpec with Matchers {
     resource.lexicons(0).entries.filter(_.lemma.writtenForm == "poidza") should be (
       Seq(
         LexicalEntry(
-          id="id-poidza-n", 
+          id="example-en-poidza-n", 
           lemma=Lemma("poidza", noun),
           senses=Seq(Sense(
-            id="ENG20-06455674-n-2",
-            synsetRef="ENG20-06455674-n"))),
+            id="example-en-ENG20-06455674-n-2-poidza",
+            synsetRef="example-en-ENG20-06455674-n"))),
         LexicalEntry(
-          id="id-poidza-v", 
+          id="example-en-poidza-v", 
           lemma=Lemma("poidza", org.globalwordnet.api.wn.verb),
           senses=Seq(Sense(
-            id="ENG20-00008198-v-1",
-            synsetRef="ENG20-00008198-v")))
+            id="example-en-ENG20-00008198-v-1-poidza",
+            synsetRef="example-en-ENG20-00008198-v")))
        
       ))
   }
 
   it should "contain synset ENG20-00017381-a" in {
-    resource.lexicons(0).synsets.filter(_.id == "ENG20-00017381-a") should be (
+    resource.lexicons(0).synsets.filter(_.id == "example-en-ENG20-00017381-a") should be (
       Seq(
         Synset(
-          id="ENG20-00017381-a",
+          id="example-en-ENG20-00017381-a",
           partOfSpeech=Some(adjective),
           definitions=Nil,
           synsetExamples=Seq(Example("u rwa nga mulaṱela"))) withNote "DOMAIN=factotum, SUMO=+Impelling"))
