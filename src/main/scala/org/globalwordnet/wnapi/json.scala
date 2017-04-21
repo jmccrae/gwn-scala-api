@@ -297,7 +297,7 @@ object WNJSON extends Format {
     object senseFormat extends JsonFormat[Sense] {
       def write(s : Sense) = new JsObject(Map(
           "@id" -> JsString(s.id),
-          "synset" -> JsString(s.synsetRef)) ++
+          "synsetRef" -> JsString(s.synsetRef)) ++
           (s.counts.map(metaCountFormat.write).toList match {
             case Nil => Map()
             case vals => Map("count" -> JsArray(vals:_*))
@@ -322,7 +322,7 @@ object WNJSON extends Format {
               case _ => throw new WNJsonException("Examples should be a list of values")
             },
             id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("Sense must have an id"))),
-            synsetRef=stringOrFail(m.getOrElse("synset", throw new WNJsonException("Sense must have a synset"))),
+            synsetRef=stringOrFail(m.getOrElse("synsetRef", throw new WNJsonException("Sense must have a synset"))),
             counts=m.getOrElse("count", JsArray()) match {
               case JsArray(x) => x.map(metaCountFormat.read)
               case _ => throw new WNJsonException("Counts should be a list of values")
