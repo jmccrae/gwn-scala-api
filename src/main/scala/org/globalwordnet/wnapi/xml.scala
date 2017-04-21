@@ -8,6 +8,93 @@ import scala.xml.{XML, Elem, Node}
 import scala.xml.Utility.trim
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml}
 
+object MoreStringEscapeUtils {
+
+  private def nameStartChar(c : Char) : Boolean = 
+    c == ':' || c == '_' || 
+  (c >= 'A' && c <= 'Z') ||
+  (c >= 'a' && c <= 'z') ||
+  (c >= '\u00C0' && c <= '\u00D6') ||
+  (c >= '\u00D8' && c <= '\u00F6') ||
+  (c >= '\u00F8' && c <= '\u02FF') ||
+  (c >= '\u0370' && c <= '\u037D') ||
+  (c >= '\u037F' && c <= '\u1FFF') ||
+  (c >= '\u200C' && c <= '\u200D') ||
+  (c >= '\u2070' && c <= '\u218F') ||
+  (c >= '\u2C00' && c <= '\u2FEF') ||
+  (c >= '\u3001' && c <= '\uD7FF') ||
+  (c >= '\uF900' && c <= '\uFDCF') ||
+  (c >= '\uFDF0' && c <= '\uFFFD') 
+
+  private def nameChar(c : Char) : Boolean =
+    nameStartChar(c) ||
+    c == '-' ||
+    c == '.' ||
+    (c >= '0' && c <= '9') ||
+    c == '\u00B7' ||
+    (c >= '\u0300' && c <= '\u036F') ||
+    (c >= '\u203F' && c <= '\u2040')
+
+  private def replacement(c : Char) : String = c match {
+    case ' ' => "_"
+    case '\'' => "-ap-"
+    case '(' => "-lb-"
+    case ')' => "-rb-"
+    case '/' => "-sl-"
+    case '!' => "-ex-"
+    case '"' => "-dq-"
+    case '#' => "-hs-"
+    case '$' => "-dl-"
+    case '%' => "-pc-"
+    case '&' => "-am-"
+    case '*' => "-as-"
+    case '+' => "-pl-"
+    case ',' => "-cm-"
+    case ';' => "-sc-"
+    case '<' => "-lt-"
+    case '>' => "-gt-"
+    case '=' => "-eq-"
+    case '?' => "-qu-"
+    case '@' => "-at-"
+    case '[' => "-lsq-"
+    case ']' => "-rsq-"
+    case '\\' => "-bs-"
+    case '^' => "-cr-"
+    case '`' => "-bt-"
+    case '{' => "-lcb-"
+    case '}' => "-rcb-"
+    case '|' => "-br-"
+    case '~' => "-tl-"
+    case nonascii => 
+      "-%04X-" format c.toInt
+  }
+
+
+  def escapeXmlId(id : String) : String = {
+    val builder = new StringBuilder(id)
+    var i = 0
+
+    if(!nameStartChar(builder.charAt(0))) {
+      val r = replacement(builder.charAt(0))
+      builder.replace(0, 1, r)
+      i += r.length
+    } else {
+      i += 1
+    }
+
+    while(i < builder.size) {
+      if(!nameChar(builder.charAt(i))) {
+        val r = replacement(builder.charAt(i))
+        builder.replace(i, i+1, r)
+        i += r.length
+      } else {
+        i += 1
+      }
+    }
+    builder.toString
+  }
+}
+
 object WNLMF extends Format {
   def read(file : File) : LexicalResource = {
     readLexicalResource(XML.loadFile(file))
@@ -164,6 +251,8 @@ object WNLMF extends Format {
     out.close
   } 
 
+  import MoreStringEscapeUtils._
+
   private def writeLexicalResource(out : PrintWriter, e : LexicalResource) {
     out.print("""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF-1.0.dtd">
@@ -177,18 +266,18 @@ object WNLMF extends Format {
 
   private def writeLexicon(out : PrintWriter, e : Lexicon) {
     out.print(s"""
-  <Lexicon id="${e.id}" 
+  <Lexicon id="${escapeXmlId(e.id)}" 
            label="${escapeXml(e.label)}" 
            language="${e.language}"
-           email="${e.email}"
-           license="${e.license}"
-           version="${e.version}" """)
+           email="${escapeXml(e.email)}"
+           license="${escapeXml(e.license)}"
+           version="${escapeXml(e.version)}" """)
    e.citation.foreach(c =>
         out.print(s"""
-           citation="$c" """))
+           citation="${escapeXml(c)}" """))
     e.url.foreach(u =>
         out.print(s"""
-           url="$u" """))
+           url="${escapeXml(u)}" """))
      writeMeta(out, 11, e)
     out.print(""">""")
     for(entry <- e.entries) {
@@ -234,7 +323,7 @@ object WNLMF extends Format {
  
   private def writeEntry(out : PrintWriter, e : LexicalEntry) {
     out.print(s"""
-    <LexicalEntry id="${e.id}" """)
+    <LexicalEntry id="${escapeXmlId(e.id)}" """)
     writeMeta(out, 18, e)
     out.print(s""">
       <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}" """)
@@ -249,7 +338,7 @@ object WNLMF extends Format {
       out.print(">")
       for(t <- e.lemma.tag) {
         out.print(s"""
-        <Tag category="${t.category}">${t.value}</Tag>""")
+        <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
       }
       out.print("""
       </Lemma>""")
@@ -281,7 +370,7 @@ object WNLMF extends Format {
       out.print(">")
       for(t <- e.tag) {
         out.print(s"""
-        <Tag category="${t.category}">${t.value}</Tag>""")
+        <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
       }
       out.print("""
       </Form>""")
@@ -290,7 +379,7 @@ object WNLMF extends Format {
 
   private def writeSense(out : PrintWriter, e : Sense) {
     out.print(s"""
-      <Sense id="${e.id}" synset="${e.synsetRef}" """)
+      <Sense id="${escapeXmlId(e.id)}" synset="${escapeXmlId(e.synsetRef)}" """)
     writeMeta(out, 13, e)
     out.print(">")
     for(rel <- e.senseRelations) {
@@ -308,7 +397,7 @@ object WNLMF extends Format {
 
   private def writeSenseRel(out : PrintWriter, e : SenseRelation) {
     out.print(s"""
-        <SenseRelation relType="${e.relType.name}" target="${e.target}" """)
+        <SenseRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}" """)
     writeMeta(out, 23, e)
     out.print("/>")
   }
@@ -327,12 +416,12 @@ object WNLMF extends Format {
 
   private def writeSyntacticBehaviour(out : PrintWriter, e : SyntacticBehaviour) {
     out.print(s"""
-      <SyntacticBehaviour subcategorizationFrame="${e.subcategorizationFrame}"/>""")
+      <SyntacticBehaviour subcategorizationFrame="${escapeXml(e.subcategorizationFrame)}"/>""")
   }
 
   private def writeSynset(out : PrintWriter, e : Synset) {
     out.print(s"""
-    <Synset id="${e.id}" ili="${e.ili.getOrElse("")}" """)
+    <Synset id="${escapeXmlId(e.id)}" ili="${e.ili.getOrElse("")}" """)
     e.partOfSpeech.foreach(x => out.print(s"""partOfSpeech="${x.shortForm}" """))
     writeMeta(out, 12, e)
     out.print(">")
@@ -364,7 +453,7 @@ object WNLMF extends Format {
     }
     e.sourceSense match {
       case Some(l) =>
-        out.print(s"""sourceSense="$l" """)
+        out.print(s"""sourceSense="${escapeXml(l)}" """)
       case None =>
     }
     writeMeta(out, 18, e)
@@ -380,7 +469,7 @@ object WNLMF extends Format {
 
   private def writeSynsetRel(out : PrintWriter, e : SynsetRelation) {
     out.print(s"""
-      <SynsetRelation relType="${e.relType.name}" target="${e.target}" """)
+      <SynsetRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}" """)
     writeMeta(out, 22, e)
     out.print("/>")
   }
