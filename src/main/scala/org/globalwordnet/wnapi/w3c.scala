@@ -18,6 +18,7 @@ class W3C(id : String, label : String, language : Language,
 
   val wn20instances = "http://www.w3.org/2006/03/wn/wn20/instances/"
   val wn20schema = "http://www.w3.org/2006/03/wn/wn20/schema/"
+  val dnschema = "http://www.wordnet.dk/owl/instance/2009/03/schema/"
 
   def read(file : File) : LexicalResource = {
     read(new FileReader(file), guessLang(file), file.toURI().toString() + "#")
@@ -202,6 +203,9 @@ class W3C(id : String, label : String, language : Language,
       } else if(statement.getPredicate() ==
         model.createProperty(wn20schema, "seeAlso")) {
           Some(mkSynsetRel(statement, also, model))
+      } else if(statement.getPredicate().getURI().startsWith(dnschema)) {
+          Some(SynsetRelation(url2id(statement.getObject().asResource()),
+            other(statement.getPredicate.getURI().substring(dnschema.length))))
       } else {
         None
       }
@@ -234,6 +238,9 @@ class W3C(id : String, label : String, language : Language,
       } else if(statement.getPredicate() ==
         model.createProperty(wn20schema, "seeAlso")) {
           Some(mkSenseRel(statement, also, model))
+      } else if(statement.getPredicate().getURI().startsWith(dnschema)) {
+          Some(SenseRelation(url2id(statement.getObject().asResource()),
+            other(statement.getPredicate.getURI().substring(dnschema.length))))
       } else {
         None
       }
