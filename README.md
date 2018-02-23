@@ -24,7 +24,7 @@ The options are as follows:
       -a <auxFile> | --aux <auxFile>
         The auxiliary file (normaly PWN 3.0) required by some formats
       -f <format> | --from <format>
-        The format of the input file: WNLMF, JSON, RDF, WNDB, OMWN, PLWN
+        The format of the input file: WNLMF, JSON, RDF, WNDB, OMWN, PLWN, DEBVISDIC, W3C
       -t <format> | --to <format>
         The format of the output file: WNLMF, JSON, RDF
       --aux-format <format>
