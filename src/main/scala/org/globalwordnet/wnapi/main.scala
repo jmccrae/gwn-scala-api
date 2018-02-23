@@ -34,7 +34,7 @@ object Main {
 
   def main(args : Array[String]) {
     val parser = new scopt.OptionParser[GWNAPIConfig]("gwn") {
-      head("Global WordNet Converter and Validator", "0.1")
+      head("Global WordNet Converter and Validator", "0.2")
 
       opt[Unit]('v', "validate") action { (x, c) =>
         c.copy(validate = true)

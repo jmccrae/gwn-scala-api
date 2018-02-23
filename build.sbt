@@ -13,3 +13,5 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
 mainClass in assembly := Some("org.globalwordnet.api.Main")
+
+version := "0.2"

@@ -4,7 +4,7 @@ GWN_HOME="$(dirname "$0")"
 
 SCALA_VERSION=2.12
 JAVA_OPTS=-Xmx4g
-VERSION=0.1-SNAPSHOT
+VERSION=0.2
 
 if [ ! -e $GWN_HOME/target/scala-$SCALA_VERSION/gwn-scala-api-assembly-$VERSION.jar ]
 then
