@@ -29,7 +29,7 @@ object Main {
     coreWordNetFilter : Option[File] = None
   )
 
-  final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC")
+  final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C")
   final val supportedOutputFormats = Seq("WNLMF", "JSON", "RDF")
 
   def main(args : Array[String]) {
@@ -266,6 +266,17 @@ object Main {
           config.url,
           config.citation)
         dvdReader.read(config.inputFile)
+      case "W3C" =>
+        val w3cReader = new W3C(
+          config.id,
+          config.label,
+          config.language,
+          config.email,
+          config.license,
+          config.version,
+          config.url,
+          config.citation)
+        w3cReader.read(config.inputFile)
       case _ =>
         throw new RuntimeException("Unreachable")
     }

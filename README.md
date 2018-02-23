@@ -53,3 +53,15 @@ The options are as follows:
         The Base URL, i.e., where the file is on the Web, for the input file
       --output-base-url <url>
         The Base URL, i.e., where the file is on the Web, for the output file
+
+Example
+=======
+
+Command to generate Princeton WordNet 3.1 in XML
+
+    ./gwn -i wn31/dict -o wn31.xml -f WNDB -t WNLMF \
+      -a wn-data/ili-map-wn31.ttl --id pwn31 --label "Princeton WordNet 3.1" \
+      --version "3.1" --url "http://wordnet.princeton.edu/" \
+      --license "http://wordnet.princeton.edu/wordnet/license/" \
+      --email "***@princeton.edu"
+
