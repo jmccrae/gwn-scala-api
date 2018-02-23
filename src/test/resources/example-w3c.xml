@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY wn20instances 'http://www.w3.org/2006/03/wn/wn20/instances/'>
+    <!ENTITY wn20schema 'http://www.w3.org/2006/03/wn/wn20/schema/'> 
+]>
+
+<rdf:RDF
+    xmlns:rdf="&rdf;"
+    xmlns:rdfs="&rdfs;"
+    xmlns:wn20instances="&wn20instances;"
+    xmlns:wn20schema="&wn20schema;"
+    xml:lang="en-US">
+    <wn20schema:Word rdf:about="&wn20instances;word-grandfather"
+        wn20schema:lexicalForm="grandfather"/>
+
+    <wn20schema:NounWordSense rdf:about="&wn20instances;wordsense-grandfather-noun-1"
+        rdfs:label="grandfather">
+        <wn20schema:tagCount>4</wn20schema:tagCount>
+        <wn20schema:word rdf:resource="&wn20instances;word-grandfather"/>
+    </wn20schema:NounWordSense>
+
+    <rdf:Description rdf:about="&wn20instances;synset-grandfather-noun-1">
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-gramps-noun-1"/>
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-grandad-noun-1"/>
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-granddad-noun-1"/>
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-granddaddy-noun-1"/>
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-grandfather-noun-1"/>
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-grandpa-noun-1"/>
+    </rdf:Description>
+
+    <wn20schema:NounSynset rdf:about="&wn20instances;synset-grandfather-noun-1"
+        rdfs:label="grandfather">
+        <wn20schema:synsetId>109490348</wn20schema:synsetId>
+    </wn20schema:NounSynset>
+
+    <rdf:Description rdf:about="&wn20instances;wordsense-stretch-verb-2"
+        wn20schema:frame="Somebody ----s"/>
+
+    <rdf:Description rdf:about="&wn20instances;wordsense-stretching-noun-1">        
+        <wn20schema:derivationallyRelated rdf:resource="&wn20instances;wordsense-stretch-verb-2"/>
+    </rdf:Description>
+
+    <wn20schema:Word rdf:about="&wn20instances;word-stretch"
+        wn20schema:lexicalForm="stretch"/>
+
+    <wn20schema:VerbWordSense rdf:about="&wn20instances;wordsense-stretch-verb-2"
+        rdfs:label="stretch">
+        <wn20schema:tagCount>11</wn20schema:tagCount>
+        <wn20schema:word rdf:resource="&wn20instances;word-stretch"/>
+    </wn20schema:VerbWordSense>
+
+    <rdf:Description rdf:about="&wn20instances;synset-stretch-verb-2">
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-extend-verb-8"/>
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-stretch-verb-2"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&wn20instances;synset-stretch-verb-2">
+        <wn20schema:hyponymOf rdf:resource="&wn20instances;synset-grandfather-noun-1"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&wn20instances;synset-grandfather-noun-1">
+        <wn20schema:hypernymOf rdf:resource="&wn20instances;synset-stretch-verb-2"/>
+    </rdf:Description>
+
+    <wn20schema:VerbSynset rdf:about="&wn20instances;synset-stretch-verb-2"
+        rdfs:label="stretch">
+        <wn20schema:synsetId>200026695</wn20schema:synsetId>
+    </wn20schema:VerbSynset>
+
+    <rdf:Description rdf:about="&wn20instances;synset-grandfather-noun-1"
+        wn20schema:gloss="(the father of your father or mother)"/>
+
+    <wn20schema:NounSynset rdf:about="&wn20instances;synset-stretching-noun-1"
+        rdfs:label="stretching">
+        <wn20schema:synsetId>100350079</wn20schema:synsetId>
+    </wn20schema:NounSynset>
+
+    <wn20schema:NounWordSense rdf:about="&wn20instances;wordsense-stretching-noun-1"
+        rdfs:label="stretching">
+        <wn20schema:tagCount>1</wn20schema:tagCount>
+        <wn20schema:word rdf:resource="&wn20instances;word-stretching"/>
+    </wn20schema:NounWordSense>
+
+    <rdf:Description rdf:about="&wn20instances;synset-stretching-noun-1">
+        <wn20schema:containsWordSense rdf:resource="&wn20instances;wordsense-stretching-noun-1"/>
+    </rdf:Description>
+
+    <wn20schema:Word rdf:about="&wn20instances;word-stretching"
+        wn20schema:lexicalForm="stretching"/>
+</rdf:RDF>
+
+
