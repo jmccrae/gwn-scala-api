@@ -26,7 +26,8 @@ object Main {
     inputRdfBaseUrl : String = "",
     outputRdfBaseUrl : String = "",
     validate : Boolean = false,
-    coreWordNetFilter : Option[File] = None
+    coreWordNetFilter : Option[File] = None,
+    bySubject : Boolean = false
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C")
@@ -127,6 +128,10 @@ object Main {
       opt[File]("core-wordnet") valueName("<core-wordnet.txt>") action { (x, c) =>
         c.copy(coreWordNetFilter = Some(x))
       } text("[WNDB Only] The Core WordNet file to select only the Core entries and synsets")
+
+      opt[Unit]("by-subject") action { (x, c) =>
+        c.copy(bySubject = true)
+      } text("Split the output by the subject to create multiple smaller files")
     }
 
     parser.parse(args, GWNAPIConfig()) match {
@@ -282,7 +287,23 @@ object Main {
     }
     config.outputFormat match {
       case "WNLMF" =>
-        if(config.outputFile != null) {
+        if(config.bySubject) {
+          if(config.outputFile == null) {
+            System.err.println("Output file not specified, dumping each file to Syste.out in sequence!")
+          }
+          for((subject, resource) <- BySubject.splitBySubject(resource)) {
+            if(config.outputFile != null) {
+              val outPath = if(config.outputFile.getPath().endsWith(".xml")) {
+                s"${config.outputFile.getPath().dropRight(4)}-$subject.xml"
+              } else {
+                s"${config.outputFile.getPath()}-$subject"
+              }
+              WNLMF.write(resource, new File(outPath))
+            } else {
+              WNLMF.write(resource, new PrintWriter(System.out))
+            }
+          }
+        } else if(config.outputFile != null) {
           WNLMF.write(resource, config.outputFile)
         } else {
           WNLMF.write(resource, new PrintWriter(System.out))
