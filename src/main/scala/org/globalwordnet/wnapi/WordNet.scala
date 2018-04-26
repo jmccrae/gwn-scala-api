@@ -332,6 +332,7 @@ object derivation extends SenseRelType
 
 sealed class PartOfSpeech(val shortForm : String, val name : String) {
   override def toString = this.getClass.getSimpleName().dropRight(1)
+  def shortFormNoSatellite = if(shortForm == "s") { "a" } else { shortForm }
 }
 object noun extends PartOfSpeech("n", "noun")
 object verb extends PartOfSpeech("v", "verb")

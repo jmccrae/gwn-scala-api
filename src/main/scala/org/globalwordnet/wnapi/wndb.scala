@@ -74,7 +74,7 @@ object WNDB {
         case Array(variant,lemma) => Some(lemma -> variant)
         case _ => None
       }
-    }).flatten.toSeq.groupBy(_._1).mapValues(_.map(_._2))
+    }).flatten.toSeq.groupBy(_._1).mapValues(_.map(_._2).toList)
   }
 
   private def buildSatellites(items : Seq[WordNetDataItem]) = {
@@ -163,7 +163,7 @@ object WNDB {
       LexicalEntry(
           id=lexEntId,
           lemma=Lemma(writtenForm=lemma, partOfSpeech=pos, script=None),
-          forms=exc.getOrElse(pos.shortForm, Map()).getOrElse(lemma, Nil).map({
+          forms=exc.getOrElse(pos.shortFormNoSatellite, Map()).getOrElse(lemma, Nil).map({
             ex =>
               Form(writtenForm=ex, tag=Nil, script=None)
           }),
@@ -195,6 +195,24 @@ object WNDB {
      }
   }
 
+  private val exampleRegex = "(.*?)((; ['\"](.*?)['\"])*)".r
+
+  private def extractExamples(gloss : String) : (String, Seq[String]) = {
+    var exampleRegex(definition, examples,_,_) = gloss
+    val exampleList = new collection.mutable.ListBuffer[String]()
+    while(examples.indexOf("; ") == 0) {
+      val j = examples.indexOf("; ", 1)
+      if(j < 0) {
+        exampleList += examples.substring(3,examples.length - 1)
+        examples = ""
+      } else {
+        exampleList += examples.substring(3, j - 1)
+        examples = examples.substring(j)
+      }
+    }
+    (definition, exampleList.toSeq)
+  }
+
   private def buildSynsets(items : Seq[WordNetDataItem], id : String, language : Language,
       ili : Map[(Int, String), String], satellites : Map[Int, (String, Int)], 
       filter : Option[Set[String]], posMap : Map[(Int, PartOfSpeech), PartOfSpeech]) = {
@@ -221,9 +239,10 @@ object WNDB {
         case None =>
           "in"
       }
+      val (definition, examples) = extractExamples(gloss)
       Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
              ili=Some(iliId),
-             definitions=Seq(Definition(gloss)),
+             definitions=Seq(Definition(definition)),
              iliDefinition={
                if(iliId == "in") {
                  if(gloss.length < 20 && gloss.split(" ").length < 5) {
@@ -241,7 +260,7 @@ object WNDB {
                  SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos2.shortForm), relType=typ.asInstanceOf[SynsetRelType])
               }
             }, 
-            synsetExamples=Nil,
+            synsetExamples=examples.map(Example(_)),
             partOfSpeech=Some(pos)).withSubject(lexNames(lexNo))
         }
     }

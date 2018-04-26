@@ -404,7 +404,7 @@ object WNLMF extends Format {
 
   private def writeSenseExample(out : PrintWriter, e : Example) {
     out.print(s"""
-        <Example """)
+      <Example """)
     e.language match {
       case Some(l) =>
         out.print(s"""language="$l" """)
