@@ -522,7 +522,7 @@ class WNDB(
       writeExc(lexicon, posShort, new File(file, posLong + ".exc"))
       writeData(lr, lexicon, posShort, entriesForSynset, synsetLookup, 
         stringBuilders(posShort), { (oldId, newId) => stringBuilders.values.foreach({
-          sb => sb.replaceAllLiterally(oldId, newId)
+          sb => replaceAll(sb, oldId, newId)
         }) })
     }
 
