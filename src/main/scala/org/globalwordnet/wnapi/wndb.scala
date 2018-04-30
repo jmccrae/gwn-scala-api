@@ -4,6 +4,7 @@ import org.globalwordnet.api.Format
 import eu.monnetproject.lang.{Language, Script}
 import scala.io.Source
 import java.io.File
+import java.io.PrintWriter
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml, escapeJava}
 import org.globalwordnet.api.wn._
 
@@ -17,6 +18,7 @@ class WNDB(
   version : String,
   url : Option[String],
   citation : Option[String],
+  usePrincetonHeader : Boolean = true,
   filterFile : Option[File] = None) extends Format {
 
   var lexNames : Map[Int, String] = null
@@ -465,7 +467,273 @@ class WNDB(
         throw new IllegalArgumentException("pos="+pos)
       }
     }
+
+    def toWN(r : RelType, pos : PartOfSpeech) = {
+      if(r == antonym) "!" 
+      else if(r == hypernym) "@" 
+      else if(r == instance_hypernym) "@i" 
+      else if(r == hyponym) "~" 
+      else if(r == instance_hyponym) "~i" 
+      else if(r == holo_member) "#m" 
+      else if(r == holo_substance) "#s" 
+      else if(r == holo_part) "#p" 
+      else if(r == mero_member) "%m" 
+      else if(r == mero_substance) "%s" 
+      else if(r == mero_part) "%p" 
+      else if(r == attribute) "=" 
+      else if(r == derivation) "+" 
+      else if(r == domain_topic) ";c" 
+      else if(r == has_domain_topic) "-c" 
+      else if(r == domain_region) ";r" 
+      else if(r == has_domain_region) "-r" 
+      else if(r == exemplifies) ";u" 
+      else if(r == is_exemplified_by) "-u" 
+      else if(r == entails) "*" 
+      else if(r == causes) ">" 
+      else if(r == also) "^" 
+      else if(r == similar && pos == verb) "$" 
+      else if(r == similar) "&" 
+      else if(r == participle) "<" 
+      else if(r == pertainym) "\\"
+      else if(r == derivation) "\\"
+      else throw new WNDBNotSerializable("Unsupported relation type: " + r)
+    }
+ 
   }
 
-  def write(lr : LexicalResource, file : File) { }
+  def write(lr : LexicalResource, file : File) { 
+    if(lr.lexicons.size != 1) {
+      throw new WNDBNotSerializable("WNDB can only write a single lexicon")
+    }
+    val lexicon = lr.lexicons(0)
+
+    import org.globalwordnet.api.MultiMap._
+    val entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]] = lexicon.entries.flatMap({ entry =>
+      entry.senses.map({ sense =>
+        sense.synsetRef -> (entry, sense)
+      })
+    }).toMultiMap
+    val synsetLookup = collection.mutable.Map[String,(String,PartOfSpeech)]()
+    val stringBuilders = Seq(adjective,adverb,noun,verb)
+      .map(p => p -> new StringBuilder()).toMap
+ 
+    for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
+         (noun,"noun"),(verb,"verb"))) {
+      writeExc(lexicon, posShort, new File(file, posLong + ".exc"))
+      writeData(lr, lexicon, posShort, entriesForSynset, synsetLookup, 
+        stringBuilders(posShort), { (oldId, newId) => stringBuilders.values.foreach({
+          sb => sb.replaceAllLiterally(oldId, newId)
+        }) })
+    }
+
+    for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
+         (noun,"noun"),(verb,"verb"))) {
+      val out = new PrintWriter(new File(file, "data." + posLong))
+      try {
+        out.println(stringBuilders(posShort))
+      } finally {
+        out.close
+      }
+      writeIndex(lexicon, posShort, new File(file, "index." + posLong))
+    }
+  }
+
+  def writeExc(lexicon : Lexicon, pos : PartOfSpeech, target : File) { 
+    val out = new PrintWriter(target)
+    try {
+      for((form, lemma) <-
+           lexicon.entries
+             .filter(entry => posMatch(entry.lemma.partOfSpeech, pos))
+             .flatMap({ entry =>
+              entry.forms.map({ form => (entry.lemma.writtenForm, form.writtenForm) })
+          })) {
+          if (form.contains(" ")) {
+            throw new WNDBNotSerializable("Forms with spaces are not supported")
+          }
+          out.println(s"$form $lemma")
+      }
+    } finally {
+      out.close
+    }
+  }
+
+  lazy val extraLexNames = collection.mutable.Map[String, Int]()
+
+  def lexName(name : String) : Int = name match {
+    case "adj.all" => 0     
+    case "adj.pert" => 1            
+    case "adv.all" => 2     
+    case "noun.Tops" => 3
+    case "noun.act" => 4
+    case "noun.animal" => 5
+    case "noun.artifact" => 6
+    case "noun.attribute" => 7
+    case "noun.body" => 8
+    case "noun.cognition" => 9
+    case "noun.communication" => 10
+    case "noun.event" => 11
+    case "noun.feeling" => 12
+    case "noun.food" => 13
+    case "noun.group" => 14
+    case "noun.location" => 15
+    case "noun.motive" => 16
+    case "noun.object" => 17
+    case "noun.person" => 18
+    case "noun.phenomenon" => 19
+    case "noun.plant" => 20
+    case "noun.possession" => 21     
+    case "noun.process" => 22
+    case "noun.quantity" => 23
+    case "noun.relation" => 24
+    case "noun.shape" => 25
+    case "noun.state" => 26
+    case "noun.substance" => 27
+    case "noun.time" => 28
+    case "verb.body" => 29
+    case "verb.change" => 30
+    case "verb.cognition" => 31
+    case "verb.communication" => 32
+    case "verb.competition" => 33
+    case "verb.consumption" => 34
+    case "verb.contact" => 35
+    case "verb.creation" => 36
+    case "verb.emotion" => 37
+    case "verb.motion" => 38
+    case "verb.perception" => 39     
+    case "verb.possession" => 40     
+    case "verb.social" => 41
+    case "verb.stative" => 42
+    case "verb.weather" => 43
+    case "adj.ppl" => 44    
+    case other if extraLexNames.contains(other) => extraLexNames(other)
+    case other => {
+      val id = 45 + extraLexNames.size
+      extraLexNames.put(other, id)
+      id
+    }
+  }
+
+
+  def posMatch(x : Option[PartOfSpeech], pos : PartOfSpeech) : Boolean = {
+    x == Some(pos) || (pos == adjective && x == Some(adjective_satellite))
+  }
+
+  def posMatch(x : PartOfSpeech, pos : PartOfSpeech) : Boolean = {
+    x == pos || (pos == adjective && x == adjective_satellite)
+  }
+
+  def writeData(lr : LexicalResource, lexicon : Lexicon, pos : PartOfSpeech, 
+    entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
+    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
+    data : StringBuilder, updateId : (String, String) => Unit) {
+   if(usePrincetonHeader) {
+        data ++= """  1 This software and database is being provided to you, the LICENSEE, by  
+  2 Princeton University under the following license.  By obtaining, using  
+  3 and/or copying this software and database, you agree that you have  
+  4 read, understood, and will comply with these terms and conditions.:  
+  5   
+  6 Permission to use, copy, modify and distribute this software and  
+  7 database and its documentation for any purpose and without fee or  
+  8 royalty is hereby granted, provided that you agree to comply with  
+  9 the following copyright notice and statements, including the disclaimer,  
+  10 and that the same appear on ALL copies of the software, database and  
+  11 documentation, including modifications that you make for internal  
+  12 use or for distribution.  
+  13   
+  14 WordNet 3.1 Copyright 2011 by Princeton University.  All rights reserved.  
+  15   
+  16 THIS SOFTWARE AND DATABASE IS PROVIDED "AS IS" AND PRINCETON  
+  17 UNIVERSITY MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR  
+  18 IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, PRINCETON  
+  19 UNIVERSITY MAKES NO REPRESENTATIONS OR WARRANTIES OF MERCHANT-  
+  20 ABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE  
+  21 OF THE LICENSED SOFTWARE, DATABASE OR DOCUMENTATION WILL NOT  
+  22 INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR  
+  23 OTHER RIGHTS.  
+  24   
+  25 The name of Princeton University or Princeton may not be used in  
+  26 advertising or publicity pertaining to distribution of the software  
+  27 and/or database.  Title to copyright in this software, database and  
+  28 any associated documentation shall at all times remain with  
+  29 Princeton University and LICENSEE agrees to preserve same.  
+"""
+      }
+      val lexIds = collection.mutable.Map[String, Int]()
+      for(synset <- lexicon.synsets.filter(ss => posMatch(ss.partOfSpeech,pos))) {
+        val id = synset.id
+        val eightDigitCode = "%08d" format (data.size)
+        if(synsetLookup.contains(id)) {
+          println(s"updateId(${synsetLookup(id)._1}, $eightDigitCode)")
+          updateId(synsetLookup(id)._1, eightDigitCode)
+        }
+        synsetLookup.put(id, (eightDigitCode, pos))
+        data ++= eightDigitCode
+        data ++= " %02d " format (lexName(synset.subject.getOrElse("none")))
+        data ++= synset.partOfSpeech.get.shortForm
+        val entries = entriesForSynset.getOrElse(synset.id, Nil)
+        data ++= " %02d " format entries.size
+        for((entry, sense) <- entries) {
+          data ++= entry.lemma.writtenForm.replace(" ", "_")
+          val lexId = lexIds.getOrElse(entry.lemma.writtenForm, -1) + 1
+          lexIds.put(entry.lemma.writtenForm, lexId)
+          data ++= " %d " format lexId
+        }
+        val totalRelations = synset.synsetRelations.size + entries.map({
+          case (entry, sense) => sense.senseRelations.size
+        }).sum
+        data ++= "%03d " format totalRelations
+        for(rel <- synset.synsetRelations) {
+          val (targetId, targetPos) = wnSynsetIdFromGlobal(rel.target, lr, synsetLookup)
+
+          data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
+            targetId, targetPos.shortForm)
+        }
+        for((entry, sense) <- entries) {
+          for(rel <- sense.senseRelations) {
+            val (targetEntry, targetSense) = lr.senseLookup.getOrElse(rel.target,
+              throw new WNDBNotSerializable("Target of sense relation not in lexical resource: " + rel.target))
+            val (targetId, targetPos) = wnSynsetIdFromGlobal(targetSense.synsetRef, lr, synsetLookup)
+
+            val srcIdx = entries.indexOf((entry, sense))
+            val trgIdx = entriesForSynset.getOrElse(targetSense.synsetRef, Nil)
+              .indexOf((targetEntry, targetSense))
+
+            data ++= "%s %s %s %02d%02d " format (PointerType.toWN(rel.relType, pos),
+              targetId, targetPos.shortForm, srcIdx, trgIdx)
+          }
+        }
+        for(defn <- synset.definitions) {
+          data ++= "| " + defn.content
+        }
+        data ++= "\n"
+      }
+  }
+
+  def wnSynsetIdFromGlobal(target : String, lr : LexicalResource,
+    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)]) : (String, PartOfSpeech) = {
+      synsetLookup.get(target) match {
+        case Some(i) => i
+        case None => 
+          val id2 = "Z%06dZ" format synsetLookup.size
+          val pos2 =  lr.synsetLookup.get(target)
+            .getOrElse(
+              throw new WNDBNotSerializable("Target of synset relation not in lexical resource:" + target))
+            .partOfSpeech.getOrElse(
+              throw new WNDBNotSerializable("Link to synset without part of speech: " + target))
+          synsetLookup.put(target, (id2,pos2))
+          (id2, pos2)
+      }
+ 
+    }
+
+  def replaceAll(sb : StringBuilder, orig : String, replace : String) = {
+    var i = -1
+    while({ i = sb.indexOf(orig) ; i} >= 0) {
+      sb.replace(i, i + orig.length, replace)
+    }
+  }
+
+  def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, target : File) { }
 }
+
+class WNDBNotSerializable(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)

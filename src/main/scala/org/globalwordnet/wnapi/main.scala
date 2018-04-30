@@ -31,7 +31,7 @@ object Main {
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C")
-  final val supportedOutputFormats = Seq("WNLMF", "JSON", "RDF")
+  final val supportedOutputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB")
 
   def main(args : Array[String]) {
     val parser = new scopt.OptionParser[GWNAPIConfig]("gwn") {
@@ -49,8 +49,8 @@ object Main {
 
       opt[File]('o', "output") valueName("<outputFile>") action { (x, c) =>
         c.copy(outputFile = x)
-      } validate { x =>
-        if(!x.exists || !x.isDirectory) { success } else { failure("Output file exists and is a directory") }
+      //} validate { x =>
+        //if(!x.exists || !x.isDirectory) { success } else { failure("Output file exists and is a directory") }
       } text("The output file to process")
 
       opt[File]('a', "aux") valueName("<auxFile>") action { (x, c) =>
@@ -243,6 +243,7 @@ object Main {
           config.version,
           config.url,
           config.citation,
+          true, // TODO
           config.coreWordNetFilter).read(config.inputFile)
       case "OMWN" =>
         OpenMultilingualWordNet.read(
@@ -339,6 +340,29 @@ object Main {
           System.err.println("RDF can only be written to a file: Please specify a file with -o or URL with --output-base-url")
           System.exit(-1)
         }
+      case "WNDB" =>
+        if(!config.outputFile.exists) {
+          if(!config.outputFile.mkdirs()) {
+            System.err.println("Could not create a directory for WNDB output")
+            System.exit(-1)
+          }
+        }
+        if(!config.outputFile.isDirectory) {
+          System.err.println("WNDB output target must be folder")
+          System.exit(-1)
+        }
+        new WNDB(
+          config.auxFile,
+          config.id,
+          config.label,
+          config.language,
+          config.email,
+          config.license,
+          config.version,
+          config.url,
+          config.citation,
+          true, // TODO
+          config.coreWordNetFilter).write(resource, config.outputFile)
       case _ =>
         System.err.println("Unsupported format: " + config.outputFormat)
         System.exit(-1)
