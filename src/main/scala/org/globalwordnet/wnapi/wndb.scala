@@ -1,12 +1,13 @@
 package org.globalwordnet.api.serialize
 
+import org.globalwordnet.api.Format
 import eu.monnetproject.lang.{Language, Script}
 import scala.io.Source
 import java.io.File
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml, escapeJava}
 import org.globalwordnet.api.wn._
 
-case class WNDBProperties(
+class WNDB(
   iliRef : File,
   id : String,
   label : String,
@@ -16,12 +17,10 @@ case class WNDBProperties(
   version : String,
   url : Option[String],
   citation : Option[String],
-  filterFile : Option[File] = None)
+  filterFile : Option[File] = None) extends Format {
 
-object WNDB {
   var lexNames : Map[Int, String] = null
-  def read(wnFolder : File, props : WNDBProperties) : LexicalResource = {
-    val iliRef = props.iliRef
+  def read(wnFolder : File) : LexicalResource = {
     
     def words(pos : String) : Iterator[WordNetDataItem] = if(new File(wnFolder,"data."+pos).exists) {
       for(line <- Source.fromFile(new File(wnFolder,"data."+pos)).getLines() if !(line matches "\\s+.*")) yield {
@@ -40,7 +39,7 @@ object WNDB {
     
     val sentences = loadSentences(new File(wnFolder, "sents.vrb"))
 
-    val filter = props.filterFile.map(loadFilter)
+    val filter = filterFile.map(loadFilter)
     
     val iliMap = loadILIMap(iliRef)
     
@@ -54,7 +53,7 @@ object WNDB {
     val posMap = buildPosMap(items)
     
     LexicalResource(Seq(
-        buildLMF(items, props, sentences, iliMap, exc, satellites, counts, filter, lemmas, posMap)))
+        buildLMF(items,  sentences, iliMap, exc, satellites, counts, filter, lemmas, posMap)))
   }
   
   private final val filterLine = "([nvar]) \\[(.*)%(.*)\\] \\[(.*)\\]( .*)?".r
@@ -111,7 +110,7 @@ object WNDB {
   }).toMap
 
   private def buildLMF(items : Seq[WordNetDataItem], 
-    props : WNDBProperties, sentences : Map[Int, String],
+    sentences : Map[Int, String],
     ili : Map[(Int, String), String], 
     exc : Map[String, Map[String, Seq[String]]],
     satellites : Map[Int, (String, Int)],
@@ -119,16 +118,16 @@ object WNDB {
     filter : Option[Set[String]],
     lemmas : Map[(Int, PartOfSpeech, Int), String],
     posMap : Map[(Int, PartOfSpeech), PartOfSpeech]) : Lexicon = {
-      Lexicon(props.id,
-              props.label,
-              props.language,
-              props.email,
-              props.license,
-              props.version,
-              props.url,
-              props.citation,
-              buildEntries(items, props.id, sentences, exc, satellites, counts, filter, lemmas, posMap).toSeq,
-              buildSynsets(items, props.id, props.language, ili, satellites, filter, posMap))
+      Lexicon(id,
+              label,
+              language,
+              email,
+              license,
+              version,
+              url,
+              citation,
+              buildEntries(items, id, sentences, exc, satellites, counts, filter, lemmas, posMap).toSeq,
+              buildSynsets(items, id, language, ili, satellites, filter, posMap))
   }
 
   private def buildEntries(items : Seq[WordNetDataItem], id : String,
@@ -467,4 +466,6 @@ object WNDB {
       }
     }
   }
+
+  def write(lr : LexicalResource, file : File) { }
 }

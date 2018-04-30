@@ -233,7 +233,7 @@ object Main {
           System.err.println("Need an auxiliary file for WNDB conversion")
           System.exit(-1)
         }
-        WNDB.read(config.inputFile, new WNDBProperties(
+        new WNDB(
           config.auxFile,
           config.id,
           config.label,
@@ -243,7 +243,7 @@ object Main {
           config.version,
           config.url,
           config.citation,
-          config.coreWordNetFilter))
+          config.coreWordNetFilter).read(config.inputFile)
       case "OMWN" =>
         OpenMultilingualWordNet.read(
             config.inputFile,
