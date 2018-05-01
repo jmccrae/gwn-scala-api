@@ -534,7 +534,8 @@ class WNDB(
       } finally {
         out.close
       }
-      writeIndex(lexicon, posShort, new File(file, "index." + posLong))
+      writeIndex(lexicon, posShort, synsetLookup, 
+        new PrintWriter(new File(file, "index." + posLong)))
     }
   }
 
@@ -622,12 +623,7 @@ class WNDB(
     x == pos || (pos == adjective && x == adjective_satellite)
   }
 
-  def writeData(lr : LexicalResource, lexicon : Lexicon, pos : PartOfSpeech, 
-    entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
-    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
-    data : StringBuilder, updateId : (String, String) => Unit) {
-   if(usePrincetonHeader) {
-        data ++= """  1 This software and database is being provided to you, the LICENSEE, by  
+  def PRINCETON_HEADER = """  1 This software and database is being provided to you, the LICENSEE, by  
   2 Princeton University under the following license.  By obtaining, using  
   3 and/or copying this software and database, you agree that you have  
   4 read, understood, and will comply with these terms and conditions.:  
@@ -657,13 +653,19 @@ class WNDB(
   28 any associated documentation shall at all times remain with  
   29 Princeton University and LICENSEE agrees to preserve same.  
 """
+
+  def writeData(lr : LexicalResource, lexicon : Lexicon, pos : PartOfSpeech, 
+    entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
+    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
+    data : StringBuilder, updateId : (String, String) => Unit) {
+      if(usePrincetonHeader) {
+        data ++= PRINCETON_HEADER
       }
       val lexIds = collection.mutable.Map[String, Int]()
       for(synset <- lexicon.synsets.filter(ss => posMatch(ss.partOfSpeech,pos))) {
         val id = synset.id
         val eightDigitCode = "%08d" format (data.size)
         if(synsetLookup.contains(id)) {
-          println(s"updateId(${synsetLookup(id)._1}, $eightDigitCode)")
           updateId(synsetLookup(id)._1, eightDigitCode)
         }
         synsetLookup.put(id, (eightDigitCode, pos))
@@ -699,7 +701,7 @@ class WNDB(
               .indexOf((targetEntry, targetSense))
 
             data ++= "%s %s %s %02d%02d " format (PointerType.toWN(rel.relType, pos),
-              targetId, targetPos.shortForm, srcIdx, trgIdx)
+              targetId, targetPos.shortForm, srcIdx+1, trgIdx+1)
           }
         }
         for(defn <- synset.definitions) {
@@ -733,7 +735,39 @@ class WNDB(
     }
   }
 
-  def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, target : File) { }
+  def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, 
+    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
+    out : PrintWriter) { 
+    try {
+      if(usePrincetonHeader) {
+        out.print(PRINCETON_HEADER)
+      }
+      val words = lexicon.entries
+        .filter(e => posMatch(e.lemma.partOfSpeech, pos))
+        .groupBy(_.lemma.writtenForm).toSeq.sortBy(_._1)
+      for((lemma, entries) <- words) {
+        val synsetCnt = entries.map(_.senses.size).sum
+        val ptrs = entries.flatMap({ entry =>
+          entry.senses.flatMap({ sense =>
+            sense.senseRelations.map(_.relType)
+          })
+        }).toSet
+        val ptrsStr = ptrs.map(rt => PointerType.toWN(rt, pos) + " ").mkString("")
+        val synsets = entries.flatMap({ entry =>
+          entry.senses.map({ sense =>
+            synsetLookup.getOrElse(sense.synsetRef,
+              throw new RuntimeException("Failed to find synset in indexing (should be impossible)"))._1
+          })
+        })
+
+        out.println("%s %s %d %d %s%d 0 %s" format(lemma.replace(" ", "_"), pos.shortForm,
+          synsetCnt, ptrs.size, ptrsStr, synsetCnt, synsets.mkString(" ")
+          ))
+      }
+    } finally {
+      out.close
+    }
+  }
 }
 
 class WNDBNotSerializable(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)
