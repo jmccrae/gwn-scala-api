@@ -1,8 +1,16 @@
 var app = new Vue({
-    "el": "#validator",
+    "el": "#tabs",
     "data": {
-        "inputFormat": "lmf",
-        "inputRdfLang": "RDF/XML",
-        "inputText": "",
+        "tab": "validate",
+        "validator": {
+            "inputFormat": "lmf",
+            "inputRdfLang": "RDF/XML",
+            "inputText": ""
+        },
+        "converter": {
+            "inputFormat": "lmf",
+            "inputRdfLang": "RDF/XML",
+            "inputText": ""
+        }
     }
 });

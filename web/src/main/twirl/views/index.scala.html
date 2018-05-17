@@ -1,38 +1,55 @@
 @()
 @layouts.html.default("Global Wordnet Converter and Validator"){
 <div class="row">
-    <div class="col-md">
-        <form id="validator" action="/validate" method="post" enctype="multipart/form-data">
+    <div class="col-md" id="tabs">
+        <ul class="nav nav-tabs">
+            <li class="nav-item" v-on:click="tab='validate'">
+                <a href="#" class="nav-link"
+                   v-bind:class="{ active: tab=='validate' }">
+                    Validate
+                </a>
+            </li>
+            <li class="nav-item" v-on:click="tab='convert'">
+                <a href="#" class="nav-link"
+                   v-bind:class="{ active: tab=='convert' }">
+                    Convert
+                </a>
+            </li>
+        </ul>
+
+        <span v-if="tab=='validate'">
+        <form action="/validate" method="post" enctype="multipart/form-data"
+            id="validator">
             <div class="row">
                 <div class="col">
-                    <h3>Input Format</h3>
+                    <h3>Format</h3>
                     <div class="btn-group btn-group-toggle">
                         <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputFormat=='lmf' }">
+                               v-bind:class="{ active: validator.inputFormat=='lmf' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="lmf" 
-                                   v-model="inputFormat">WordNet LMF</input>
+                                   v-model="validator.inputFormat">WordNet LMF</input>
                         </label>
                         <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputFormat=='json' }">
+                               v-bind:class="{ active: validator.inputFormat=='json' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="json" 
-                                   v-model="inputFormat">WordNet JSON</input>
+                                   v-model="validator.inputFormat">WordNet JSON</input>
                         </label>
                         <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputFormat=='rdf' }">
+                               v-bind:class="{ active: validator.inputFormat=='rdf' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="rdf" 
-                                   v-model="inputFormat">WordNet RDF</input>
+                                   v-model="validator.inputFormat">WordNet RDF</input>
                         </label>
                     </div>
                 </div>
             </div>
             <div class="row"
-                 v-if="inputFormat=='rdf'">
+                 v-if="validator.inputFormat=='rdf'">
                 <div class="col">
                     <h3>RDF Input Format</h3>
                     <div class="btn-group btn-group-toggle">
@@ -89,6 +106,134 @@
                 </div>
             </div>
         </form>
+        </span>
+
+        <span v-if="tab=='convert'">
+        <form action="/validate" method="post" enctype="multipart/form-data"
+            id="converter">
+            <div class="row">
+                <div class="col">
+                    <h3>Input Format</h3>
+                    <div class="btn-group btn-group-toggle">
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='lmf' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="lmf" 
+                                   v-model="converter.inputFormat">WordNet LMF</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='json' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="json" 
+                                   v-model="converter.inputFormat">WordNet JSON</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='rdf' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="rdf" 
+                                   v-model="converter.inputFormat">WordNet RDF</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='wndb' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="wndb" 
+                                   v-model="converter.inputFormat">WordNet DB</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='omwn' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="omwn" 
+                                   v-model="converter.inputFormat">Open Multilingual Wordnet CSV</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='plwn' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="plwn" 
+                                   v-model="converter.inputFormat">plWordNet</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='debvisdic' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="debvisdic" 
+                                   v-model="converter.inputFormat">DebVisDic</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: converter.inputFormat=='w3c' }">
+                            <input type="radio" 
+                                   name="inputFormat" 
+                                   value="w3c" 
+                                   v-model="converter.inputFormat">W3C RDF</input>
+                        </label>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                 v-if="converter.inputFormat=='rdf' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <h3>RDF Input Format</h3>
+                    <div class="btn-group btn-group-toggle">
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: inputRdfLang=='RDF/XML' }">
+                            <input type="radio"
+                                   name="inputRdfLang"
+                                   value="RDF/XML"
+                                   v-model="inputRdfLang">RDF/XML</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: inputRdfLang=='TURTLE' }">
+                            <input type="radio"
+                                   name="inputRdfLang"
+                                   value="TURTLE"
+                                   v-model="inputRdfLang">Turtle</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: inputRdfLang=='N-TRIPLE' }">
+                            <input type="radio"
+                                   name="inputRdfLang"
+                                   value="N-TRIPLE"
+                                   v-model="inputRdfLang">N-Triples</input>
+                        </label>
+                        <label class="btn btn-secondary" 
+                               v-bind:class="{ active: inputRdfLang=='N3' }">
+                            <input type="radio"
+                                   name="inputRdfLang"
+                                   value="N3"
+                                   v-model="inputRdfLang">N3</input>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <h3><label for="inputText">Input Wordnet Data</label></h3>
+                    <textarea class="formControl" id="inputText" 
+                              name="inputText"
+                              rows="20" v-model="inputText"></textarea>
+                </div>
+            </div>
+            <div class="row"
+                v:if="inputText==''">
+                <div class="col">
+                    <h3><label for="inputFile">Or upload a wordnet file</label></h3>
+                    <input type="file" id="inputFile" name="inputFile"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-10"></div>
+                <div class="col-sm-2">
+                    <button type="submit" class="btn btn-primary">Convert</button>
+                </div>
+            </div>
+        </form>
+        </span>
     </div>
 </div>
 }
