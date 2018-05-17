@@ -1,0 +1,43 @@
+@(result : scala.util.Try[org.globalwordnet.api.wn.LexicalResource])
+@layouts.html.default("Global Wordnet Converter and Validator - Validation Result"){
+<div class="row">
+    <div class="col-md">
+        @if(result.isSuccess) {
+        <div class="alert alert-success">
+            <div><b>Validation OK!</b></div>
+            <table>
+                <tr>
+                    <td>
+                        Number of Lexicons
+                    </td>
+                    <td>
+                        @(result.get.lexicons.size)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Number of Lemmas
+                    </td>
+                    <td>
+                        @(result.get.lexicons.map(_.entries.size).sum)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Number of Synsets
+                    </td>
+                    <td>
+                        @(result.get.lexicons.map(_.synsets.size).sum)
+                    </td>
+                </tr>
+            </table>
+        </div>
+        } else {
+        <div class="alert alert-danger">
+            <b>@(result.asInstanceOf[scala.util.Failure[String]].exception.getClass().getName())</b><br/>
+            @(result.asInstanceOf[scala.util.Failure[String]].exception.getMessage())
+        </div>
+        }
+    </div>
+</div>
+}

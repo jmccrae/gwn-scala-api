@@ -1,5 +1,5 @@
 @()
-@layouts.html.default("Global WordNet Converter and Validator"){
+@layouts.html.default("Global Wordnet Converter and Validator"){
 <div class="row">
     <div class="col-md">
         <form id="validator" action="/validate" method="post" enctype="multipart/form-data">
@@ -69,7 +69,7 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <h3><label for="inputText">WordNet Data</label></h3>
+                    <h3><label for="inputText">Wordnet Data</label></h3>
                     <textarea class="formControl" id="inputText" 
                               name="inputText"
                               rows="20" v-model="inputText"></textarea>
