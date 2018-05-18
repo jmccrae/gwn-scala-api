@@ -3,7 +3,7 @@ package org.globalwordnet.api.serialize
 import eu.monnetproject.lang.Language
 import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
-import java.io.{File, FileReader}
+import java.io.{File, FileReader, Reader}
 import org.apache.jena.rdf.model.{ModelFactory, Model, Resource, Statement}
 import org.apache.jena.vocabulary.{RDF, RDFS}
 import scala.collection.JavaConverters._
@@ -24,7 +24,7 @@ class W3C(id : String, label : String, language : Language,
     read(new FileReader(file), guessLang(file), file.toURI().toString() + "#")
   }
 
-  def read(input : FileReader, rdfLang : String, baseUrl : String) : LexicalResource = {
+  def read(input : Reader, rdfLang : String, baseUrl : String) : LexicalResource = {
     val model = ModelFactory.createDefaultModel()
     model.read(input, baseUrl, rdfLang)
     readLexicalResource(model)

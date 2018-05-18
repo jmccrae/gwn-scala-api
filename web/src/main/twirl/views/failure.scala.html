@@ -1,0 +1,11 @@
+@(exception : Throwable)
+@layouts.html.default("Global Wordnet Converter and Validator - Conversion Failure"){
+<div class="row">
+    <div class="col-md">
+        <div class="alert alert-danger">
+            <b>@(exception.getClass().getName())</b><br/>
+            @(exception.getMessage())
+        </div>
+    </div>
+</div>
+}

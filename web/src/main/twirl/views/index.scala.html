@@ -22,81 +22,85 @@
             id="validator">
             <div class="row">
                 <div class="col">
-                    <h3>Format</h3>
-                    <div class="btn-group btn-group-toggle">
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: validator.inputFormat=='lmf' }">
-                            <input type="radio" 
-                                   name="inputFormat" 
-                                   value="lmf" 
-                                   v-model="validator.inputFormat">WordNet LMF</input>
-                        </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: validator.inputFormat=='json' }">
-                            <input type="radio" 
-                                   name="inputFormat" 
-                                   value="json" 
-                                   v-model="validator.inputFormat">WordNet JSON</input>
-                        </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: validator.inputFormat=='rdf' }">
-                            <input type="radio" 
-                                   name="inputFormat" 
-                                   value="rdf" 
-                                   v-model="validator.inputFormat">WordNet RDF</input>
-                        </label>
+                    <div class="form-group">
+                        <label for="inputFormat">Format</label><br/>
+                        <div class="btn-group btn-group-toggle">
+                            <label class="btn btn-info" 
+                                   v-bind:class="{ active: validator.inputFormat=='lmf' }">
+                                <input type="radio" 
+                                       name="inputFormat" 
+                                       value="lmf" 
+                                       v-model="validator.inputFormat">WordNet LMF</input>
+                            </label>
+                            <label class="btn btn-info" 
+                                   v-bind:class="{ active: validator.inputFormat=='json' }">
+                                <input type="radio" 
+                                       name="inputFormat" 
+                                       value="json" 
+                                       v-model="validator.inputFormat">WordNet JSON</input>
+                            </label>
+                            <label class="btn btn-info" 
+                                   v-bind:class="{ active: validator.inputFormat=='rdf' }">
+                                <input type="radio" 
+                                       name="inputFormat" 
+                                       value="rdf" 
+                                       v-model="validator.inputFormat">WordNet RDF</input>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="row"
                  v-if="validator.inputFormat=='rdf'">
-                <div class="col">
-                    <h3>RDF Input Format</h3>
+                <div class="col form-group">
+                    <label>RDF Input Format</label><br>
                     <div class="btn-group btn-group-toggle">
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='RDF/XML' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: validator.inputRdfLang=='RDF/XML' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="RDF/XML"
-                                   v-model="inputRdfLang">RDF/XML</input>
+                                   v-model="validator.inputRdfLang">RDF/XML</input>
                         </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='TURTLE' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: validator.inputRdfLang=='TURTLE' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="TURTLE"
-                                   v-model="inputRdfLang">Turtle</input>
+                                   v-model="validator.inputRdfLang">Turtle</input>
                         </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='N-TRIPLE' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: validator.inputRdfLang=='N-TRIPLE' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="N-TRIPLE"
-                                   v-model="inputRdfLang">N-Triples</input>
+                                   v-model="validator.inputRdfLang">N-Triples</input>
                         </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='N3' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: validator.inputRdfLang=='N3' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="N3"
-                                   v-model="inputRdfLang">N3</input>
+                                   v-model="validator.inputRdfLang">N3</input>
                         </label>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <div class="col">
-                    <h3><label for="inputText">Wordnet Data</label></h3>
+                <div class="col form-group">
+                    <label for="inputText">Wordnet Data</label><br/>
                     <textarea class="formControl" id="inputText" 
                               name="inputText"
-                              rows="20" v-model="inputText"></textarea>
+                              rows="20" v-model="validator.inputText"></textarea>
                 </div>
             </div>
             <div class="row"
-                v:if="inputText==''">
+                v:if="validator.inputText==''">
                 <div class="col">
-                    <h3><label for="inputFile">Or upload a wordnet file</label></h3>
-                    <input type="file" id="inputFile" name="inputFile"/>
+                    <div class="form-group">
+                        <label for="inputFile">Or upload a wordnet file</label>&nbsp;&nbsp;&nbsp;
+                        <input type="file" id="inputFile" name="inputFile"/>
+                    </div>
                 </div>
             </div>
             <div class="row">
@@ -109,62 +113,62 @@
         </span>
 
         <span v-if="tab=='convert'">
-        <form action="/validate" method="post" enctype="multipart/form-data"
+        <form action="/convert" method="post" enctype="multipart/form-data"
             id="converter">
             <div class="row">
-                <div class="col">
-                    <h3>Input Format</h3>
+                <div class="col form-group">
+                    <label for="inputFormat">Input Format</label><br/>
                     <div class="btn-group btn-group-toggle">
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='lmf' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="lmf" 
                                    v-model="converter.inputFormat">WordNet LMF</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='json' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="json" 
                                    v-model="converter.inputFormat">WordNet JSON</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='rdf' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="rdf" 
                                    v-model="converter.inputFormat">WordNet RDF</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='wndb' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="wndb" 
                                    v-model="converter.inputFormat">WordNet DB</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='omwn' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="omwn" 
                                    v-model="converter.inputFormat">Open Multilingual Wordnet CSV</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='plwn' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="plwn" 
                                    v-model="converter.inputFormat">plWordNet</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='debvisdic' }">
                             <input type="radio" 
                                    name="inputFormat" 
                                    value="debvisdic" 
                                    v-model="converter.inputFormat">DebVisDic</input>
                         </label>
-                        <label class="btn btn-secondary" 
+                        <label class="btn btn-info" 
                                v-bind:class="{ active: converter.inputFormat=='w3c' }">
                             <input type="radio" 
                                    name="inputFormat" 
@@ -177,55 +181,291 @@
             </div>
             <div class="row"
                  v-if="converter.inputFormat=='rdf' || converter.inputFormat=='w3c'">
-                <div class="col">
-                    <h3>RDF Input Format</h3>
+                <div class="col form-group">
+                    <label for="inputRdfLang">RDF Input Format</label><br/>
                     <div class="btn-group btn-group-toggle">
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='RDF/XML' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.inputRdfLang=='RDF/XML' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="RDF/XML"
-                                   v-model="inputRdfLang">RDF/XML</input>
+                                   v-model="converter.inputRdfLang">RDF/XML</input>
                         </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='TURTLE' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.inputRdfLang=='TURTLE' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="TURTLE"
-                                   v-model="inputRdfLang">Turtle</input>
+                                   v-model="converter.inputRdfLang">Turtle</input>
                         </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='N-TRIPLE' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.inputRdfLang=='N-TRIPLE' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="N-TRIPLE"
-                                   v-model="inputRdfLang">N-Triples</input>
+                                   v-model="converter.inputRdfLang">N-Triples</input>
                         </label>
-                        <label class="btn btn-secondary" 
-                               v-bind:class="{ active: inputRdfLang=='N3' }">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.inputRdfLang=='N3' }">
                             <input type="radio"
                                    name="inputRdfLang"
                                    value="N3"
-                                   v-model="inputRdfLang">N3</input>
+                                   v-model="converter.inputRdfLang">N3</input>
                         </label>
                     </div>
                 </div>
             </div>
-            <div class="row">
+           <div class="row"
+                 v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
                 <div class="col">
-                    <h3><label for="inputText">Input Wordnet Data</label></h3>
-                    <textarea class="formControl" id="inputText" 
-                              name="inputText"
-                              rows="20" v-model="inputText"></textarea>
+                    <div class="form-group">
+                        <label for="identifier">Identifier</label>
+                        <input type="text"
+                               name="id"
+                               class="form-control"
+                               placeholder="pwn31">
+                        <small class="form-text text-muted">The identifier for the resource</small>
+                    </div>
                 </div>
             </div>
             <div class="row"
-                v:if="inputText==''">
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
                 <div class="col">
-                    <h3><label for="inputFile">Or upload a wordnet file</label></h3>
-                    <input type="file" id="inputFile" name="inputFile"/>
+                    <div class="form-group">
+                        <label for="label">Label</label>
+                        <input type="text"
+                               name="label"
+                               class="form-control"
+                               placeholder="Princeton WordNet 3.1">
+                        <small class="form-text text-muted">The label for the resource</small>
+                    </div>
                 </div>
             </div>
+            <div class="row"
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="language">Language</label>
+                        <input type="text"
+                               name="language"
+                               class="form-control"
+                               placeholder="en">
+                        <small class="form-text text-muted">The language of the resource (as a two or three letter code)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="text"
+                               name="email"
+                               class="form-control"
+                               placeholder="user@('@')example.com">
+                        <small class="form-text text-muted">The email address of the creator of the resource</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="license">License</label>
+                        <input type="text"
+                               name="license"
+                               class="form-control"
+                               placeholder="https://wordnet.princeton.edu/license-and-commercial-use">
+                        <small class="form-text text-muted">The license of the resource (URL of license document)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="version">Version</label>
+                        <input type="text"
+                               name="version"
+                               class="form-control"
+                               placeholder="3.1">
+                        <small class="form-text text-muted">The version of the resource</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="url">URL</label>
+                        <input type="text"
+                               name="url"
+                               class="form-control"
+                               placeholder="http://wordnet.princeton.edu/">
+                        <small class="form-text text-muted">The URL of the wordnet/project homepage</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="citation">Citation</label>
+                        <input type="text"
+                               name="citation"
+                               class="form-control"
+                               placeholder="Bloggs et al., 'Paper' (2000)">
+                        <small class="form-text text-muted">The citation for this wordnet</small>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="row">
+                <div class="col">
+                    <label>Output Format</label><br/>
+                    <div class="form-group">
+                    <div class="btn-group btn-group-toggle">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputFormat=='lmf' }">
+                            <input type="radio" 
+                                   name="outputFormat" 
+                                   value="lmf" 
+                                   v-model="converter.outputFormat">WordNet LMF</input>
+                        </label>
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputFormat=='json' }">
+                            <input type="radio" 
+                                   name="outputFormat" 
+                                   value="json" 
+                                   v-model="converter.outputFormat">WordNet JSON</input>
+                        </label>
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputFormat=='rdf' }">
+                            <input type="radio" 
+                                   name="outputFormat" 
+                                   value="rdf" 
+                                   v-model="converter.outputFormat">WordNet RDF</input>
+                        </label>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                 v-if="converter.outputFormat=='rdf' || converter.outputFormat=='w3c'">
+                <div class="col">
+                    <label>RDF Output Format</label><br/>
+                    <div class="btn-group btn-group-toggle">
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputRdfLang=='RDF/XML' }">
+                            <input type="radio"
+                                   name="outputRdfLang"
+                                   value="RDF/XML"
+                                   v-model="converter.outputRdfLang">RDF/XML</input>
+                        </label>
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputRdfLang=='TURTLE' }">
+                            <input type="radio"
+                                   name="outputRdfLang"
+                                   value="TURTLE"
+                                   v-model="converter.outputRdfLang">Turtle</input>
+                        </label>
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputRdfLang=='N-TRIPLE' }">
+                            <input type="radio"
+                                   name="outputRdfLang"
+                                   value="N-TRIPLE"
+                                   v-model="converter.outputRdfLang">N-Triples</input>
+                        </label>
+                        <label class="btn btn-info" 
+                               v-bind:class="{ active: converter.outputRdfLang=='N3' }">
+                            <input type="radio"
+                                   name="outputRdfLang"
+                                   value="N3"
+                                   v-model="converter.outputRdfLang">N3</input>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                 v-if="converter.outputFormat=='rdf' || converter.outputFormat=='w3c'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="outputRdfBaseUrl">Output Base URL</label>
+                        <input type="text"
+                               name="outputRdfBaseUrl"
+                               class="form-control"
+                               placeholder="http://localhost/">
+                        <small class="form-text text-muted">The Base URL for URLs in the output file</small>
+                    </div>
+                </div>
+            </div>
+ 
+            <div class="row"
+                v-if="converter.inputFormat!='wndb'">
+                <div class="col">
+                    <div class="form-group">
+                    <label for="converter.inputText">Input Wordnet Data</label><br/>
+                    <textarea class="formControl" id="inputText" 
+                              name="inputText"
+                              rows="20" v-model="converter.inputText"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                v:if="converter.inputText==''">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="inputFile" v-if="converter.inputFormat!='wndb'">Or upload a wordnet file</label>&nbsp;&nbsp;&nbsp;
+                        <label for="inputFile" v-if="converter.inputFormat=='wndb'">Upload wordnet files as a ZIP</label>&nbsp;&nbsp;&nbsp;
+                        <input type="file" id="inputFile" name="inputFile"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                 v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="auxFile">Auxiliary File</label>&nbsp;&nbsp;&nbsp;
+                        <input type="file" id="auxFile" name="auxFile"/>
+                        <small class="form-text text-muted" 
+                            v-if="converter.inputFormat=='wndb'">An ILI mapping file such as found at <a href="https://github.com/globalwordnet/ili">GlobalWordNet's ILI GitHub</a></small>
+                        <small class="form-text text-muted" 
+                               v-if="converter.inputFormat=='omwn' || converter.inputFormat=='plwn'">An existing wordnet in a GWN format</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                 v-if="converter.inputFormat=='omwn' || converter.inputFormat=='plwn'">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="auxFormat">Auxiliary Format</label><br/>
+                        <div class="btn-group btn-group-toggle">
+                            <label class="btn btn-info" 
+                                   v-bind:class="{ active: converter.auxFormat=='lmf' }">
+                                <input type="radio" 
+                                       name="auxFormat" 
+                                       value="lmf" 
+                                       v-model="converter.auxFormat">WordNet LMF</input>
+                            </label>
+                            <label class="btn btn-info" 
+                                   v-bind:class="{ active: converter.auxFormat=='json' }">
+                                <input type="radio" 
+                                       name="auxFormat" 
+                                       value="json" 
+                                       v-model="converter.auxFormat">WordNet JSON</input>
+                            </label>
+                            <label class="btn btn-info" 
+                                   v-bind:class="{ active: converter.auxFormat=='rdf' }">
+                                <input type="radio" 
+                                       name="auxFormat" 
+                                       value="rdf" 
+                                       v-model="converter.auxFormat">WordNet RDF</input>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+ 
             <div class="row">
                 <div class="col-sm-10"></div>
                 <div class="col-sm-2">

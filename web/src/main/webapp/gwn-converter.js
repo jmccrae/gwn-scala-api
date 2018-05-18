@@ -10,6 +10,8 @@ var app = new Vue({
         "converter": {
             "inputFormat": "lmf",
             "inputRdfLang": "RDF/XML",
+            "outputFormat": "lmf",
+            "outputRdfLang": "RDF/XML",
             "inputText": ""
         }
     }

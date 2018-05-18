@@ -35,7 +35,11 @@
         } else {
         <div class="alert alert-danger">
             <b>@(result.asInstanceOf[scala.util.Failure[String]].exception.getClass().getName())</b><br/>
-            @(result.asInstanceOf[scala.util.Failure[String]].exception.getMessage())
+            <p>@(result.asInstanceOf[scala.util.Failure[String]].exception.getMessage())</p>
+            @if(result.asInstanceOf[scala.util.Failure[String]].exception.isInstanceOf[org.xml.sax.SAXParseException]) {
+            <p>Line number: @(result.asInstanceOf[scala.util.Failure[String]].exception.asInstanceOf[org.xml.sax.SAXParseException].getLineNumber()),
+            Column number: @(result.asInstanceOf[scala.util.Failure[String]].exception.asInstanceOf[org.xml.sax.SAXParseException].getColumnNumber())</p>
+            }
         </div>
         }
     </div>
