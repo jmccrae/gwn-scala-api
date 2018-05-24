@@ -6,7 +6,7 @@
   <ID>ENG20-00008198-v</ID>
   <POS>v</POS>
   <SYNONYM>
-    <LITERAL sense="1">poidza</LITERAL>
+      <LITERAL sense="1">poidza<SENSE>1</SENSE></LITERAL>
     <WORD>poidza</WORD>
   </SYNONYM>
   <DEF/>
@@ -31,6 +31,8 @@
   <BCS/>
   <DOMAIN>factotum</DOMAIN>
   <SUMO type="+">Impelling</SUMO>
+  <ILR>ENG30-00001740-n<TYPE>synonym</TYPE></ILR>
+  <SR>ENG20-00018100-v<TYPE>HYPERNYM</TYPE></SR>
 </SYNSET>
 
 <SYNSET>

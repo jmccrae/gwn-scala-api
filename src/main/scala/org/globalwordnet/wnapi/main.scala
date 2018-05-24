@@ -270,7 +270,8 @@ object Main {
           config.license,
           config.version,
           config.url,
-          config.citation)
+          config.citation,
+          Option(config.auxFile))
         dvdReader.read(config.inputFile)
       case "W3C" =>
         val w3cReader = new W3C(

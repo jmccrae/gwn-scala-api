@@ -10,7 +10,10 @@ import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml, esc
 
 class DebVisDic(id : String, label : String, language : Language,
     email : String, license : String, version : String, url : Option[String] = None,
-    citation : Option[String] = None) extends Format {
+    citation : Option[String] = None, iliMapFile : Option[File]) extends Format {
+
+  lazy val iliMap = iliMapFile.map(loadILIMap)
+
   def read(file : File) : LexicalResource = {
     readLexicalResource(XML.loadFile(file))
   }
@@ -48,19 +51,26 @@ class DebVisDic(id : String, label : String, language : Language,
 
   private def readEntry(elem : Node) : Seq[LexicalEntry] = {
     (elem \ "SYNONYM" \ "LITERAL").map({ l =>
-      val form = trim(l).text
+      val form = textDirectChild(l)
       val pos = (elem \ "POS").text
       LexicalEntry(
         makeId(form, pos),
         Lemma(writtenForm=form,
               partOfSpeech=PartOfSpeech.fromString(pos),
               script=None),
-        // TODO relationships
         Nil,
         Seq(Sense(
           checkAdd(id + "-", (elem \ "ID").text + "-" + (l \ "@sense").text + "-" + xmlClean(form)),
           checkAdd(id + "-", (elem \ "ID").text))))
     })
+  }
+
+  private def textDirectChild(e : Node) : String = {
+    trim(e).child.flatMap({
+      case x : scala.xml.Text => Some(x.text)
+      case x : scala.xml.PCData => Some(x.text)
+      case _ => None
+    }).mkString(" ")
   }
 
   private def checkAdd(pre : String, target : String) = {
@@ -71,13 +81,29 @@ class DebVisDic(id : String, label : String, language : Language,
     }
   }
 
+  private val pwnLikeId = "(.*)-(\\d{8})-([nvars])".r
+
   private def readSynset(elem : Node) : Synset = {
+    val ili = (elem \ "ILR").flatMap(ilr => {
+      textDirectChild(ilr) match {
+        case pwnLikeId(_, num, pos) => iliMap.flatMap(_.get(num.toInt, pos))
+        case _ => None
+      }
+    }).headOption
+
     Synset(
       id=checkAdd(id + "-", (elem \ "ID").text),
-      ili=None,
+      ili=ili,
       definitions=(elem \ "DEF").map(x => trim(x).text).filter(_.length > 0).map(Definition(_)),
       synsetExamples=(elem \ "USAGE").map(x => trim(x).text).filter(_.length > 0).map(Example(_)),
-      partOfSpeech=Some(PartOfSpeech.fromString((elem \ "POS").text))) withNote buildNote(elem)
+      partOfSpeech=Some(PartOfSpeech.fromString((elem \ "POS").text)),
+      synsetRelations=(elem \ "SR").map(readRelation)) withNote buildNote(elem)
+  }
+
+  private def readRelation(elem : Node) : SynsetRelation = {
+    val target = textDirectChild(elem)
+    val relType = (elem \ "TYPE").text.toLowerCase
+    SynsetRelation(id + "-" + target, SynsetRelType.fromStringOrOther(relType))
   }
 
   private def buildNote(elem : Node) : String = {
@@ -128,7 +154,6 @@ class DebVisDic(id : String, label : String, language : Language,
           out.print(s"""
     <USAGE>${escapeXml(example.content)}</USAGE>""")
       }
-      // TODO: More tags here
       out.print("""
   </SYNSET>""")
     }
@@ -136,6 +161,37 @@ class DebVisDic(id : String, label : String, language : Language,
     </WN>""")
 
   }
+
+  private val iliIdType1 = "ili:(i\\d+)".r
+  private val iliIdType2 = "<(i\\d+)>".r
  
+  private def loadILIMap(fileName : File) : Map[(Int, String), String] = {
+    (io.Source.fromFile(fileName).getLines.filter(_.contains("owl:sameAs")).flatMap { line =>
+      val elems = line.split("\\s+")
+      val ili = elems(0) match {
+        case iliIdType1(id) => id
+        case iliIdType2(id) => id
+      }
+      val offset = if(elems(2).startsWith("pwn31:")) {
+        elems(2).drop(7).dropRight(2).toInt
+      } else if(elems(2).startsWith("pwn30:")) {
+        elems(2).drop(6).dropRight(2).toInt
+      } else {
+        throw new RuntimeException(elems(2))
+      }
+      val pos = elems(2).takeRight(1)
+      if(elems(1) == "owl:sameAs") {
+        if(pos == "s" && elems(2).startsWith("pwn31")) {
+          Some((offset, "a") -> ili)
+        } else {
+          Some((offset, pos) -> ili)
+        }
+      } else {
+        None
+      }
+    }).toMap
+  }
+
+
 
 }

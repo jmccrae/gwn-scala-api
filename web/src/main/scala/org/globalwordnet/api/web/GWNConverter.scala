@@ -174,6 +174,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
                 optString(params("citation"))),
               aux)))
       case "debvisdic" =>
+        val auxFile = fileParams.get("auxFile").flatMap(x => createTmpFile(x).toOption)
         val dvdReader = new DebVisDic(
           params("id"),
           params("label"),
@@ -182,7 +183,8 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
           params("license"),
           params("version"),
           optString(params("url")),
-          optString(params("citation")))
+          optString(params("citation")),
+          auxFile)
         Try(dvdReader.read(input))
       case "w3c" =>
         val w3cReader = new W3C(

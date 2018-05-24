@@ -8,7 +8,9 @@ import java.io.File
 class DebVisDicSpec extends FlatSpec with Matchers {
   var resource : LexicalResource = null
   val dvdReader = new DebVisDic("example-en", "label", Language.ENGLISH,
-    "e@ma.il", "CC-Zero", "0.0")
+    "e@ma.il", "CC-Zero", "0.0", None, None, None) {
+      override lazy val iliMap = Some(Map((1740,"n")->"i1"))
+    }
   "DebVisDic reader" should "successfully read a DebVisDic file" in {
     resource = dvdReader.read(new java.io.FileReader("src/test/resources/wnven.xml"))
   }
@@ -41,6 +43,8 @@ class DebVisDicSpec extends FlatSpec with Matchers {
       Seq(
         Synset(
           id="example-en-ENG20-00017381-a",
+          ili=Some("i1"),
+          synsetRelations=Seq(SynsetRelation("example-en-ENG20-00018100-v", hypernym)),
           partOfSpeech=Some(adjective),
           definitions=Nil,
           synsetExamples=Seq(Example("u rwa nga mulaṱela"))) withNote "DOMAIN=factotum, SUMO=+Impelling"))

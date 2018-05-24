@@ -422,13 +422,13 @@
                 </div>
             </div>
             <div class="row"
-                 v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn'">
+                 v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic'">
                 <div class="col">
                     <div class="form-group">
                         <label for="auxFile">Auxiliary File</label>&nbsp;&nbsp;&nbsp;
                         <input type="file" id="auxFile" name="auxFile"/>
                         <small class="form-text text-muted" 
-                            v-if="converter.inputFormat=='wndb'">An ILI mapping file such as found at <a href="https://github.com/globalwordnet/ili">GlobalWordNet's ILI GitHub</a></small>
+                            v-if="converter.inputFormat=='wndb' || converter.inputFormat=='debvisdic'">An ILI mapping file such as found at <a href="https://github.com/globalwordnet/ili">GlobalWordNet's ILI GitHub</a></small>
                         <small class="form-text text-muted" 
                                v-if="converter.inputFormat=='omwn' || converter.inputFormat=='plwn'">An existing wordnet in a GWN format</small>
                     </div>
