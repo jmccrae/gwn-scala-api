@@ -51,7 +51,7 @@ class DebVisDicSpec extends FlatSpec with Matchers {
   }
 
   it should "roundtrip" in {
-    val _model1 = WNLMF.read(new java.io.FileReader("src/test/resources/example.xml"))
+    val _model1 = new WNLMF(false).read(new java.io.FileReader("src/test/resources/example.xml"))
     val model1 = LexicalResource(Seq(_model1.lexicons(0)))
     val file1 = File.createTempFile("debvisdic", ".xml")
     file1.deleteOnExit()

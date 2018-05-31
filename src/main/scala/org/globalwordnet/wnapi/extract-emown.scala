@@ -19,7 +19,7 @@ object EmoWNExtract {
     import org.globalwordnet.api.plwn._
     val plWordNetFile = new java.io.File("../plwordnet-to-gw/plWordNet-dev.xml.gz")
     // ./gwn -i ~/Downloads/WordNet-3.0/dict -o wn30.xml -f WNDB -t WNLMF -a wn-data/ili-map-wn30.ttl
-    val wn31          = WNLMF.read(new File("wn30.xml"))
+    val wn31          = new WNLMF().read(new File("wn30.xml"))
     val (eentries, esynsets, elexrelations, esynrelations, edescriptions) = load_plwordnet(true, plWordNetFile)
     val (pentries, psynsets, plexrelations, psynrelations, pdescriptions) = load_plwordnet(false, plWordNetFile)
     val (pwn_entries, pwn_defns, ili) = load_pwn(wn31)

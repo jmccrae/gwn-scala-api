@@ -7,7 +7,7 @@ import org.scalatest._
 
 class OMWNSpec extends FlatSpec with Matchers {
   "OMWN" should "read a file" in {
-    val wn30 = WNLMF.read(new File("src/test/resources/example.xml"))
+    val wn30 = new WNLMF(false).read(new File("src/test/resources/example.xml"))
     val resource = OpenMultilingualWordNet.read(
       new File("src/test/resources/test.tsv"), wn30, "gle", "")
 

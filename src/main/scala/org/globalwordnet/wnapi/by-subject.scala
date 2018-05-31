@@ -15,6 +15,10 @@ object MultiMap {
 /** Split a resource by subject and name each subject */
 object BySubject {
   import MultiMap._
+
+  def dedup(entries : Seq[LexicalEntry]) : Seq[LexicalEntry] = 
+    entries.groupBy(_.id).values.map(_.head).toSeq
+
   def splitBySubject(resource : LexicalResource) : Seq[(String, LexicalResource)] = {
     var lexicons = collection.mutable.ListBuffer[(String,Lexicon)]()
     for(lexicon <- resource.lexicons) {
@@ -30,11 +34,11 @@ object BySubject {
         val synsetIds = synsets.map(_.id).toSet
         lexicons += ((subj,
           lexicon.copy(
-            entries=synsets.flatMap({ ss =>
+            entries=dedup(synsets.flatMap({ ss =>
               entriesBySynset.getOrElse(ss.id, Nil).map({i => 
                 mapEntry(lexicon.entries(i), synsetIds)
               })
-            }),
+            })),
             synsets=synsets)))
       }
     }

@@ -7,7 +7,7 @@ import org.scalatest._
 class XMLSpec extends FlatSpec with Matchers {
   var resource : LexicalResource = null
   "XML reader" should "successfully read an XML file" in {
-    resource = WNLMF.read(new java.io.FileReader("src/test/resources/example.xml"))
+    resource = new WNLMF(false).read(new java.io.FileReader("src/test/resources/example.xml"))
   }
   it should "produce 2 lexicons" in {
     resource.lexicons.size should be (2)
@@ -64,7 +64,7 @@ class XMLSpec extends FlatSpec with Matchers {
   val f = java.io.File.createTempFile("lexicon", ".xml")
   f.deleteOnExit()
   "XML Writer" should "write a file" in {
-    WNLMF.write(resource, f)
+    new WNLMF(false).write(resource, f)
   }
   it should "roundtrip" in {
     val text1 = io.Source.fromFile("src/test/resources/example.xml").getLines.mkString(" ").replaceAll("<!--[^!]*-->", "").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")

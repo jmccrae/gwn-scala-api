@@ -5,7 +5,7 @@ import org.globalwordnet.api.wn._
 import org.scalatest._
 
 class WNDBSpec extends FlatSpec with Matchers {
-  var lr = WNLMF.read(new java.io.FileReader("src/test/resources/example3.xml"))
+  var lr = new WNLMF(false).read(new java.io.FileReader("src/test/resources/example3.xml"))
 
 
   it should "output a correct data.noun file" in {

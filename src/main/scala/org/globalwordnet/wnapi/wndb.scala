@@ -171,14 +171,14 @@ class WNDB(
           senses=for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items) yield {
             val word = lemmas.find(_.lemma == lemma).get
             val srcIdx = word.synNo
-            Sense(id="%s#%08d" format (lexEntId, offset),
+            Sense(id="%s-%08d" format (lexEntId, offset),
              synsetRef="%s-%08d-%s" format (id, offset, pos.shortForm),
              senseRelations={
                for(Pointer(typ, targetOffset, pos, src, trg) <- pointers 
                    if srcIdx == src && inItems.contains(targetOffset, trg)) yield {
                      val pos2 = posMap(targetOffset, pos)
                  SenseRelation(
-                   target="%s-%s-%s#%08d" format (id, lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset),
+                   target="%s-%s-%s-%08d" format (id, lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset),
                    //target="%s-%08d-%s-%d" format (id, targetOffset, pos.shortForm, trg), 
                    relType=typ.asInstanceOf[SenseRelType])
                }
@@ -407,10 +407,10 @@ class WNDB(
   case class Word(val lemma : String, val lexId : Int, val synNo : Int, lexNo : Int, pos : PartOfSpeech, head : Option[Int]) {
     def senseIdx(sattelites : Map[Int,(String,Int)]) = {
       if(head != None) {
-        "%s-%s#%s:%02d:%02d:%s:%02d" format (lemma.replaceAll(" ","_"), pos.shortForm, POS.code(pos), lexNo, lexId, sattelites(head.get)._1,
+        "%s-%s-%s:%02d:%02d:%s:%02d" format (lemma.replaceAll(" ","_"), pos.shortForm, POS.code(pos), lexNo, lexId, sattelites(head.get)._1,
         sattelites(head.get)._2)
       } else {
-        "%s-%s#%s:%02d:%02d::" format (lemma.replaceAll(" ","_"), pos.shortForm, POS.code(pos), lexNo, lexId)
+        "%s-%s-%s:%02d:%02d::" format (lemma.replaceAll(" ","_"), pos.shortForm, POS.code(pos), lexNo, lexId)
       }
     }
     def senseKey(sattelites : Map[Int,(String,Int)]) = {

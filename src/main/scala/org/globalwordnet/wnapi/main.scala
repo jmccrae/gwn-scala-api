@@ -154,7 +154,7 @@ object Main {
     }
     config.auxFormat match {
       case "WNLMF" =>
-        WNLMF.read(config.auxFile)
+        new WNLMF(false).read(config.auxFile)
       case "JSON" =>
         WNJSON.read(config.auxFile)
       case "RDF" =>
@@ -170,7 +170,7 @@ object Main {
     try {
       val resource : LexicalResource = config.inputFormat match {
         case "WNLMF" =>
-          WNLMF.read(config.inputFile)
+          new WNLMF().read(config.inputFile)
         case "JSON" =>
           WNJSON.read(config.inputFile)
         case "RDF" =>
@@ -209,7 +209,7 @@ object Main {
   def convertFormat(config : GWNAPIConfig) {
     val resource : LexicalResource = config.inputFormat match {
       case "WNLMF" =>
-        WNLMF.read(config.inputFile)
+        new WNLMF().read(config.inputFile)
       case "JSON" =>
         WNJSON.read(config.inputFile)
       case "RDF" =>
@@ -300,15 +300,15 @@ object Main {
               } else {
                 s"${config.outputFile.getPath()}-$subject"
               }
-              WNLMF.write(resource, new File(outPath))
+              new WNLMF().write(resource, new File(outPath), true)
             } else {
-              WNLMF.write(resource, new PrintWriter(System.out))
+              new WNLMF().write(resource, new PrintWriter(System.out), true)
             }
           }
         } else if(config.outputFile != null) {
-          WNLMF.write(resource, config.outputFile)
+          new WNLMF().write(resource, config.outputFile)
         } else {
-          WNLMF.write(resource, new PrintWriter(System.out))
+          new WNLMF().write(resource, new PrintWriter(System.out))
         }
       case "JSON" =>
         if(config.outputFile != null && config.outputFile.getName().endsWith(".zip")) {

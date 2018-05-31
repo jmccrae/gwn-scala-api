@@ -120,7 +120,7 @@ class CoverageTest extends FlatSpec with Matchers {
   }
 
   "XML reader" should "read the coverage xml" in {
-    resource = WNLMF.read(new java.io.File("src/test/resources/example2.xml"))
+    resource = new WNLMF().read(new java.io.File("src/test/resources/example2.xml"))
   }
   it should "provide coverage" in {
     testCoverage(resource)
@@ -128,10 +128,10 @@ class CoverageTest extends FlatSpec with Matchers {
   val xmlFile = File.createTempFile("lexicon", ".xml")
   xmlFile.deleteOnExit()
   it should "write the coverage model" in {
-    WNLMF.write(resource, xmlFile)
+    new WNLMF(false).write(resource, xmlFile)
   }
   it should "successfully read the same data" in {
-    val r2 = WNLMF.read(xmlFile)
+    val r2 = new WNLMF(false).read(xmlFile)
     testCoverage(r2)
   }
 
