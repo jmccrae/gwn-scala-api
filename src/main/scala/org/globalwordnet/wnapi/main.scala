@@ -300,9 +300,9 @@ object Main {
               } else {
                 s"${config.outputFile.getPath()}-$subject"
               }
-              new WNLMF().write(resource, new File(outPath), true)
+              new WNLMF(relaxed=true).write(resource, new File(outPath))
             } else {
-              new WNLMF().write(resource, new PrintWriter(System.out), true)
+              new WNLMF(relaxed=true).write(resource, new PrintWriter(System.out))
             }
           }
         } else if(config.outputFile != null) {

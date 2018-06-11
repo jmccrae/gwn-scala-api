@@ -17,7 +17,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       })
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
-    val data = new StringBuilder()
+    val data = (new StringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
     wndb.writeData(lr, lr.lexicons(0), noun, entriesForSynset, synsetLookup, data,
       (oldId, newId) => {
@@ -25,7 +25,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       })
 
 
-    data.toString should be ("""  1 This software and database is being provided to you, the LICENSEE, by  
+    data._1.toString should be ("""  1 This software and database is being provided to you, the LICENSEE, by  
   2 Princeton University under the following license.  By obtaining, using  
   3 and/or copying this software and database, you agree that you have  
   4 read, understood, and will comply with these terms and conditions.:  
@@ -54,9 +54,9 @@ class WNDBSpec extends FlatSpec with Matchers {
   27 and/or database.  Title to copyright in this software, database and  
   28 any associated documentation shall at all times remain with  
   29 Princeton University and LICENSEE agrees to preserve same.  
-00001740 45 n 01 grandfather 0 001 @ 00001937 n 0000 | the father of your father or mother
-00001831 45 n 01 paternal_grandfather 0 001 + 00001740 n 0101 | A father's father; a paternal grandfather
-00001937 45 n 00 000 
+00001740 45 n 01 paternal_grandfather 0 001 + 00001848 n 0101 | A father's father; a paternal grandfather  
+00001848 45 n 01 grandfather 0 001 @ 00001941 n 0000 | the father of your father or mother  
+00001941 45 n 00 000   
 """)
   }
 
@@ -69,7 +69,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       })
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
-    val data = new StringBuilder()
+    val data = (new StringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
     val sw = new java.io.StringWriter()
     val out = new java.io.PrintWriter(sw)
@@ -110,8 +110,8 @@ class WNDBSpec extends FlatSpec with Matchers {
   27 and/or database.  Title to copyright in this software, database and  
   28 any associated documentation shall at all times remain with  
   29 Princeton University and LICENSEE agrees to preserve same.  
-grandfather n 1 0 1 0 00001740
-paternal_grandfather n 1 1 + 1 0 00001831
+grandfather n 1 0 1 0 00001848
+paternal_grandfather n 1 1 + 1 0 00001740
 """)
   }
 

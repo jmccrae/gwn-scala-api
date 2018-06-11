@@ -99,7 +99,7 @@ class W3C(id : String, label : String, language : Language,
         headOption.getOrElse(throw new W3CFormatException("Word without lemma" 
           + word)).asLiteral().getString()
     LexicalEntry(id=id, lemma=Lemma(lemma, partOfSpeech),
-      syntacticBehaviours=frames.map(b => SyntacticBehaviour(b.replaceAll("----", "%"))))
+      syntacticBehaviours=frames.map(b => SyntacticBehaviour(b.replaceAll("----", "%"),Nil)))
   }
 
   def readSynsets(model : Model) : Seq[Synset] = {

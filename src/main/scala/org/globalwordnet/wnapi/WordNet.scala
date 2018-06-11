@@ -40,6 +40,7 @@ trait Meta {
 }
 
 case class LexicalResource(lexicons : Seq[Lexicon]) {
+  import org.globalwordnet.api.MultiMap._
   lazy val synsetLookup : Map[String, Synset] = lexicons.flatMap({ 
     lexicon =>
       lexicon.synsets.map({
@@ -58,6 +59,13 @@ case class LexicalResource(lexicons : Seq[Lexicon]) {
           })
       })
   }).toMap
+  lazy val entriesForSynset : Map[String, Seq[String]] = {
+    lexicons.flatMap(lexicon => lexicon.entries.flatMap({ entry =>
+      entry.senses.map({ sense =>
+        sense.synsetRef -> entry.lemma.writtenForm
+      })
+    })).toMultiMap
+  }
 }
 
 case class Lexicon(id : String, 
@@ -145,7 +153,7 @@ case class SenseRelation(target : String, relType : SenseRelType) extends Meta {
   override def toString = s"""$relType -> $target"""
 }
 
-case class SyntacticBehaviour(subcategorizationFrame : String)
+case class SyntacticBehaviour(subcategorizationFrame : String, senses : Seq[String])
 
 case class Count(value : Int) extends Meta
 

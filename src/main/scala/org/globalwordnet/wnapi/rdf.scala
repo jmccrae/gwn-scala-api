@@ -334,7 +334,8 @@ object WNRDF extends Format {
 
   private def readSynBehavior(r : Resource)(implicit model : Model) : SyntacticBehaviour = {
     SyntacticBehaviour(
-      (r lit RDFS.label).headOrElse(throw new WNRDFException("Syntactic behaviour without label")).getLexicalForm())
+      (r lit RDFS.label).headOrElse(throw new WNRDFException("Syntactic behaviour without label")).getLexicalForm(),
+      (r \* WN.senses).map(toId).toSeq)
   }
 
   private def readSynset(r : Resource)(implicit model : Model) : Synset = {
@@ -598,6 +599,7 @@ object WNRDF extends Format {
     val r = model.createResource()
     r + RDF.`type` + SYNSEM.SyntacticFrame
     r + RDFS.label + model.createLiteral(s.subcategorizationFrame)
+    r + WN.senses ++ s.senses.map(x => model.createResource(baseUrl + x))
     r
   }
 

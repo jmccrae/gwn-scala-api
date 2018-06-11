@@ -95,8 +95,7 @@ object MoreStringEscapeUtils {
   }
 }
 
-class WNLMF(comments : Boolean = true) extends Format {
-  import org.globalwordnet.api.MultiMap._
+class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format {
   def read(file : File) : LexicalResource = {
     readLexicalResource(XML.loadFile(file))
   }
@@ -197,12 +196,16 @@ class WNLMF(comments : Boolean = true) extends Format {
   }
 
   private def readSenseExample(elem : Node) = {
-    readMeta(Example(trim(elem).text,
+    readMeta(Example(
+      //trim(elem).text,
+      elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
       (elem \ "@language").headOption.map(l => Language.get(l.text))), elem)
   }
 
   private def readSyntacticBehaviour(elem : Node) = {
-    SyntacticBehaviour((elem \ "@subcategorizationFrame").text)
+    SyntacticBehaviour(
+      (elem \ "@subcategorizationFrame").text,
+      if((elem \ "@senses").isEmpty) { Nil } else { (elem \ "@senses").text.split(" ").toSeq })
   }
 
   private def readSynset(elem : Node) : Synset = {
@@ -218,7 +221,8 @@ class WNLMF(comments : Boolean = true) extends Format {
 
   private def readDefinition(elem : Node) : Definition = {
     readMeta(Definition(
-      trim(elem).text,
+      //trim(elem).text,
+      elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
       (elem \ "@language").headOption.map(l => Language.get(l.text)),
       (elem \ "@sourceSense").headOption.map(_.text)), elem)
   }
@@ -242,19 +246,11 @@ class WNLMF(comments : Boolean = true) extends Format {
   }
 
   def write(resource : LexicalResource, output : File) {
-    write(resource, new java.io.FileWriter(output), false)
-  }
-
-  def write(resource : LexicalResource, output : File, relaxed : Boolean) {
-    write(resource, new java.io.FileWriter(output), relaxed)
+    write(resource, new java.io.FileWriter(output))
   }
 
   def write(resource : LexicalResource, output : Writer) {
-    write(resource, output, false)
-  }
-
-  def write(resource : LexicalResource, _output : Writer, relaxed : Boolean) {
-    val out = new PrintWriter(_output)
+    val out = new PrintWriter(output)
     writeLexicalResource(out, resource, relaxed)
     out.flush
     out.close
@@ -268,18 +264,13 @@ class WNLMF(comments : Boolean = true) extends Format {
 <!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF""" + (if(relaxed) { "-relaxed" } else { "" }) + """-1.0.dtd">
 <LexicalResource xmlns:dc="http://purl.org/dc/elements/1.1/">""")
     for(lexicon <- e.lexicons) {
-      writeLexicon(out, lexicon)
+      writeLexicon(out, lexicon, e.entriesForSynset)
     }
     out.println("""
 </LexicalResource>""")
   }
 
-  private def writeLexicon(out : PrintWriter, e : Lexicon) {
-    val entriesForSynset : Map[String, Seq[String]] = e.entries.flatMap({ entry =>
-      entry.senses.map({ sense =>
-        sense.synsetRef -> entry.lemma.writtenForm
-      })
-    }).toMultiMap
+  private def writeLexicon(out : PrintWriter, e : Lexicon, entriesForSynset : Map[String, Seq[String]]) {
      out.print(s"""
   <Lexicon id="${escapeXmlId(e.id)}" 
            label="${escapeXml(e.label)}" 
@@ -431,7 +422,11 @@ class WNLMF(comments : Boolean = true) extends Format {
 
   private def writeSyntacticBehaviour(out : PrintWriter, e : SyntacticBehaviour, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <SyntacticBehaviour subcategorizationFrame="${escapeXml(e.subcategorizationFrame)}"/>""")
+      <SyntacticBehaviour subcategorizationFrame="${escapeXml(e.subcategorizationFrame)}"""")
+    if(!e.senses.isEmpty) {
+      out.print(s""" senses="${e.senses.mkString(" ")}"""")
+    }
+    out.print("""/>""")
   }
 
   private def writeSynset(out : PrintWriter, e : Synset, entriesForSynset : Map[String, Seq[String]]) {

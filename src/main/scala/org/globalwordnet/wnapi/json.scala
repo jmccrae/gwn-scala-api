@@ -334,9 +334,18 @@ object WNJSON extends Format {
     implicit val metaSenseFormat = new MetaFormat(senseFormat)
 
     implicit object syntacticBehaviourFormat extends JsonFormat[SyntacticBehaviour] {
-      def write(e : SyntacticBehaviour) = JsObject("label" -> JsString(e.subcategorizationFrame))
+      def write(e : SyntacticBehaviour) = if(e.senses.isEmpty) {
+        JsObject("label" -> JsString(e.subcategorizationFrame))
+      } else {
+        JsObject("label" -> JsString(e.subcategorizationFrame), "senses" -> JsArray(e.senses.map(s => JsString(s)):_*))
+      }
       def read(v : JsValue) = v match {
-        case JsObject(m) => SyntacticBehaviour(stringOrFail(m.getOrElse("label", throw new WNJsonException("Syntactic Behaviour must have a label"))))
+        case JsObject(m) => SyntacticBehaviour(
+          stringOrFail(m.getOrElse("label", throw new WNJsonException("Syntactic Behaviour must have a label"))),
+          m.getOrElse("senses", JsArray()) match {
+            case JsArray(x) => x.map(stringOrFail)
+            case _ => throw new WNJsonException("Senses should be a list of IDREFs")
+          })
         case _ =>
           throw new WNJsonException("Syntactic Behaviour must be an object")
       }

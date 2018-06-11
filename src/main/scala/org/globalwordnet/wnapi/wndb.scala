@@ -7,6 +7,7 @@ import java.io.File
 import java.io.PrintWriter
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml, escapeJava}
 import org.globalwordnet.api.wn._
+import org.globalwordnet.api.MultiMap._
 
 class WNDB(
   iliRef : File,
@@ -171,14 +172,14 @@ class WNDB(
           senses=for(WordNetDataItem(offset, lexNo, pos, lemmas, pointers, frames, gloss) <- items) yield {
             val word = lemmas.find(_.lemma == lemma).get
             val srcIdx = word.synNo
-            Sense(id="%s-%08d" format (lexEntId, offset),
+            Sense(id="%s-%08d-%02d" format (lexEntId, offset, srcIdx),
              synsetRef="%s-%08d-%s" format (id, offset, pos.shortForm),
              senseRelations={
                for(Pointer(typ, targetOffset, pos, src, trg) <- pointers 
                    if srcIdx == src && inItems.contains(targetOffset, trg)) yield {
                      val pos2 = posMap(targetOffset, pos)
                  SenseRelation(
-                   target="%s-%s-%s-%08d" format (id, lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset),
+                   target="%s-%s-%s-%08d-%02d" format (id, lemmaMap((targetOffset, pos2, trg)).replace(" ", "_").replace("'", "-ap-").replace("(","-lb-").replace(")","-rb-").replace("/","-sl-"), pos2.shortForm, targetOffset, trg),
                    //target="%s-%08d-%s-%d" format (id, targetOffset, pos.shortForm, trg), 
                    relType=typ.asInstanceOf[SenseRelType])
                }
@@ -187,9 +188,15 @@ class WNDB(
              counts=counts.get(word.senseIdx(satellites)).map(x => Count(x)).toSeq).withIdentifier(word.senseKey(satellites))
           },
           syntacticBehaviours={
-            val frames = items.flatMap(_.frames).toSet
-            (for(frame <- frames) yield {
-              SyntacticBehaviour(subcategorizationFrame=sentences.getOrElse(frame.frameId, "ERROR"))
+            val frames = items.flatMap({x => 
+                x.frames
+                  .filter({
+                    case Frame(_, wnum) => wnum == 0 || wnum == x.lemmas.find(_.lemma == lemma).get.synNo 
+                  })
+                  .map(y => y -> ("%s-%08d-%02d" format (lexEntId, x.offset, x.lemmas.find(_.lemma == lemma).get.synNo)))
+            }).toMultiMap
+            (for((frame,senses) <- frames) yield {
+              SyntacticBehaviour(subcategorizationFrame=sentences.getOrElse(frame.frameId, "ERROR"),senses=senses)
             }).toSeq
           }
         )
@@ -201,13 +208,13 @@ class WNDB(
   private def extractExamples(gloss : String) : (String, Seq[String]) = {
     var exampleRegex(definition, examples,_,_) = gloss
     val exampleList = new collection.mutable.ListBuffer[String]()
-    while(examples.indexOf("; ") == 0) {
-      val j = examples.indexOf("; ", 1)
+    while(examples.indexOf("; \"") == 0) {
+      val j = examples.indexOf("; \"", 1)
       if(j < 0) {
-        exampleList += examples.substring(3,examples.length - 1)
+        exampleList += examples.substring(2,examples.length)
         examples = ""
       } else {
-        exampleList += examples.substring(3, j - 1)
+        exampleList += examples.substring(2, j)
         examples = examples.substring(j)
       }
     }
@@ -241,9 +248,9 @@ class WNDB(
           "in"
       }
       val (definition, examples) = extractExamples(gloss)
-      Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
+      val ss = Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
              ili=Some(iliId),
-             definitions=Seq(Definition(definition)),
+             definitions=Seq(Definition(definition.replaceAll("^ ","\u00a0").replaceAll(" $","\u00a0"))),
              iliDefinition={
                if(iliId == "in") {
                  if(gloss.length < 20 && gloss.split(" ").length < 5) {
@@ -261,8 +268,15 @@ class WNDB(
                  SynsetRelation(target="%s-%08d-%s" format (id, targetOffset, pos2.shortForm), relType=typ.asInstanceOf[SynsetRelType])
               }
             }, 
-            synsetExamples=examples.map(Example(_)),
+            synsetExamples=examples.map(s => Example(s.replaceAll("^ ", "\u00a0").replaceAll(" $", "\u00a0"))),
             partOfSpeech=Some(pos)).withSubject(lexNames(lexNo))
+      if(pos == verb) {
+        ss.withNote("frames: %02d %s " format(frames.length, frames.map({
+          case Frame(i,j) => "+ %02d %02d" format(i,j)
+        }).mkString(" ")))
+      } else {
+        ss
+      }
         }
     }
 
@@ -340,7 +354,7 @@ class WNDB(
     def fromString(s : String) = s.split("\\| ") match {
       case Array(data,gloss) => {
         readData(data.split(" ")) match {
-          case (o,l,p,ls,ps,fs) => WordNetDataItem(o,l,p,ls,ps,fs,gloss.trim())
+          case (o,l,p,ls,ps,fs) => WordNetDataItem(o,l,p,ls,ps,fs,gloss.replaceAll("  $",""))
         }
       }
       case Array(data) => {
@@ -461,7 +475,7 @@ class WNDB(
       case "\\" => if(pos == "a" || pos == "s" || pos == "n") {
           pertainym
       } else if(pos == "r") {
-          derivation
+          pertainym
       } else throw new IllegalArgumentException("pos="+pos)
       case _ => {
         throw new IllegalArgumentException("pos="+pos)
@@ -507,7 +521,6 @@ class WNDB(
     }
     val lexicon = lr.lexicons(0)
 
-    import org.globalwordnet.api.MultiMap._
     val entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]] = lexicon.entries.flatMap({ entry =>
       entry.senses.map({ sense =>
         sense.synsetRef -> (entry, sense)
@@ -515,27 +528,37 @@ class WNDB(
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String,(String,PartOfSpeech)]()
     val stringBuilders = Seq(adjective,adverb,noun,verb)
-      .map(p => p -> new StringBuilder()).toMap
+      .map(p => p -> (new StringBuilder(), collection.mutable.Map[String,Seq[Int]]())).toMap
  
     for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
          (noun,"noun"),(verb,"verb"))) {
       writeExc(lexicon, posShort, new File(file, posLong + ".exc"))
       writeData(lr, lexicon, posShort, entriesForSynset, synsetLookup, 
         stringBuilders(posShort), { (oldId, newId) => stringBuilders.values.foreach({
-          sb => replaceAll(sb, oldId, newId)
-        }) })
+          data => replaceAll(data, oldId, newId)
+        }) 
+      })
     }
 
     for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
          (noun,"noun"),(verb,"verb"))) {
       val out = new PrintWriter(new File(file, "data." + posLong))
       try {
-        out.println(stringBuilders(posShort))
+        out.println(stringBuilders(posShort)._1)
       } finally {
         out.close
       }
       writeIndex(lexicon, posShort, synsetLookup, 
         new PrintWriter(new File(file, "index." + posLong)))
+    }
+  }
+
+  def replaceAll(data : (StringBuilder, collection.mutable.Map[String, Seq[Int]]),
+      oldId : String, newId : String) {
+    data match {
+        case (sb, indexes) => indexes.getOrElse(oldId, Nil).map(i => {
+            sb.replace(i, i + oldId.length, newId)
+        })
     }
   }
 
@@ -547,11 +570,12 @@ class WNDB(
              .filter(entry => posMatch(entry.lemma.partOfSpeech, pos))
              .flatMap({ entry =>
               entry.forms.map({ form => (entry.lemma.writtenForm, form.writtenForm) })
-          })) {
+          })
+            .sortBy(_._2)) {
           if (form.contains(" ")) {
             throw new WNDBNotSerializable("Forms with spaces are not supported")
           }
-          out.println(s"$form $lemma")
+          out.println(s"$lemma $form")
       }
     } finally {
       out.close
@@ -623,6 +647,178 @@ class WNDB(
     x == pos || (pos == adjective && x == adjective_satellite)
   }
 
+  val PRINCETON_FRAMES = Map(
+    "The children %s to the playground" -> 1,
+    "The cars %s down the avenue" -> 10,
+    "These glasses %s easily" -> 100,
+    "These fabrics %s easily" -> 101,
+    "They %s their earnings this year" -> 102,
+    "Their earnings %s this year" -> 103,
+    "The water %ss " -> 104,
+    "They %s the water " -> 105,
+    "The animals %s" -> 106,
+    "They %s a long time" -> 107,
+    "The car %ss the tree " -> 108,
+    "John will %s angry" -> 109,
+    "They %s the car down the avenue" -> 11,
+    "They %s in the city" -> 110,
+    "They won't %s the story " -> 111,
+    "They %s that there was a traffic accident " -> 112,
+    "They %s whether there was a traffic accident" -> 113,
+    "They %s her vice president" -> 114,
+    "Did he %s his major works over a short period of time?" -> 115,
+    "The chefs %s the vegetables" -> 116,
+    "They %s the cape " -> 117,
+    "The food does %s good " -> 118,
+    "The music does %s good " -> 119,
+    "They %s the glass tubes" -> 12,
+    "The cool air does %s good" -> 120,
+    "This food does %s well " -> 121,
+    "It was %sing all day long " -> 122,
+    "They %s him to write the letter" -> 123,
+    "They %s him into writing the letter" -> 124,
+    "They %s him from writing the letter" -> 125,
+    "The bad news will %s him" -> 126,
+    "The good news will %s her" -> 127,
+    "The chef wants to %s the eggs " -> 128,
+    "Sam wants to %s with Sue " -> 129,
+    "The glass tubes %s" -> 13,
+    "The fighter managed to %s his opponent" -> 130,
+    "These cars won't %s " -> 131,
+    "The branches %s from the trees" -> 132,
+    "The stock market is going to %s " -> 133,
+    "The moon will soon %s " -> 134,
+    "The business is going to %s " -> 135,
+    "The airplane is sure to %s " -> 136,
+    "They %s to move " -> 137,
+    "They %s moving " -> 138,
+    "Sam and Sue %s the movie " -> 139,
+    "Sam and Sue %s" -> 14,
+    "They want to %s the prisoners " -> 140,
+    "They want to %s the doors" -> 141,
+    "The doors %s " -> 142,
+    "Did he %s his foot? " -> 143,
+    "Did his feet %s?" -> 144,
+    "They will %s the duet" -> 145,
+    "They %s their hair " -> 146,
+    "They %s the trees" -> 147,
+    "They %s him of all his money" -> 148,
+    "Lights %s on the horizon" -> 149,
+    "Sam cannot %s Sue " -> 15,
+    "The horizon is %sing with lights" -> 150,
+    "The crowds %s in the streets" -> 151,
+    "The streets %s with crowds" -> 152,
+    "Cars %s in the streets " -> 153,
+    "The streets %s with cars " -> 154,
+    "You can hear animals %s in the meadows" -> 155,
+    "The meadows %s with animals " -> 156,
+    "The birds %s in the woods " -> 157,
+    "The woods %s with many kinds of birds " -> 158,
+    "The performance is likely to %s Sue" -> 159,
+    "The ropes %s" -> 16,
+    "Sam and Sue %s over the results of the experiment" -> 160,
+    "In the summer they like to go out and %s" -> 161,
+    "The children %s in the rocking chair" -> 162,
+    "There %s some children in the rocking chair" -> 163,
+    "Some big birds %s in the tree" -> 164,
+    "There %s some big birds in the tree" -> 165,
+    "The men %s the area for animals " -> 166,
+    "The men %s for animals in the area" -> 167,
+    "The customs agents %s the bags for drugs " -> 168,
+    "They %s him as chairman " -> 169,
+    "The strong winds %s the rope" -> 17,
+    "They %s him \"Bobby\"" -> 170,
+    "They %s the sheets" -> 18,
+    "The sheets didn't %s" -> 19,
+    "The banks %s the check" -> 2,
+    "The horses %s across the field" -> 20,
+    "They %s the bags on the table" -> 21,
+    "The men %s the horses across the field" -> 22,
+    "Our properties %s at this point" -> 23,
+    "His fields %s mine at this point" -> 24,
+    "They %s the hill" -> 25,
+    "They %s up the hill" -> 26,
+    "They %s the river" -> 27,
+    "They %s down the river " -> 28,
+    "They %s the countryside" -> 29,
+    "The checks %s " -> 3,
+    "They %s in the countryside" -> 30,
+    "These men %s across the river" -> 31,
+    "These men %s the river" -> 32,
+    "They %s the food to the people" -> 33,
+    "They %s the people the food" -> 34,
+    "They %s more bread" -> 35,
+    "They %s the object in the water" -> 36,
+    "The men %s the bookshelves" -> 37,
+    "They %s the money in the closet" -> 38,
+    "The lights %s from the ceiling" -> 39,
+    "The children %s the ball" -> 4,
+    "They %s the lights from the ceiling" -> 40,
+    "They %s their rifles on the cabinet" -> 41,
+    "The chairs %s in the corner" -> 42,
+    "The men %s the chairs" -> 43,
+    "The women %s water into the bowl" -> 44,
+    "Water and oil %s into the bowl" -> 45,
+    "They %s the wire around the stick" -> 46,
+    "The wires %s around the stick" -> 47,
+    "They %s the bread with melted butter" -> 48,
+    "They %s the cart with boxes " -> 49,
+    "The balls %s " -> 5,
+    "They %s the books into the box" -> 50,
+    "They %s sugar over the cake" -> 51,
+    "They %s the cake with sugar" -> 52,
+    "They %s the fruit with a chemical" -> 53,
+    "They %s a chemical into the fruit" -> 54,
+    "They %s the field with rye" -> 55,
+    "They %s rye in the field" -> 56,
+    "They %s notices on the doors" -> 57,
+    "They %s the doors with notices" -> 58,
+    "They %s money on their grandchild" -> 59,
+    "The girls %s the wooden sticks" -> 6,
+    "They %s their grandchild with money" -> 60,
+    "They %s coins on the image " -> 61,
+    "They %s the image with coins " -> 62,
+    "They %s butter on the bread" -> 63,
+    "They %s the lake with fish" -> 64,
+    "The children %s the paper with grease " -> 65,
+    "The children %s grease onto the paper" -> 66,
+    "They %s papers over the floor" -> 67,
+    "They %s the floor with papers" -> 68,
+    "They %s the money " -> 69,
+    "The wooden sticks %s " -> 7,
+    "They %s the newspapers" -> 70,
+    "They %s the goods" -> 71,
+    "The men %s the boat " -> 72,
+    "They %s the animals" -> 73,
+    "The books %s the box " -> 74,
+    "They %s the halls with holly" -> 75,
+    "Holly flowers %s the halls" -> 76,
+    "The wind storms %s the area with dust and dirt" -> 77,
+    "Dust and dirt %s the area" -> 78,
+    "The swollen rivers %s the area with water" -> 79,
+    "The coins %s " -> 8,
+    "The waters %s the area" -> 80,
+    "They %s the cloth with water and alcohol" -> 81,
+    "Water and alcohol %s the cloth" -> 82,
+    "They %s the snow from the path" -> 83,
+    "They %s the path of the snow" -> 84,
+    "They %s the water from the sink" -> 85,
+    "They %s the sink of water" -> 86,
+    "They %s the parcel to their parents" -> 87,
+    "They %s them the parcel" -> 88,
+    "They %s cars to the tourists" -> 89,
+    "They %s the coin " -> 9,
+    "They %s the tourists their cars" -> 90,
+    "They %s the money to them " -> 91,
+    "They %s them the money" -> 92,
+    "They %s them the information" -> 93,
+    "They %s the information to them" -> 94,
+    "The parents %s a French poem to the children" -> 95,
+    "The parents %s the children a French poem " -> 96,
+    "They %s " -> 97,
+    "They %s themselves" -> 98,
+    "These balls %s easily " -> 99)
+
   def PRINCETON_HEADER = """  1 This software and database is being provided to you, the LICENSEE, by  
   2 Princeton University under the following license.  By obtaining, using  
   3 and/or copying this software and database, you agree that you have  
@@ -654,15 +850,19 @@ class WNDB(
   29 Princeton University and LICENSEE agrees to preserve same.  
 """
 
+  val lexIdxExtract = ".*%\\d+:\\d+:(\\d+):.*:\\d*".r
+
   def writeData(lr : LexicalResource, lexicon : Lexicon, pos : PartOfSpeech, 
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
-    data : StringBuilder, updateId : (String, String) => Unit) {
+    _data : (StringBuilder, collection.mutable.Map[String, Seq[Int]]), 
+    updateId : (String, String) => Unit) {
+      val (data, indexes) = _data
       if(usePrincetonHeader) {
         data ++= PRINCETON_HEADER
       }
-      val lexIds = collection.mutable.Map[String, Int]()
-      for(synset <- lexicon.synsets.filter(ss => posMatch(ss.partOfSpeech,pos))) {
+      for(synset <- lexicon.synsets.filter(ss => posMatch(ss.partOfSpeech,pos)).
+           sortBy(_.id)) {
         val id = synset.id
         val eightDigitCode = "%08d" format (data.size)
         if(synsetLookup.contains(id)) {
@@ -673,19 +873,23 @@ class WNDB(
         data ++= " %02d " format (lexName(synset.subject.getOrElse("none")))
         data ++= synset.partOfSpeech.get.shortForm
         val entries = entriesForSynset.getOrElse(synset.id, Nil)
-        data ++= " %02d " format entries.size
-        for((entry, sense) <- entries) {
+        data ++= " %02x " format entries.size
+        for((entry, sense) <- entries.sortBy(_._2.id.takeRight(2))) {
           data ++= entry.lemma.writtenForm.replace(" ", "_")
-          val lexId = lexIds.getOrElse(entry.lemma.writtenForm, -1) + 1
-          lexIds.put(entry.lemma.writtenForm, lexId)
-          data ++= " %d " format lexId
+          val lexId = sense.identifier.getOrElse("") match {
+            case lexIdxExtract(id) => id.toInt
+            case _ => 0
+          }
+          data ++= " %x " format lexId
         }
         val totalRelations = synset.synsetRelations.size + entries.map({
           case (entry, sense) => sense.senseRelations.size
         }).sum
         data ++= "%03d " format totalRelations
-        for(rel <- synset.synsetRelations) {
+        for(rel <- synset.synsetRelations if rel.relType == hypernym) {
           val (targetId, targetPos) = wnSynsetIdFromGlobal(rel.target, lr, synsetLookup)
+          indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
+            (data.length + PointerType.toWN(rel.relType, pos).length + 1))
 
           data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
             targetId, targetPos.shortForm)
@@ -696,18 +900,69 @@ class WNDB(
               throw new WNDBNotSerializable("Target of sense relation not in lexical resource: " + rel.target))
             val (targetId, targetPos) = wnSynsetIdFromGlobal(targetSense.synsetRef, lr, synsetLookup)
 
-            val srcIdx = entries.indexOf((entry, sense))
+            indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
+              (data.length + PointerType.toWN(rel.relType, pos).length + 1))
+
+            val srcIdx = entries.sortBy(_._2.id.takeRight(2)).indexOf((entry, sense))
             val trgIdx = entriesForSynset.getOrElse(targetSense.synsetRef, Nil)
+              .sortBy(_._2.id.takeRight(2))
               .indexOf((targetEntry, targetSense))
 
-            data ++= "%s %s %s %02d%02d " format (PointerType.toWN(rel.relType, pos),
-              targetId, targetPos.shortForm, srcIdx+1, trgIdx+1)
+            data ++= "%s %s %s %02x%02x " format (PointerType.toWN(rel.relType, pos),
+              targetId, targetPos.shortFormNoSatellite, srcIdx+1, trgIdx+1)
+          }
+        }
+        for(rel <- synset.synsetRelations.sortBy(_.target) if rel.relType != hypernym) {
+          val (targetId, targetPos) = wnSynsetIdFromGlobal(rel.target, lr, synsetLookup)
+          indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
+            (data.length + PointerType.toWN(rel.relType, pos).length + 1))
+
+          data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
+            targetId, targetPos.shortFormNoSatellite)
+        }
+        val frames = entries.flatMap(_._1.syntacticBehaviours).groupBy(_.subcategorizationFrame)
+        val frameRefs : Seq[(Int, Int)] = frames.toSeq.flatMap({
+          case (subcat, frameList) => {
+            val frameAllRefs = frameList.flatMap(_.senses).toSet
+            val wNum = if(entries.forall({
+              case (_, sense) => frameAllRefs.contains(sense.id)
+            })) {
+              Seq(0)
+            } else {
+              entries.flatMap({
+                case (_, sense) => if(frameAllRefs.contains(sense.id)) {
+                  Some(sense.id.takeRight(2).toInt)
+                } else {
+                  None
+                }
+              })
+            }
+            wNum.map(x => (PRINCETON_FRAMES(subcat), x))
+          }
+        })
+        if(!frameRefs.isEmpty) {
+          // HACK: some inconsistencies in the PWN serialization
+          val frameRefs2 = if(eightDigitCode == "02599707") {
+            frameRefs :+ (2,3) :+ (2,4)
+          } else if(eightDigitCode == "02592711") {
+            frameRefs.filterNot(_ == (2,0)) :+ (2,1) :+ (2,2)
+          } else if(eightDigitCode == "02741772") {
+            frameRefs.filterNot(_ == (35,0)) :+ (35,2) :+ (35,1)
+          } else {
+            frameRefs
+          }
+          data ++= "%02d " format (frameRefs2.size)
+          for((id1,id2) <- frameRefs2) {
+            data ++= "+ %02d %02x " format (id1, id2)
           }
         }
         for(defn <- synset.definitions) {
-          data ++= "| " + defn.content
+          data ++= "| " + defn.content.replaceAll("\u00a0", " ")
         }
-        data ++= "\n"
+        for(example <- synset.synsetExamples) {
+          data ++= "; " + example.content.replaceAll("\u00a0", " ") + ""
+        }
+        data ++= "  \n"
       }
   }
 
@@ -728,12 +983,12 @@ class WNDB(
  
     }
 
-  def replaceAll(sb : StringBuilder, orig : String, replace : String) = {
-    var i = -1
-    while({ i = sb.indexOf(orig) ; i} >= 0) {
-      sb.replace(i, i + orig.length, replace)
-    }
-  }
+  //def replaceAll(sb : StringBuilder, orig : String, replace : String) = {
+  //  var i = -1
+  //  while({ i = sb.indexOf(orig) ; i} >= 0) {
+  //    sb.replace(i, i + orig.length, replace)
+  //  }
+  //}
 
   def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, 
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
