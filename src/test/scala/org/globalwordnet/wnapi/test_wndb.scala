@@ -110,8 +110,8 @@ class WNDBSpec extends FlatSpec with Matchers {
   27 and/or database.  Title to copyright in this software, database and  
   28 any associated documentation shall at all times remain with  
   29 Princeton University and LICENSEE agrees to preserve same.  
-grandfather n 1 0 1 0 00001848
-paternal_grandfather n 1 1 + 1 0 00001740
+grandfather n 1 1 @ 1 0 00001848  
+paternal_grandfather n 1 1 + 1 0 00001740  
 """)
   }
 

@@ -999,15 +999,29 @@ class WNDB(
       }
       val words = lexicon.entries
         .filter(e => posMatch(e.lemma.partOfSpeech, pos))
-        .groupBy(_.lemma.writtenForm).toSeq.sortBy(_._1)
+        .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
       for((lemma, entries) <- words) {
         val synsetCnt = entries.map(_.senses.size).sum
         val ptrs = entries.flatMap({ entry =>
           entry.senses.flatMap({ sense =>
-            sense.senseRelations.map(_.relType)
+            sense.senseRelations.map(_.relType) ++
+            lexicon.synsetsById(sense.synsetRef).synsetRelations.map(_.relType)
           })
         }).toSet
-        val ptrsStr = ptrs.map(rt => PointerType.toWN(rt, pos) + " ").mkString("")
+        val ptrsStr = ptrs
+          .map(rt => PointerType.toWN(rt, pos) + " ")
+          .map({
+            case ";u " => "; "
+            case "-u " => "- "
+            case ";c " => "; "
+            case "-c " => "- "
+            case ";r " => "; "
+            case "-r " => "; "
+            case "@i " => "@ "
+            case "~i " => "~ "
+            case other => other
+          })
+          .mkString("")
         val synsets = entries.flatMap({ entry =>
           entry.senses.map({ sense =>
             synsetLookup.getOrElse(sense.synsetRef,
@@ -1015,7 +1029,7 @@ class WNDB(
           })
         })
 
-        out.println("%s %s %d %d %s%d 0 %s" format(lemma.replace(" ", "_"), pos.shortForm,
+        out.println("%s %s %d %d %s%d 0 %s  " format(lemma.replace(" ", "_").toLowerCase, pos.shortForm,
           synsetCnt, ptrs.size, ptrsStr, synsetCnt, synsets.mkString(" ")
           ))
       }
