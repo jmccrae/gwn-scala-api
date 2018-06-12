@@ -1029,6 +1029,7 @@ class WNDB(
           })
         })
 
+        // TODO: Add sense tag information ('0' below)
         out.println("%s %s %d %d %s%d 0 %s  " format(lemma.replace(" ", "_").toLowerCase, pos.shortForm,
           synsetCnt, ptrs.size, ptrsStr, synsetCnt, synsets.mkString(" ")
           ))
