@@ -293,16 +293,20 @@ object Main {
           if(config.outputFile == null) {
             System.err.println("Output file not specified, dumping each file to Syste.out in sequence!")
           }
-          for((subject, resource) <- BySubject.splitBySubject(resource)) {
+          val entriesForSynset = resource.entriesForSynset
+          println(entriesForSynset.contains("pwn31-08131556-n"))
+          for((subject, section) <- BySubject.splitBySubject(resource)) {
             if(config.outputFile != null) {
               val outPath = if(config.outputFile.getPath().endsWith(".xml")) {
                 s"${config.outputFile.getPath().dropRight(4)}-$subject.xml"
               } else {
                 s"${config.outputFile.getPath()}-$subject"
               }
-              new WNLMF(relaxed=true).write(resource, new File(outPath))
+              new WNLMF(relaxed=true).write(section, new File(outPath),
+                entriesForSynset)
             } else {
-              new WNLMF(relaxed=true).write(resource, new PrintWriter(System.out))
+              new WNLMF(relaxed=true).write(section, new PrintWriter(System.out),
+                entriesForSynset)
             }
           }
         } else if(config.outputFile != null) {

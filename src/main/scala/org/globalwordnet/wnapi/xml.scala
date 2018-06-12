@@ -246,12 +246,22 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   }
 
   def write(resource : LexicalResource, output : File) {
-    write(resource, new java.io.FileWriter(output))
+    write(resource, new java.io.FileWriter(output), resource.entriesForSynset)
+  }
+
+  def write(resource : LexicalResource, output : File,
+    entriesForSynset : Map[String, Seq[String]]) {
+    write(resource, new java.io.FileWriter(output), entriesForSynset)
   }
 
   def write(resource : LexicalResource, output : Writer) {
+    write(resource, output, resource.entriesForSynset)
+  }
+
+  def write(resource : LexicalResource, output : Writer,
+    entriesForSynset : Map[String, Seq[String]] ) {
     val out = new PrintWriter(output)
-    writeLexicalResource(out, resource, relaxed)
+    writeLexicalResource(out, resource, entriesForSynset)
     out.flush
     out.close
   } 
@@ -259,12 +269,12 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   import MoreStringEscapeUtils._
 
   private def writeLexicalResource(out : PrintWriter, e : LexicalResource,
-    relaxed : Boolean = false) {
+    entriesForSynset : Map[String, Seq[String]]) {
     out.print("""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF""" + (if(relaxed) { "-relaxed" } else { "" }) + """-1.0.dtd">
 <LexicalResource xmlns:dc="http://purl.org/dc/elements/1.1/">""")
     for(lexicon <- e.lexicons) {
-      writeLexicon(out, lexicon, e.entriesForSynset)
+      writeLexicon(out, lexicon, entriesForSynset)
     }
     out.println("""
 </LexicalResource>""")
@@ -401,11 +411,25 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       </Sense>""")
   }
 
+  private val pwnSenseId = "(.*)-.*-([nvarsp])-(\\d{8})-\\d{2}".r
+  private def pwnSenseToSynset(targ : String) : String = targ match {
+    case pwnSenseId(res, pos, id) => s"$res-$id-$pos"
+    case _ => "not found"
+  }
+
   private def writeSenseRel(out : PrintWriter, e : SenseRelation, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
         <SenseRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}" """)
     writeMeta(out, 23, e)
     out.print("/>")
+    if(comments) {
+      val targs = entriesForSynset.getOrElse(pwnSenseToSynset(e.target), Nil)
+      if(!targs.isEmpty) {
+        out.print(s" <!-- ${targs.mkString(", ")} -->")
+      } else {
+        out.print(s" <!-- ${pwnSenseToSynset(e.target)} ${targs.mkString(", ")} -->")
+      }
+    }
   }
 
   private def writeSenseExample(out : PrintWriter, e : Example, entriesForSynset : Map[String, Seq[String]]) {
@@ -484,7 +508,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       <SynsetRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}" """)
     writeMeta(out, 22, e)
     out.print("/>")
-    if(comments) out.print(s"<!-- ${entriesForSynset.getOrElse(e.target,Nil).mkString(", ")} -->")
+    if(comments) out.print(s" <!-- ${entriesForSynset.getOrElse(e.target,Nil).mkString(", ")} -->")
   }
 
 
