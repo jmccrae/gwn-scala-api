@@ -287,13 +287,13 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
            language="${e.language}"
            email="${escapeXml(e.email)}"
            license="${escapeXml(e.license)}"
-           version="${escapeXml(e.version)}" """)
+           version="${escapeXml(e.version)}"""")
    e.citation.foreach(c =>
         out.print(s"""
-           citation="${escapeXml(c)}" """))
+           citation="${escapeXml(c)}""""))
     e.url.foreach(u =>
         out.print(s"""
-           url="${escapeXml(u)}" """))
+           url="${escapeXml(u)}""""))
      writeMeta(out, 11, e)
     out.print(""">""")
     for(entry <- e.entries) {
@@ -314,7 +314,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
           out.print("\n" + (" " * indent) + n + "=\"" + escapeXml(x) + "\"")
         } else {
           line = true
-          out.print(n + "=\"" + escapeXml(x) + "\"")
+          out.print(" " + n + "=\"" + escapeXml(x) + "\"")
         }
       case None =>
     }
@@ -339,13 +339,13 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
  
   private def writeEntry(out : PrintWriter, e : LexicalEntry, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-    <LexicalEntry id="${escapeXmlId(e.id)}" """)
+    <LexicalEntry id="${escapeXmlId(e.id)}"""")
     writeMeta(out, 18, e)
     out.print(s""">
-      <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}" """)
+      <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}"""")
     e.lemma.script match {
       case Some(t) =>
-        out.print(s"""script="$t" """)
+        out.print(s""" script="$t" """)
       case None =>
     }
     if(e.lemma.tag.isEmpty) {
@@ -374,10 +374,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeForm(out : PrintWriter, e : Form, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <Form writtenForm="${escapeXml(e.writtenForm)}" """)
+      <Form writtenForm="${escapeXml(e.writtenForm)}"""")
     e.script match {
       case Some(s) =>
-        out.print(s"""script="$s" """)
+        out.print(s""" script="$s" """)
       case None =>
     }
     if(e.tag.isEmpty) {
@@ -395,20 +395,25 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeSense(out : PrintWriter, e : Sense, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <Sense id="${escapeXmlId(e.id)}" synset="${escapeXmlId(e.synsetRef)}" """)
+      <Sense id="${escapeXmlId(e.id)}" synset="${escapeXmlId(e.synsetRef)}"""")
     writeMeta(out, 13, e)
-    out.print(">")
-    for(rel <- e.senseRelations) {
-      writeSenseRel(out, rel, entriesForSynset)
+    if(e.senseRelations.isEmpty && e.senseExamples.isEmpty &&
+      e.counts.isEmpty) {
+        out.print("/>")
+    } else {
+      out.print(">")
+      for(rel <- e.senseRelations) {
+        writeSenseRel(out, rel, entriesForSynset)
+      }
+      for(x <- e.senseExamples) {
+        writeSenseExample(out, x, entriesForSynset)
+      }
+      for(c <- e.counts) {
+        writeCount(out, c)
+      }
+      out.print("""
+        </Sense>""")
     }
-    for(x <- e.senseExamples) {
-      writeSenseExample(out, x, entriesForSynset)
-    }
-    for(c <- e.counts) {
-      writeCount(out, c)
-    }
-    out.print("""
-      </Sense>""")
   }
 
   private val pwnSenseId = "(.*)-.*-([nvarsp])-(\\d{8})-\\d{2}".r
@@ -419,7 +424,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeSenseRel(out : PrintWriter, e : SenseRelation, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-        <SenseRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}" """)
+        <SenseRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}"""")
     writeMeta(out, 23, e)
     out.print("/>")
     if(comments) {
@@ -434,10 +439,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeSenseExample(out : PrintWriter, e : Example, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <Example """)
+      <Example""")
     e.language match {
       case Some(l) =>
-        out.print(s"""language="$l" """)
+        out.print(s""" language="$l" """)
       case None =>
     }
     writeMeta(out, 22, e)
@@ -457,8 +462,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     if(comments) out.print(s"""
     <!-- ${entriesForSynset.getOrElse(e.id,Nil).mkString(", ")} -->""")
     out.print(s"""
-    <Synset id="${escapeXmlId(e.id)}" ili="${e.ili.getOrElse("")}" """)
-    e.partOfSpeech.foreach(x => out.print(s"""partOfSpeech="${x.shortForm}" """))
+    <Synset id="${escapeXmlId(e.id)}" ili="${e.ili.getOrElse("")}"""")
+    e.partOfSpeech.foreach(x => out.print(s""" partOfSpeech="${x.shortForm}""""))
     writeMeta(out, 12, e)
     out.print(">")
     for(d <- e.definitions) {
@@ -481,15 +486,15 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeDefinition(out : PrintWriter, e : Definition, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <Definition """)
+      <Definition""")
     e.language match {
       case Some(l) =>
-        out.print(s"""language="$l" """)
+        out.print(s""" language="$l" """)
       case None =>
     }
     e.sourceSense match {
       case Some(l) =>
-        out.print(s"""sourceSense="${escapeXml(l)}" """)
+        out.print(s""" sourceSense="${escapeXml(l)}" """)
       case None =>
     }
     writeMeta(out, 18, e)
@@ -498,14 +503,14 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeILIDefinition(out : PrintWriter, e : ILIDefinition, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <ILIDefinition """)
+      <ILIDefinition""")
     writeMeta(out, 21, e)
     out.print(s""">${escapeXml(e.content)}</ILIDefinition>""")
   }
 
   private def writeSynsetRel(out : PrintWriter, e : SynsetRelation, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
-      <SynsetRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}" """)
+      <SynsetRelation relType="${e.relType.name}" target="${escapeXmlId(e.target)}"""")
     writeMeta(out, 22, e)
     out.print("/>")
     if(comments) out.print(s" <!-- ${entriesForSynset.getOrElse(e.target,Nil).mkString(", ")} -->")
@@ -514,7 +519,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writeCount(out : PrintWriter, e : Count) {
     out.print(s"""
-      <Count """)
+      <Count""")
     writeMeta(out, 14, e)
     out.print(s""">${e.value}</Count>""")
   }

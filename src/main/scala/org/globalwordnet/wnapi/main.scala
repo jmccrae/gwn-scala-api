@@ -294,7 +294,6 @@ object Main {
             System.err.println("Output file not specified, dumping each file to Syste.out in sequence!")
           }
           val entriesForSynset = resource.entriesForSynset
-          println(entriesForSynset.contains("pwn31-08131556-n"))
           for((subject, section) <- BySubject.splitBySubject(resource)) {
             if(config.outputFile != null) {
               val outPath = if(config.outputFile.getPath().endsWith(".xml")) {

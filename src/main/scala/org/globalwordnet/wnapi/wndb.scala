@@ -248,7 +248,7 @@ class WNDB(
           "in"
       }
       val (definition, examples) = extractExamples(gloss)
-      val ss = Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
+      Synset(id="%s-%08d-%s" format (id, offset, pos.shortForm),
              ili=Some(iliId),
              definitions=Seq(Definition(definition.replaceAll("^ ","\u00a0").replaceAll(" $","\u00a0"))),
              iliDefinition={
@@ -270,13 +270,6 @@ class WNDB(
             }, 
             synsetExamples=examples.map(s => Example(s.replaceAll("^ ", "\u00a0").replaceAll(" $", "\u00a0"))),
             partOfSpeech=Some(pos)).withSubject(lexNames(lexNo))
-      if(pos == verb) {
-        ss.withNote("frames: %02d %s " format(frames.length, frames.map({
-          case Frame(i,j) => "+ %02d %02d" format(i,j)
-        }).mkString(" ")))
-      } else {
-        ss
-      }
         }
     }
 
