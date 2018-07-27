@@ -84,7 +84,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
     def aux = processFile(fileParams("auxFile"))
     params("auxFormat") match {
       case "lmf" =>
-        Try(WNLMF.read(aux))
+        Try(new WNLMF().read(aux))
       case "json" =>
         Try(WNJSON.read(aux))
       case "rdf" =>
@@ -126,7 +126,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
   def convert() : Try[File] = {
     val resource : Try[LexicalResource] = params("inputFormat") match {
       case "lmf" =>
-        Try(WNLMF.read(input))
+        Try(new WNLMF().read(input))
       case "json" =>
         Try(WNJSON.read(input))
       case "rdf" =>
@@ -204,7 +204,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
     val res = resource.flatMap(resource => {
       params("outputFormat") match {
         case "lmf" =>
-          Try(WNLMF.write(resource, outputFile))
+          Try(new WNLMF().write(resource, outputFile))
         case "json" =>
           Try(WNJSON.write(resource, outputFile))
         case "rdf" =>
@@ -253,7 +253,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
       case "lmf" =>
         Try(
           validateInitialXML(input)
-        ).flatMap(_ => Try(WNLMF.read(input)))
+        ).flatMap(_ => Try(new WNLMF().read(input)))
       case "json" =>
         Try(WNJSON.read(input))
       case "rdf" =>
