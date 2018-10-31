@@ -27,7 +27,8 @@ object Main {
     outputRdfBaseUrl : String = "",
     validate : Boolean = false,
     coreWordNetFilter : Option[File] = None,
-    bySubject : Boolean = false
+    bySubject : Boolean = false,
+    blankNodes : Boolean = true
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C")
@@ -132,6 +133,10 @@ object Main {
       opt[Unit]("by-subject") action { (x, c) =>
         c.copy(bySubject = true)
       } text("Split the output by the subject to create multiple smaller files")
+
+      opt[Unit]("no-blank-nodes") action { (x, c) =>
+        c.copy(blankNodes = false)
+      } text("Do not generate blank nodes in RDF exports")
     }
 
     parser.parse(args, GWNAPIConfig()) match {
@@ -334,12 +339,12 @@ object Main {
         }
         if(config.outputRdfBaseUrl != "") {
           if(config.outputFile != null) {
-            WNRDF.write(resource, config.outputFile, config.outputRdfBaseUrl, rdfType)
+            WNRDF.write(resource, config.outputFile, config.outputRdfBaseUrl, rdfType, config.blankNodes)
           } else {
-            WNRDF.write(resource, new PrintWriter(System.out), config.outputRdfBaseUrl, rdfType)
+            WNRDF.write(resource, new PrintWriter(System.out), config.outputRdfBaseUrl, rdfType, config.blankNodes)
           }
         } else if(config.outputFile != null) {
-          WNRDF.write(resource, config.outputFile, rdfType)
+          WNRDF.write(resource, config.outputFile, rdfType, config.blankNodes)
         } else {
           System.err.println("RDF can only be written to a file: Please specify a file with -o or URL with --output-base-url")
           System.exit(-1)

@@ -389,24 +389,27 @@ object WNRDF extends Format {
   def write(lr : LexicalResource, output : File) {
     write(lr, new FileWriter(output),
           output.toURI().toString() + "#",
-          guessLang(output))
+          guessLang(output), true)
   } 
 
-  def write(lr : LexicalResource, output : File, lang : String) {
+  def write(lr : LexicalResource, output : File, lang : String, bnodes : Boolean) {
     write(lr, new FileWriter(output),
       output.toURI().toString() + "#",
-      lang)
+      lang, bnodes)
   }
 
-  def write(lr : LexicalResource, output : File, baseUrl : String, lang : String) {
+  def write(lr : LexicalResource, output : File, baseUrl : String, lang : String, bnodes : Boolean) {
     write(lr, new FileWriter(output),
-      baseUrl, lang)
+      baseUrl, lang, bnodes)
   }
 
-  def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String) {
-    val model = writeLexicalResource(lr)(baseUrl)
+  def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String, bnodes : Boolean) {
+    var model = writeLexicalResource(lr)(baseUrl)
     for((prefix, ns) <- namespaces) {
       model.setNsPrefix(prefix, ns.prefix)
+    }
+    if(!bnodes) {
+      model = removeBlanks(model, baseUrl)
     }
     model.write(output, lang)
     output.flush()
@@ -541,6 +544,7 @@ object WNRDF extends Format {
     r + ONTOLEX.otherForm ++ e.forms.map(writeForm)
     r + ONTOLEX.sense ++ e.senses.map(writeSense)
     r + SYNSEM.synBehavior ++ e.syntacticBehaviours.map(writeSyntacticBehavior)
+    r + RDFS.label + model.createLiteral(e.lemma.writtenForm, lexicon.language.toString())
     r
   }
 
@@ -708,5 +712,38 @@ object WNRDF extends Format {
     r
   }
 
-
+  private def removeBlanks(model : Model, baseUrl : String) : Model = {
+    val random = new scala.util.Random()
+    var remap = collection.mutable.HashMap[Resource, Resource]()
+    for(stat <- model.listStatements) {
+       if(stat.getSubject().isAnon() && !remap.containsKey(stat.getSubject())) {
+         val bytes = new Array[Byte](32)
+         random.nextBytes(bytes)
+         val newRes = model.createResource(baseUrl + bytes.map(x => "%X" format x).mkString(""))
+         remap.put(stat.getSubject(), newRes)
+       }
+       if(stat.getObject().isAnon() && !remap.containsKey(stat.getObject())) {
+         val bytes = new Array[Byte](32)
+         random.nextBytes(bytes)
+         val newRes = model.createResource(baseUrl + bytes.map(x => "%X" format x).mkString(""))
+         remap.put(stat.getObject().asResource(), newRes)
+       }
+    }
+    if(!remap.isEmpty) {
+      val newModel = ModelFactory.createDefaultModel()
+      for(stat <- model.listStatements) {
+        newModel.add(newModel.createStatement(
+          remap.getOrElse(stat.getSubject(), stat.getSubject()),
+          stat.getPredicate(),
+          if(stat.getObject().isResource()) {
+            remap.getOrElse(stat.getObject().asResource(), stat.getObject().asResource())
+          } else {
+            stat.getObject()
+          }))
+      }
+      newModel
+    } else {
+      model
+    }
+  }
 }
