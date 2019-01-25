@@ -32,3 +32,4 @@ out.d/
 wn31.d/
 scripts/
 update-docker/
+tmp*
