@@ -533,6 +533,9 @@ class WNDB(
       })
     }
 
+    val lexicon2 = lexicon.copy(entries=lexicon.entries.filter(
+      entry => entry.senses.forall(s => synsetLookup.contains(s.synsetRef))))
+
     for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
          (noun,"noun"),(verb,"verb"))) {
       val out = new PrintWriter(new File(file, "data." + posLong))
@@ -541,7 +544,7 @@ class WNDB(
       } finally {
         out.close
       }
-      writeIndex(lexicon, posShort, synsetLookup, 
+      writeIndex(lexicon2, posShort, synsetLookup, 
         new PrintWriter(new File(file, "index." + posLong)))
     }
   }
@@ -1018,7 +1021,7 @@ class WNDB(
         val synsets = entries.flatMap({ entry =>
           entry.senses.map({ sense =>
             synsetLookup.getOrElse(sense.synsetRef,
-              throw new RuntimeException("Failed to find synset in indexing (should be impossible)"))._1
+              throw new RuntimeException("Failed to find synset in indexing (should be impossible) on " + sense.synsetRef))._1
           })
         })
 
