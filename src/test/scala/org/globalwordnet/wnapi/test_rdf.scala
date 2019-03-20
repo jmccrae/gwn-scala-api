@@ -13,7 +13,7 @@ class RDFSpec extends FlatSpec with Matchers {
     resource.lexicons.size should be (2)
   }
   it should "get features of lexicon" in {
-    val lexicon = resource.lexicons(0)
+    val lexicon = resource.lexicons.find(_.id == "example-en").get
     lexicon.id should be ("example-en")
     lexicon.label should be ("Example wordnet (English)")
     lexicon.language should be (Language.ENGLISH)
