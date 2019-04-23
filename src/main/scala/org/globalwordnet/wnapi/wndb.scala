@@ -998,14 +998,13 @@ class WNDB(
         .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
       for((lemma, entries) <- words) {
         val synsetCnt = entries.map(_.senses.size).sum
-        val ptrs = entries.flatMap({ entry =>
+        val _ptrs = entries.flatMap({ entry =>
           entry.senses.flatMap({ sense =>
             sense.senseRelations.map(_.relType) ++
             lexicon.synsetsById(sense.synsetRef).synsetRelations.map(_.relType)
           })
         }).toSet
-        val ptrsStr = ptrs
-          .map(rt => PointerType.toWN(rt, pos) + " ")
+        val ptrs = _ptrs.map(rt => PointerType.toWN(rt, pos) + " ")
           .map({
             case ";u " => "; "
             case "-u " => "- "
@@ -1017,7 +1016,7 @@ class WNDB(
             case "~i " => "~ "
             case other => other
           })
-          .mkString("")
+        val ptrsStr = ptrs.mkString("")
         val synsets = entries.flatMap({ entry =>
           entry.senses.map({ sense =>
             synsetLookup.getOrElse(sense.synsetRef,
