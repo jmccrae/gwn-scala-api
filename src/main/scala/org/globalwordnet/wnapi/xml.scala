@@ -97,11 +97,35 @@ object MoreStringEscapeUtils {
 
 class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format {
   def read(file : File) : LexicalResource = {
-    readLexicalResource(XML.loadFile(file))
+    val xml = try {
+      XML.loadFile(file)
+    } catch {
+      case x : java.io.IOException => {
+        System.err.println("Failed to load the input XML file, this could be caused by a number of issues")
+        System.err.println("* The file does not exist or is not accessible")
+        System.err.println("* The XML is not well-formed")
+        System.err.println("* The XML refers to an external entity using a <!DOCTYPE> tag, that is not available")
+        x.printStackTrace()
+        throw x
+      }
+    }
+    readLexicalResource(xml)
   }
 
   def read(input : Reader) : LexicalResource = {
-    readLexicalResource(XML.load(input))
+    val xml = try {
+      XML.load(input)
+    } catch {
+      case x : java.io.IOException => {
+        System.err.println("Failed to load the input XML file, this could be caused by a number of issues")
+        System.err.println("* The file does not exist or is not accessible")
+        System.err.println("* The XML is not well-formed")
+        System.err.println("* The XML refers to an external entity using a <!DOCTYPE> tag, that is not available")
+        x.printStackTrace()
+        throw x
+      }
+    }
+    readLexicalResource(xml)
   }
 
   private def readLexicalResource(elem : Elem) : LexicalResource = {

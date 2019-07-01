@@ -44,12 +44,12 @@
                  x: Other (inc. particle, classifier, bound morphemes, determiners)
                  u: Unknown -->
             <Lemma writtenForm="grandfather" partOfSpeech="n"/>
-            <Sense id="example-en-10161911-n-1" synset="example-en-10161911-n">
+            <Sense id="example-en-10161911-n-1" synset="example-en-10161911-n" dc:identifier="grandfather%1:01:00::">
             </Sense>
         </LexicalEntry>
         <LexicalEntry id="w2">
             <Lemma writtenForm="paternal grandfather" partOfSpeech="n"/>
-            <Sense id="example-en-1-n-1" synset="example-en-1-n">
+            <Sense id="example-en-1-n-1" synset="example-en-1-n" dc:identifier="paternal_grandfather%1:01:00::">
                 <!-- The set of relations between senses is limited to the following
                      antonym: An opposite and inherently incompatible word
                      also: See also, a reference of weak meaning

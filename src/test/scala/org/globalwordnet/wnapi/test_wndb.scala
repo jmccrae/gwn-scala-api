@@ -115,4 +115,29 @@ paternal_grandfather n 1 1 + 1 0 00001740
 """)
   }
 
+  it should "output a correct index.sense" in {
+    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None)
+    import org.globalwordnet.api.MultiMap._
+    val entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]] = lr.lexicons(0).entries.flatMap({ entry =>
+      entry.senses.map({ sense =>
+        sense.synsetRef -> (entry, sense)
+      })
+    }).toMultiMap
+    val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
+    val data = (new StringBuilder(), collection.mutable.Map[String, Seq[Int]]())
+    
+    val sw = new java.io.StringWriter()
+    val out = new java.io.PrintWriter(sw)
+
+    wndb.writeData(lr, lr.lexicons(0), noun, entriesForSynset, synsetLookup, data,
+      (oldId, newId) => {
+        wndb.replaceAll(data, oldId, newId)
+      })
+
+    wndb.writeSenseIndex(lr.lexicons(0), synsetLookup, entriesForSynset, out)
+
+    sw.toString should be ("""grandfather%1:01:00:: 00001848 1 0
+paternal_grandfather%1:01:00:: 00001740 1 0
+""")
+  }
 }

@@ -533,6 +533,9 @@ class WNDB(
       })
     }
 
+    val lexicon2 = lexicon.copy(entries=lexicon.entries.filter(
+      entry => entry.senses.forall(s => synsetLookup.contains(s.synsetRef))))
+
     for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
          (noun,"noun"),(verb,"verb"))) {
       val out = new PrintWriter(new File(file, "data." + posLong))
@@ -541,9 +544,11 @@ class WNDB(
       } finally {
         out.close
       }
-      writeIndex(lexicon, posShort, synsetLookup, 
+      writeIndex(lexicon2, posShort, synsetLookup, 
         new PrintWriter(new File(file, "index." + posLong)))
     }
+    writeSenseIndex(lexicon2, synsetLookup, entriesForSynset,
+      new PrintWriter(new File(file, "index.sense")))
   }
 
   def replaceAll(data : (StringBuilder, collection.mutable.Map[String, Seq[Int]]),
@@ -995,14 +1000,13 @@ class WNDB(
         .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
       for((lemma, entries) <- words) {
         val synsetCnt = entries.map(_.senses.size).sum
-        val ptrs = entries.flatMap({ entry =>
+        val _ptrs = entries.flatMap({ entry =>
           entry.senses.flatMap({ sense =>
             sense.senseRelations.map(_.relType) ++
             lexicon.synsetsById(sense.synsetRef).synsetRelations.map(_.relType)
           })
         }).toSet
-        val ptrsStr = ptrs
-          .map(rt => PointerType.toWN(rt, pos) + " ")
+        val ptrs = _ptrs.map(rt => PointerType.toWN(rt, pos) + " ")
           .map({
             case ";u " => "; "
             case "-u " => "- "
@@ -1014,11 +1018,11 @@ class WNDB(
             case "~i " => "~ "
             case other => other
           })
-          .mkString("")
+        val ptrsStr = ptrs.mkString("")
         val synsets = entries.flatMap({ entry =>
           entry.senses.map({ sense =>
             synsetLookup.getOrElse(sense.synsetRef,
-              throw new RuntimeException("Failed to find synset in indexing (should be impossible)"))._1
+              throw new RuntimeException("Failed to find synset in indexing (should be impossible) on " + sense.synsetRef))._1
           })
         })
 
@@ -1027,6 +1031,28 @@ class WNDB(
           synsetCnt, ptrs.size, ptrsStr, synsetCnt, synsets.mkString(" ")
           ))
       }
+    } finally {
+      out.close
+    }
+  }
+
+  def writeSenseIndex(lexicon : Lexicon, 
+    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
+    entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
+    out : PrintWriter) {
+    try {
+      for(entry <- lexicon.entries) {
+        for(sense <- entry.senses) {
+          val synset = lexicon.synsetsById(sense.synsetRef)
+          val entries = entriesForSynset.getOrElse(synset.id, Nil)
+          sense.identifier match {
+            case Some(id) =>
+              out.write("%s %s %d 0\n" format (id, synsetLookup(synset.id)._1, 
+                entries.zipWithIndex.find(x => x._1._1.id == entry.id).map(x => x._2 + 1).get))
+            case None => {}
+          }
+        }
+      }    
     } finally {
       out.close
     }
