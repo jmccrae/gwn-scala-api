@@ -547,6 +547,8 @@ class WNDB(
       writeIndex(lexicon2, posShort, synsetLookup, 
         new PrintWriter(new File(file, "index." + posLong)))
     }
+    writeSenseIndex(lexicon2, synsetLookup, entriesForSynset,
+      new PrintWriter(new File(file, "index.sense")))
   }
 
   def replaceAll(data : (StringBuilder, collection.mutable.Map[String, Seq[Int]]),
@@ -1029,6 +1031,28 @@ class WNDB(
           synsetCnt, ptrs.size, ptrsStr, synsetCnt, synsets.mkString(" ")
           ))
       }
+    } finally {
+      out.close
+    }
+  }
+
+  def writeSenseIndex(lexicon : Lexicon, 
+    synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
+    entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
+    out : PrintWriter) {
+    try {
+      for(entry <- lexicon.entries) {
+        for(sense <- entry.senses) {
+          val synset = lexicon.synsetsById(sense.synsetRef)
+          val entries = entriesForSynset.getOrElse(synset.id, Nil)
+          sense.identifier match {
+            case Some(id) =>
+              out.write("%s %s %d 0\n" format (id, synsetLookup(synset.id)._1, 
+                entries.zipWithIndex.find(x => x._1._1.id == entry.id).map(x => x._2 + 1).get))
+            case None => {}
+          }
+        }
+      }    
     } finally {
       out.close
     }
