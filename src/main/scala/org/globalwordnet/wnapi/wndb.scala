@@ -646,176 +646,46 @@ class WNDB(
   }
 
   val PRINCETON_FRAMES = Map(
-    "The children %s to the playground" -> 1,
-    "The cars %s down the avenue" -> 10,
-    "These glasses %s easily" -> 100,
-    "These fabrics %s easily" -> 101,
-    "They %s their earnings this year" -> 102,
-    "Their earnings %s this year" -> 103,
-    "The water %ss " -> 104,
-    "They %s the water " -> 105,
-    "The animals %s" -> 106,
-    "They %s a long time" -> 107,
-    "The car %ss the tree " -> 108,
-    "John will %s angry" -> 109,
-    "They %s the car down the avenue" -> 11,
-    "They %s in the city" -> 110,
-    "They won't %s the story " -> 111,
-    "They %s that there was a traffic accident " -> 112,
-    "They %s whether there was a traffic accident" -> 113,
-    "They %s her vice president" -> 114,
-    "Did he %s his major works over a short period of time?" -> 115,
-    "The chefs %s the vegetables" -> 116,
-    "They %s the cape " -> 117,
-    "The food does %s good " -> 118,
-    "The music does %s good " -> 119,
-    "They %s the glass tubes" -> 12,
-    "The cool air does %s good" -> 120,
-    "This food does %s well " -> 121,
-    "It was %sing all day long " -> 122,
-    "They %s him to write the letter" -> 123,
-    "They %s him into writing the letter" -> 124,
-    "They %s him from writing the letter" -> 125,
-    "The bad news will %s him" -> 126,
-    "The good news will %s her" -> 127,
-    "The chef wants to %s the eggs " -> 128,
-    "Sam wants to %s with Sue " -> 129,
-    "The glass tubes %s" -> 13,
-    "The fighter managed to %s his opponent" -> 130,
-    "These cars won't %s " -> 131,
-    "The branches %s from the trees" -> 132,
-    "The stock market is going to %s " -> 133,
-    "The moon will soon %s " -> 134,
-    "The business is going to %s " -> 135,
-    "The airplane is sure to %s " -> 136,
-    "They %s to move " -> 137,
-    "They %s moving " -> 138,
-    "Sam and Sue %s the movie " -> 139,
-    "Sam and Sue %s" -> 14,
-    "They want to %s the prisoners " -> 140,
-    "They want to %s the doors" -> 141,
-    "The doors %s " -> 142,
-    "Did he %s his foot? " -> 143,
-    "Did his feet %s?" -> 144,
-    "They will %s the duet" -> 145,
-    "They %s their hair " -> 146,
-    "They %s the trees" -> 147,
-    "They %s him of all his money" -> 148,
-    "Lights %s on the horizon" -> 149,
-    "Sam cannot %s Sue " -> 15,
-    "The horizon is %sing with lights" -> 150,
-    "The crowds %s in the streets" -> 151,
-    "The streets %s with crowds" -> 152,
-    "Cars %s in the streets " -> 153,
-    "The streets %s with cars " -> 154,
-    "You can hear animals %s in the meadows" -> 155,
-    "The meadows %s with animals " -> 156,
-    "The birds %s in the woods " -> 157,
-    "The woods %s with many kinds of birds " -> 158,
-    "The performance is likely to %s Sue" -> 159,
-    "The ropes %s" -> 16,
-    "Sam and Sue %s over the results of the experiment" -> 160,
-    "In the summer they like to go out and %s" -> 161,
-    "The children %s in the rocking chair" -> 162,
-    "There %s some children in the rocking chair" -> 163,
-    "Some big birds %s in the tree" -> 164,
-    "There %s some big birds in the tree" -> 165,
-    "The men %s the area for animals " -> 166,
-    "The men %s for animals in the area" -> 167,
-    "The customs agents %s the bags for drugs " -> 168,
-    "They %s him as chairman " -> 169,
-    "The strong winds %s the rope" -> 17,
-    "They %s him \"Bobby\"" -> 170,
-    "They %s the sheets" -> 18,
-    "The sheets didn't %s" -> 19,
-    "The banks %s the check" -> 2,
-    "The horses %s across the field" -> 20,
-    "They %s the bags on the table" -> 21,
-    "The men %s the horses across the field" -> 22,
-    "Our properties %s at this point" -> 23,
-    "His fields %s mine at this point" -> 24,
-    "They %s the hill" -> 25,
-    "They %s up the hill" -> 26,
-    "They %s the river" -> 27,
-    "They %s down the river " -> 28,
-    "They %s the countryside" -> 29,
-    "The checks %s " -> 3,
-    "They %s in the countryside" -> 30,
-    "These men %s across the river" -> 31,
-    "These men %s the river" -> 32,
-    "They %s the food to the people" -> 33,
-    "They %s the people the food" -> 34,
-    "They %s more bread" -> 35,
-    "They %s the object in the water" -> 36,
-    "The men %s the bookshelves" -> 37,
-    "They %s the money in the closet" -> 38,
-    "The lights %s from the ceiling" -> 39,
-    "The children %s the ball" -> 4,
-    "They %s the lights from the ceiling" -> 40,
-    "They %s their rifles on the cabinet" -> 41,
-    "The chairs %s in the corner" -> 42,
-    "The men %s the chairs" -> 43,
-    "The women %s water into the bowl" -> 44,
-    "Water and oil %s into the bowl" -> 45,
-    "They %s the wire around the stick" -> 46,
-    "The wires %s around the stick" -> 47,
-    "They %s the bread with melted butter" -> 48,
-    "They %s the cart with boxes " -> 49,
-    "The balls %s " -> 5,
-    "They %s the books into the box" -> 50,
-    "They %s sugar over the cake" -> 51,
-    "They %s the cake with sugar" -> 52,
-    "They %s the fruit with a chemical" -> 53,
-    "They %s a chemical into the fruit" -> 54,
-    "They %s the field with rye" -> 55,
-    "They %s rye in the field" -> 56,
-    "They %s notices on the doors" -> 57,
-    "They %s the doors with notices" -> 58,
-    "They %s money on their grandchild" -> 59,
-    "The girls %s the wooden sticks" -> 6,
-    "They %s their grandchild with money" -> 60,
-    "They %s coins on the image " -> 61,
-    "They %s the image with coins " -> 62,
-    "They %s butter on the bread" -> 63,
-    "They %s the lake with fish" -> 64,
-    "The children %s the paper with grease " -> 65,
-    "The children %s grease onto the paper" -> 66,
-    "They %s papers over the floor" -> 67,
-    "They %s the floor with papers" -> 68,
-    "They %s the money " -> 69,
-    "The wooden sticks %s " -> 7,
-    "They %s the newspapers" -> 70,
-    "They %s the goods" -> 71,
-    "The men %s the boat " -> 72,
-    "They %s the animals" -> 73,
-    "The books %s the box " -> 74,
-    "They %s the halls with holly" -> 75,
-    "Holly flowers %s the halls" -> 76,
-    "The wind storms %s the area with dust and dirt" -> 77,
-    "Dust and dirt %s the area" -> 78,
-    "The swollen rivers %s the area with water" -> 79,
-    "The coins %s " -> 8,
-    "The waters %s the area" -> 80,
-    "They %s the cloth with water and alcohol" -> 81,
-    "Water and alcohol %s the cloth" -> 82,
-    "They %s the snow from the path" -> 83,
-    "They %s the path of the snow" -> 84,
-    "They %s the water from the sink" -> 85,
-    "They %s the sink of water" -> 86,
-    "They %s the parcel to their parents" -> 87,
-    "They %s them the parcel" -> 88,
-    "They %s cars to the tourists" -> 89,
-    "They %s the coin " -> 9,
-    "They %s the tourists their cars" -> 90,
-    "They %s the money to them " -> 91,
-    "They %s them the money" -> 92,
-    "They %s them the information" -> 93,
-    "They %s the information to them" -> 94,
-    "The parents %s a French poem to the children" -> 95,
-    "The parents %s the children a French poem " -> 96,
-    "They %s " -> 97,
-    "They %s themselves" -> 98,
-    "These balls %s easily " -> 99)
+    "Something ----s" -> 1,
+    "Somebody ----s" -> 2,
+    "It is ----ing" -> 3,
+    "Something is ----ing PP" -> 4,
+    "Something ----s something Adjective/Noun" -> 5,
+    "Something ----s Adjective/Noun" -> 6,
+    "Somebody ----s Adjective" -> 7,
+    "Somebody ----s something" -> 8,
+    "Somebody ----s somebody" -> 9,
+    "Something ----s somebody" -> 10,
+    "Something ----s something" -> 11,
+    "Something ----s to somebody" -> 12,
+    "Somebody ----s on something" -> 13,
+    "Somebody ----s somebody something" -> 14,
+    "Somebody ----s something to somebody" -> 15,
+    "Somebody ----s something from somebody" -> 16,
+    "Somebody ----s somebody with something" -> 17,
+    "Somebody ----s somebody of something" -> 18,
+    "Somebody ----s something on somebody" -> 19,
+    "Somebody ----s somebody PP" -> 20,
+    "Somebody ----s something PP" -> 21,
+    "Somebody ----s PP" -> 22,
+    "Somebody's (body part) ----s" -> 23,
+    "Somebody ----s somebody to INFINITIVE" -> 24,
+    "Somebody ----s somebody INFINITIVE" -> 25,
+    "Somebody ----s that CLAUSE" -> 26,
+    "Somebody ----s to somebody" -> 27,
+    "Somebody ----s to INFINITIVE" -> 28,
+    "Somebody ----s whether INFINITIVE" -> 29,
+    "Somebody ----s somebody into V-ing something" -> 30,
+    "Somebody ----s something with something" -> 31,
+    "Somebody ----s INFINITIVE" -> 32,
+    "Somebody ----s VERB-ing" -> 33,
+    "It ----s that CLAUSE" -> 34,
+    "Something ----s INFINITIVE" -> 35,
+    "Somebody ----s for something" -> 36,
+    "Somebody ----s at something" -> 37,
+    "Somebody ----s on somebody" -> 38,
+    "Somebody ----s out of somebody" -> 39
+    )
 
   def PRINCETON_HEADER = """  1 This software and database is being provided to you, the LICENSEE, by  
   2 Princeton University under the following license.  By obtaining, using  
@@ -880,7 +750,9 @@ class WNDB(
           }
           data ++= " %x " format lexId
         }
-        val totalRelations = synset.synsetRelations.size + entries.map({
+        var totalRelations = synset.synsetRelations.filter(rel => 
+            rel.relType != is_caused_by && rel.relType != is_entailed_by
+        ).size + entries.map({
           case (entry, sense) => sense.senseRelations.size
         }).sum
         data ++= "%03d " format totalRelations
@@ -891,6 +763,7 @@ class WNDB(
 
           data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
             targetId, targetPos.shortForm)
+          totalRelations -= 1
         }
         for((entry, sense) <- entries) {
           for(rel <- sense.senseRelations) {
@@ -908,15 +781,20 @@ class WNDB(
 
             data ++= "%s %s %s %02x%02x " format (PointerType.toWN(rel.relType, pos),
               targetId, targetPos.shortFormNoSatellite, srcIdx+1, trgIdx+1)
+            totalRelations -= 1
           }
         }
-        for(rel <- synset.synsetRelations.sortBy(_.target) if rel.relType != hypernym) {
+        for(rel <- synset.synsetRelations.sortBy(_.target) if rel.relType != hypernym && rel.relType != is_caused_by && rel.relType != is_entailed_by) {
           val (targetId, targetPos) = wnSynsetIdFromGlobal(rel.target, lr, synsetLookup)
           indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
             (data.length + PointerType.toWN(rel.relType, pos).length + 1))
 
           data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
             targetId, targetPos.shortFormNoSatellite)
+            totalRelations -= 1
+        }
+        if(totalRelations != 0) {
+          System.err.println("Wrong count of pointers for " + synset.id)
         }
         val frames = entries.flatMap(_._1.syntacticBehaviours).groupBy(_.subcategorizationFrame)
         val frameRefs : Seq[(Int, Int)] = frames.toSeq.flatMap({
@@ -1006,7 +884,8 @@ class WNDB(
             lexicon.synsetsById(sense.synsetRef).synsetRelations.map(_.relType)
           })
         }).toSet
-        val ptrs = _ptrs.map(rt => PointerType.toWN(rt, pos) + " ")
+        val ptrs = _ptrs.filter(rt => rt != is_caused_by && rt != is_entailed_by)
+          .map(rt => PointerType.toWN(rt, pos) + " ")
           .map({
             case ";u " => "; "
             case "-u " => "- "
