@@ -350,6 +350,10 @@ object Main {
           System.exit(-1)
         }
       case "WNDB" =>
+        if(config.outputFile == null) {
+          System.err.println("Please specify output folder with -o")
+          System.exit(-1)
+        }
         if(!config.outputFile.exists) {
           if(!config.outputFile.mkdirs()) {
             System.err.println("Could not create a directory for WNDB output")

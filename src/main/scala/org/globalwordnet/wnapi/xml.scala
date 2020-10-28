@@ -206,7 +206,16 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "@synset").text,
       (elem \ "SenseRelation").map(readSenseRelation),
       (elem \ "Example").map(readSenseExample),
-      (elem \ "Count").map(readCount)), elem)
+      (elem \ "Count").map(readCount),
+      (elem \ "@adjposition").map(readAdjPosition).headOption), elem)
+  }
+
+  private def readAdjPosition(elem : Node) : AdjPosition = {
+    elem.text match {
+      case "a" => attributive
+      case "p" => predicative
+      case "ip" => postpositive
+    }
   }
 
   private def readSenseRelation(elem : Node) : SenseRelation = {
@@ -420,6 +429,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def writeSense(out : PrintWriter, e : Sense, entriesForSynset : Map[String, Seq[String]]) {
     out.print(s"""
       <Sense id="${escapeXmlId(e.id)}" synset="${escapeXmlId(e.synsetRef)}"""")
+    e.adjposition match {
+      case Some(a) => out.print(s""" adjposition="${a.shortForm}"""")
+      case None => {}
+    }
     writeMeta(out, 13, e)
     if(e.senseRelations.isEmpty && e.senseExamples.isEmpty &&
       e.counts.isEmpty) {

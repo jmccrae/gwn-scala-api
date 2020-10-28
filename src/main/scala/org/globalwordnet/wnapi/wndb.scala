@@ -521,7 +521,7 @@ class WNDB(
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String,(String,PartOfSpeech)]()
     val stringBuilders = Seq(adjective,adverb,noun,verb)
-      .map(p => p -> (new StringBuilder(), collection.mutable.Map[String,Seq[Int]]())).toMap
+      .map(p => p -> (new ByteStringBuilder(), collection.mutable.Map[String,Seq[Int]]())).toMap
  
     for((posShort,posLong) <- Seq((adjective,"adj"),(adverb,"adv"),
          (noun,"noun"),(verb,"verb"))) {
@@ -551,7 +551,7 @@ class WNDB(
       new PrintWriter(new File(file, "index.sense")))
   }
 
-  def replaceAll(data : (StringBuilder, collection.mutable.Map[String, Seq[Int]]),
+  def replaceAll(data : (ByteStringBuilder, collection.mutable.Map[String, Seq[Int]]),
       oldId : String, newId : String) {
     data match {
         case (sb, indexes) => indexes.getOrElse(oldId, Nil).map(i => {
@@ -723,7 +723,7 @@ class WNDB(
   def writeData(lr : LexicalResource, lexicon : Lexicon, pos : PartOfSpeech, 
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
-    _data : (StringBuilder, collection.mutable.Map[String, Seq[Int]]), 
+    _data : (ByteStringBuilder, collection.mutable.Map[String, Seq[Int]]), 
     updateId : (String, String) => Unit) {
       val (data, indexes) = _data
       if(usePrincetonHeader) {
@@ -732,7 +732,7 @@ class WNDB(
       for(synset <- lexicon.synsets.filter(ss => posMatch(ss.partOfSpeech,pos)).
            sortBy(_.id)) {
         val id = synset.id
-        val eightDigitCode = "%08d" format (data.size)
+        val eightDigitCode = "%08d" format (data.bytes)
         if(synsetLookup.contains(id)) {
           updateId(synsetLookup(id)._1, eightDigitCode)
         }
@@ -744,6 +744,10 @@ class WNDB(
         data ++= " %02x " format entries.size
         for((entry, sense) <- entries.sortBy(_._2.id.takeRight(2))) {
           data ++= entry.lemma.writtenForm.replace(" ", "_")
+          sense.adjposition match {
+            case Some(a) => data ++= s"(${a.shortForm})"
+            case None => {}
+          }
           val lexId = sense.identifier.getOrElse("") match {
             case lexIdxExtract(id) => id.toInt
             case _ => 0
@@ -939,3 +943,47 @@ class WNDB(
 }
 
 class WNDBNotSerializable(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)
+
+class ByteStringBuilder() extends java.lang.Appendable {
+  var bytes = 0 
+  private var sb = new StringBuilder()
+  override def append(c : Char) = {
+    if(c < 0x80) {
+      sb.append(c)
+      bytes += 1
+    } else {
+      sb.append(c)
+      bytes += c.toString().getBytes().length
+    }
+    this
+  }
+
+  override def append(c : java.lang.CharSequence) = {
+    bytes += c.toString().getBytes().length
+    sb.append(c)
+    this
+  }
+
+  override def append(c : java.lang.CharSequence, start : Int, end : Int) = {
+    bytes += c.subSequence(start, end).toString().getBytes().length
+    sb.append(c, start, end)
+    this
+  }
+
+  def ++= (s : String) = {
+    bytes += s.getBytes().length
+    sb ++= s
+  }
+
+  def replace(start : Int, end : Int, str : String) = {
+    bytes -= sb.subSequence(start, end).toString().getBytes().length
+    bytes += str.getBytes().length
+    sb.replace(start, end, str)
+  }
+
+  // The length in characters not bytes! Be careful
+  def length = sb.length
+
+  override def toString = sb.toString
+}
+

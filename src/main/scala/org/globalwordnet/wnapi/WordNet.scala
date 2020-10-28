@@ -108,7 +108,7 @@ case class Tag(category : String, value : String) {
 
 case class Sense(id : String, synsetRef : String,
   senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,
-  counts : Seq[Count] = Nil) extends Meta {
+  counts : Seq[Count] = Nil, adjposition : Option[AdjPosition] = None) extends Meta {
   override def toString = s"""Sense[$id](${(Seq(synsetRef) ++ senseRelations.map(_.toString) ++ senseExamples.map(_.toString) ++ counts.map(_.toString)).mkString(", ")})"""
 }
 
@@ -455,5 +455,11 @@ object PartOfSpeech {
     case _ => throw new IllegalArgumentException(name + " is not a valid pos name")
   }
 }
+
+sealed class AdjPosition(val shortForm : String)
+
+object attributive extends AdjPosition("a")
+object predicative extends AdjPosition("p")
+object postpositive extends AdjPosition("ip")
 
 case class WordNetFormatException(msg : String = null, cause : Throwable = null) extends RuntimeException(msg, cause)
