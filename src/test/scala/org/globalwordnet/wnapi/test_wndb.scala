@@ -17,7 +17,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       })
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
-    val data = (new StringBuilder(), collection.mutable.Map[String, Seq[Int]]())
+    val data = (new ByteStringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
     wndb.writeData(lr, lr.lexicons(0), noun, entriesForSynset, synsetLookup, data,
       (oldId, newId) => {
@@ -69,7 +69,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       })
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
-    val data = (new StringBuilder(), collection.mutable.Map[String, Seq[Int]]())
+    val data = (new ByteStringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
     val sw = new java.io.StringWriter()
     val out = new java.io.PrintWriter(sw)
@@ -124,7 +124,7 @@ paternal_grandfather n 1 1 + 1 0 00001740
       })
     }).toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
-    val data = (new StringBuilder(), collection.mutable.Map[String, Seq[Int]]())
+    val data = (new ByteStringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
     val sw = new java.io.StringWriter()
     val out = new java.io.PrintWriter(sw)

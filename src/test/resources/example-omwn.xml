@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>                                          
+<!DOCTYPE LexicalResource SYSTEM "http://compling.hss.ntu.edu.sg/omw/WN-LMF.dtd">
+<LexicalResource>                                                               
+        <GlobalInformation label="nld WordNet 10"/>                             
+        <!-- produced on 2015-11-14 -->                                         
+        <!-- as part of the Open Multilingual Wordnet http://compling.hss.ntu.edu.sg -->
+        <!-- source at Dutch (may have a better version) -->                    
+        <!-- licence: WordNet -->                                               
+<Lexicon languageCoding='ISO 639-3' label='Open' language='nld' owner='http://wordpress.let.vupr.nl/odwn/' version='10'>
+   <LexicalEntry id ='w917146'>                                                 
+      <Lemma writtenForm='plan' partOfSpeech='n'/>                              
+      <Sense id='w917146_03954199-n' synset='nld-10-03954199-n'/>               
+      <Sense id='w917146_06627006-n' synset='nld-10-06627006-n'/>               
+      <Sense id='w917146_05093890-n' synset='nld-10-05093890-n'/>               
+   </LexicalEntry>  
+   <Synset id='nld-10-01785341-a' baseConcept='3'>                              
+      <SynsetRelations>                                                         
+         <SynsetRelation targets='nld-10-03954199-n' relType='sim'/>            
+     </SynsetRelations>
+    </Synset> 
+   <Synset id='nld-10-03954199-n' baseConcept='3'>                              
+      <SynsetRelations>                                                         
+         <SynsetRelation targets='nld-10-03234306-n' relType='hype'/>           
+      </SynsetRelations>                                                        
+   </Synset> 
+   <Synset id='nld-10-06627006-n' baseConcept='3'>                              
+      <SynsetRelations>                                                         
+         <SynsetRelation targets='nld-10-03234306-n' relType='hype'/>           
+      </SynsetRelations>                                                        
+   </Synset>
+   <Synset id='nld-10-05093890-n' baseConcept='3'>                              
+      <SynsetRelations>                                                         
+         <SynsetRelation targets='nld-10-03234306-n' relType='hype'/>           
+      </SynsetRelations>                                                        
+   </Synset> 
+   <Synset id='nld-10-03234306-n' baseConcept='3'>                              
+       <Meta author="test author" date="2020-12-22" source="test source" status="ready" confidenceScore="0.5"/>
+       <Definition gloss="This is an example definition">
+           <Statement example="This is an example example"/>
+       </Definition>
+      <SynsetRelations>                                                         
+         <SynsetRelation targets='nld-10-03234306-n' relType='hype'/>           
+      </SynsetRelations>                                                        
+   </Synset>
+</Lexicon>                                                                      
+<SenseAxes>                                                                     
+   <SenseAxis id='sa_nld-10-0' relType='eq_synonym'>                            
+      <Target ID='nld-10-01785341-a'/>                                          
+      <Target ID='eng-30-01785341-a'/>                                          
+   </SenseAxis>  
+</SenseAxes>                                                                    
+</LexicalResource>  

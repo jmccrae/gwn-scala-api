@@ -175,7 +175,13 @@
                                    value="w3c" 
                                    v-model="converter.inputFormat">W3C RDF</input>
                         </label>
-
+                        <label class="btn btn-info"
+                               v-bind:class="{ active: converter.inputFormat=='omwnlmf' }">
+                            <input type="radio"
+                                   name="inputFormat"
+                                   value="omwnlmf"
+                                   v-model="converter.inputFormat">OMWN 1.0 LMF</input>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -255,7 +261,7 @@
                 </div>
             </div>
             <div class="row"
-                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c' || converter.inputFormat=='omwnlmf'">
                 <div class="col">
                     <div class="form-group">
                         <label for="email">Email Address</label>
@@ -268,7 +274,7 @@
                 </div>
             </div>
             <div class="row"
-                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c'">
+                v-if="converter.inputFormat=='wndb' || converter.inputFormat=='omwn' || converter.inputFormat=='plwn' || converter.inputFormat=='debvisdic' || converter.inputFormat=='w3c' || converter.inputFormat=='omwnlmf'">
                 <div class="col">
                     <div class="form-group">
                         <label for="license">License</label>
