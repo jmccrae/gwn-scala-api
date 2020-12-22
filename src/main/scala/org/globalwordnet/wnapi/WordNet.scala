@@ -66,7 +66,14 @@ case class LexicalResource(lexicons : Seq[Lexicon]) {
       })
     })).toMultiMap
   }
-}
+  lazy val entryObjectsForSynset : Map[String, Seq[LexicalEntry]] = {
+    lexicons.flatMap(lexicon => lexicon.entries.flatMap({ entry =>
+      entry.senses.map({ sense =>
+        sense.synsetRef -> entry
+      })
+    })).toMultiMap
+  }
+ }
 
 case class Lexicon(id : String, 
   label : String, language : Language, email : String,
@@ -313,6 +320,36 @@ object SynsetRelType {
     case "other" => other(dcType.getOrElse(throw new WordNetFormatException("Other requires a dc:type")))
     case other => throw new WordNetFormatException("Unsupported relation type: " + other)
   }
+
+  def fromOMWString(name : String) = name match {
+    case "also" => also
+    case "at" => other("at")
+    case "ants" => antonym
+    case "attr" => attribute
+    case "caus" => causes
+    case "dmnc" => exemplifies
+    case "dmnr" => domain_region
+    case "dmnu" => other("dmnu")
+    case "dmtc" => is_exemplified_by
+    case "dmtr" => has_domain_region
+    case "dmtu" => other("dmtu")
+    case "enta" => entails
+    case "eq_synonym" => eq_synonym
+    case "hasi" => instance_hyponym
+    case "hmem" => holo_member
+    case "hprt" => holo_part
+    case "hsub" => holo_substance
+    case "hype" => hypernym
+    case "hypo" => hyponym
+    case "inst" => instance_hypernym
+    case "mmem" => mero_member
+    case "mprt" => mero_part
+    case "msub" => mero_substance
+    case "self" => other("self")
+    case "sim" => similar
+    case other => throw new WordNetFormatException("Unsupported relation type: " + other)
+  }
+
 }
 object agent extends SynsetRelType
 object also extends SynsetRelType with SenseRelType

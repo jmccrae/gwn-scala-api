@@ -132,14 +132,24 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     LexicalResource((elem \ "Lexicon").map(readLexicon))
   }
 
+  private def attText(elem : Node, prop : String, deflt : String) : String = {
+    val r = (elem \ prop).text
+    if(r == null) {
+      System.err.println("Mandatory property " + prop + " is missing, defaulting to \"" + deflt + "\"")
+      deflt
+    } else {
+      r
+    }
+  }
+
   private def readLexicon(elem : Node) : Lexicon = {
     readMeta(Lexicon(
-      (elem \ "@id").text,
-      (elem \ "@label").text,
-      Language.get((elem \ "@language").text),
-      (elem \ "@email").text,
-      (elem \ "@license").text,
-      (elem \ "@version").text,
+      attText(elem, "@id", "id"),
+      attText(elem, "@label", ""),
+      Language.get(attText(elem, "@language", "en")),
+      attText(elem, "@email", ""),
+      attText(elem, "@license", ""),
+      attText(elem, "@version", ""),
       (elem \ "@url").headOption.map(_.text),
       (elem \ "@citation").headOption.map(_.text),
       (elem \ "LexicalEntry").map(readEntry),

@@ -720,6 +720,16 @@ class WNDB(
 
   val lexIdxExtract = ".*%\\d+:\\d+:(\\d+):.*:\\d*".r
 
+  def synsetPartOfSpeech(lr : LexicalResource, ss : Synset) : Option[PartOfSpeech] = {
+    ss.partOfSpeech match {
+      case Some(pos) => Some(pos)
+      case None => lr.entryObjectsForSynset(ss.id).headOption match {
+        case Some(e) => Some(e.lemma.partOfSpeech)
+        case None => None
+      }
+    }
+  }
+
   def writeData(lr : LexicalResource, lexicon : Lexicon, pos : PartOfSpeech, 
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
@@ -729,7 +739,7 @@ class WNDB(
       if(usePrincetonHeader) {
         data ++= PRINCETON_HEADER
       }
-      for(synset <- lexicon.synsets.filter(ss => posMatch(ss.partOfSpeech,pos)).
+      for(synset <- lexicon.synsets.filter(ss => posMatch(synsetPartOfSpeech(lr, ss),pos)).
            sortBy(_.id)) {
         val id = synset.id
         val eightDigitCode = "%08d" format (data.bytes)
@@ -739,7 +749,7 @@ class WNDB(
         synsetLookup.put(id, (eightDigitCode, pos))
         data ++= eightDigitCode
         data ++= " %02d " format (lexName(synset.subject.getOrElse("none")))
-        data ++= synset.partOfSpeech.get.shortForm
+        data ++= synsetPartOfSpeech(lr, synset).get.shortForm
         val entries = entriesForSynset.getOrElse(synset.id, Nil)
         data ++= " %02x " format entries.size
         for((entry, sense) <- entries.sortBy(_._2.id.takeRight(2))) {
