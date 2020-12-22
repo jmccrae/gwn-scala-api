@@ -133,12 +133,13 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   }
 
   private def attText(elem : Node, prop : String, deflt : String) : String = {
-    val r = (elem \ prop).text
-    if(r == null) {
+    val r = (elem \ prop).headOption.map(_.text)
+    r match {
+      case Some(r) => r
+      case None => {
       System.err.println("Mandatory property " + prop + " is missing, defaulting to \"" + deflt + "\"")
       deflt
-    } else {
-      r
+      }
     }
   }
 

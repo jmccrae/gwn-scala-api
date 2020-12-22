@@ -23,18 +23,35 @@ class OMWNLMF(email : String, license : String) extends Format {
     readLexicalResource(xml)
   }
 
+  def read(input : java.io.Reader) : LexicalResource = {
+    val xml = try {
+      XML.load(input)
+    } catch {
+      case x : java.io.IOException => {
+        System.err.println("Failed to load the input XML file, this could be caused by a number of issues")
+        System.err.println("* The file does not exist or is not accessible")
+        System.err.println("* The XML is not well-formed")
+        System.err.println("* The XML refers to an external entity using a <!DOCTYPE> tag, that is not available")
+        x.printStackTrace()
+        throw x
+      }
+    }
+    readLexicalResource(xml)
+  }
+
   private def readLexicalResource(elem : Elem) : LexicalResource = {
     val label = (elem \ "GlobalInformation" \ "@label").text
     LexicalResource((elem \ "Lexicon").map(readLexicon(_,label)))
   }
-  
-  private def attText(elem : Node, prop : String, deflt : String) : String = {
-    val r = (elem \ prop).text
-    if(r == null) {
+
+   private def attText(elem : Node, prop : String, deflt : String) : String = {
+    val r = (elem \ prop).headOption.map(_.text)
+    r match {
+      case Some(r) => r
+      case None => {
       System.err.println("Mandatory property " + prop + " is missing, defaulting to \"" + deflt + "\"")
       deflt
-    } else {
-      r
+      }
     }
   }
 

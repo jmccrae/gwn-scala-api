@@ -197,6 +197,11 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
           optString(params("url")),
           optString(params("citation")))
         Try(w3cReader.read(inputFile))
+      case "omwnlmf" =>
+        val omwnlmfReader = new OMWNLMF(
+          params("email"),
+          params("license"))
+        Try(omwnlmfReader.read(input))
       case x =>
         Try(throw new RuntimeException("Form submission error: " + x))
     }
@@ -209,7 +214,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
           Try(WNJSON.write(resource, outputFile))
         case "rdf" =>
           val rdfType = params("outputRdfLang")
-          Try(WNRDF.write(resource, outputFile, params("outputRdfBaseUrl"), rdfType))
+          Try(WNRDF.write(resource, outputFile, params("outputRdfBaseUrl"), rdfType, true))
         case x =>
           Try(throw new RuntimeException("Form submission error: " + x))
       }

@@ -39,5 +39,8 @@ class OMWNLMFSpec extends FlatSpec with Matchers {
     e.senses.size should be (3)
     e.senses(0).synsetRef should be ("nld-10-03954199-n")
   }
+  it should "have an ID" in {
+    resource.lexicons(0).id should be ("nld")
+  }
 
 }
