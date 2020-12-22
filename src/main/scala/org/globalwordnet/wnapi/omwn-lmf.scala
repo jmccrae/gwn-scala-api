@@ -6,7 +6,7 @@ import org.globalwordnet.api.wn._
 import scala.xml.{XML, Elem, Node}
 import eu.monnetproject.lang.{Language, Script}
 
-class OMWNLMF() extends Format {
+class OMWNLMF(email : String, license : String) extends Format {
   def read(file : File) : LexicalResource = {
     val xml = try {
       XML.loadFile(file)
@@ -43,8 +43,8 @@ class OMWNLMF() extends Format {
       attText(elem, "@id", attText(elem, "@language", "id")),
       label,
       Language.get(attText(elem, "@language", "en")),
-      "",
-      "",
+      email,
+      license,
       attText(elem, "@version", ""),
       (elem \ "@owner").headOption.map(_.text),
       None,

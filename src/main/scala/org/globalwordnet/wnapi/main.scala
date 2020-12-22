@@ -31,7 +31,7 @@ object Main {
     blankNodes : Boolean = true
   )
 
-  final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C")
+  final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C", "OMWNLMF")
   final val supportedOutputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB")
 
   def main(args : Array[String]) {
@@ -289,6 +289,11 @@ object Main {
           config.url,
           config.citation)
         w3cReader.read(config.inputFile)
+      case "OMWNLMF" =>
+        val omwnlmfReader = new OMWNLMF(
+          config.email,
+          config.license)
+        omwnlmfReader.read(config.inputFile)
       case _ =>
         throw new RuntimeException("Unreachable")
     }

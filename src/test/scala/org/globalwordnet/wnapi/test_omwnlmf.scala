@@ -7,7 +7,7 @@ import org.scalatest._
 class OMWNLMFSpec extends FlatSpec with Matchers {
   var resource : LexicalResource = null
   "OMWN LMF reader" should "successfully read an XML file" in {
-    resource = new OMWNLMF().read(new java.io.File("src/test/resources/example-omwn.xml"))
+    resource = new OMWNLMF("test@example.com", "http://www.example.com").read(new java.io.File("src/test/resources/example-omwn.xml"))
   }
   it should "produce 2 lexicon" in {
     resource.lexicons.size should be (1)
