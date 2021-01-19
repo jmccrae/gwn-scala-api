@@ -10,7 +10,9 @@ libraryDependencies += "com.github.scopt" %% "scopt" % "3.7.0"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
 
-scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-target:jvm-1.7")
+
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 mainClass in assembly := Some("org.globalwordnet.api.Main")
 

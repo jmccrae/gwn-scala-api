@@ -1,4 +1,4 @@
-FROM tomcat:alpine
+FROM tomcat
 MAINTAINER john@mccr.ae
 
 EXPOSE 8080
