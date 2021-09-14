@@ -100,7 +100,7 @@ object WNRDF extends Format {
     }
   }
 
-  val WN = new NameSpace("http://globalwordnet.github.io/schemas/wn#")
+  val WN = new NameSpace("https://globalwordnet.github.io/schemas/wn#")
   val ONTOLEX = new NameSpace("http://www.w3.org/ns/lemon/ontolex#")
   val SYNSEM = new NameSpace("http://www.w3.org/ns/lemon/synsem#")
   val VARTRANS = new NameSpace("http://www.w3.org/ns/lemon/vartrans#")
