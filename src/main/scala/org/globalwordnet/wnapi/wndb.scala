@@ -20,7 +20,8 @@ class WNDB(
   url : Option[String],
   citation : Option[String],
   usePrincetonHeader : Boolean = true,
-  filterFile : Option[File] = None) extends Format {
+  filterFile : Option[File] = None,
+  licenseFile : Option[File]) extends Format {
 
   var lexNames : Map[Int, String] = null
   def read(wnFolder : File) : LexicalResource = {
@@ -196,8 +197,8 @@ class WNDB(
                   .map(y => y -> ("%s-%08d-%02d" format (lexEntId, x.offset, x.lemmas.find(_.lemma == lemma).get.synNo)))
             }).toMultiMap
             (for((frame,senses) <- frames) yield {
-              SyntacticBehaviour(subcategorizationFrame=sentences.getOrElse(frame.frameId, "ERROR"),senses=senses)
-            }).toSeq
+              SyntacticBehaviour(None, subcategorizationFrame=sentences.getOrElse(frame.frameId, "ERROR"),senses=senses)
+            }).toSeq 
           }
         )
      }
@@ -630,6 +631,7 @@ class WNDB(
     case "adj.ppl" => 44    
     case other if extraLexNames.contains(other) => extraLexNames(other)
     case other => {
+      System.err.println("LexName not found: " + other)
       val id = 45 + extraLexNames.size
       extraLexNames.put(other, id)
       id
@@ -738,6 +740,11 @@ class WNDB(
       val (data, indexes) = _data
       if(usePrincetonHeader) {
         data ++= PRINCETON_HEADER
+      } else {
+        licenseFile match {
+          case Some(f) => { data ++= Source.fromFile(f).mkString }
+          case None => {}
+        }
       }
       for(synset <- lexicon.synsets.filter(ss => posMatch(synsetPartOfSpeech(lr, ss),pos)).
            sortBy(_.id)) {
@@ -758,7 +765,7 @@ class WNDB(
             case Some(a) => data ++= s"(${a.shortForm})"
             case None => {}
           }
-          val lexId = sense.identifier.getOrElse("") match {
+          val lexId = sense.identifier.getOrElse(sense.id) match {
             case lexIdxExtract(id) => id.toInt
             case _ => 0
           }
@@ -810,7 +817,13 @@ class WNDB(
         if(totalRelations != 0) {
           System.err.println("Wrong count of pointers for " + synset.id)
         }
-        val frames = entries.flatMap(_._1.syntacticBehaviours).groupBy(_.subcategorizationFrame)
+        val frames2 : Map[String, Seq[SyntacticBehaviour]] = entries.
+          flatMap(x => x._2.subcats.map(y => (lexicon.framesById(y), x._2.id))).
+          groupBy(_._1.subcategorizationFrame).
+          mapValues(y => Seq(SyntacticBehaviour(None, 
+            y.head._1.subcategorizationFrame,
+            y.map(_._2))))
+        val frames : Map[String, Seq[SyntacticBehaviour]] = entries.flatMap(_._1.syntacticBehaviours).groupBy(_.subcategorizationFrame) ++ frames2
         val frameRefs : Seq[(Int, Int)] = frames.toSeq.flatMap({
           case (subcat, frameList) => {
             val frameAllRefs = frameList.flatMap(_.senses).toSet
@@ -820,8 +833,14 @@ class WNDB(
               Seq(0)
             } else {
               entries.flatMap({
-                case (_, sense) => if(frameAllRefs.contains(sense.id)) {
-                  Some(sense.id.takeRight(2).toInt)
+                case (entry, sense) => if(frameAllRefs.contains(sense.id)) {
+                  if(sense.id.takeRight(2).matches("\\d+")) {
+                    Some(sense.id.takeRight(2).toInt)
+                  } else {
+                     val i = lexicon.synsetsById(sense.synsetRef).
+                      members.indexOf(entry.id)
+                     if(i >= 0) { Some(i) } else { None }
+                  }
                 } else {
                   None
                 }
@@ -886,7 +905,13 @@ class WNDB(
     try {
       if(usePrincetonHeader) {
         out.print(PRINCETON_HEADER)
+      } else {
+        licenseFile match {
+          case Some(f) => { out.print(Source.fromFile(f).mkString) }
+          case None => {}
+        }
       }
+
       val words = lexicon.entries
         .filter(e => posMatch(e.lemma.partOfSpeech, pos))
         .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
@@ -938,16 +963,29 @@ class WNDB(
         for(sense <- entry.senses) {
           val synset = lexicon.synsetsById(sense.synsetRef)
           val entries = entriesForSynset.getOrElse(synset.id, Nil)
-          sense.identifier match {
-            case Some(id) =>
-              out.write("%s %s %d 0\n" format (id, synsetLookup(synset.id)._1, 
-                entries.zipWithIndex.find(x => x._1._1.id == entry.id).map(x => x._2 + 1).get))
-            case None => {}
+          val id = sense.identifier match {
+            case Some(id) => id
+            case None => unmapSenseKey(sense.id)
           }
+          out.write("%s %s %d 0\n" format (id, synsetLookup(synset.id)._1, 
+            entries.zipWithIndex.find(x => x._1._1.id == entry.id).map(x => x._2 + 1).get))
         }
       }    
     } finally {
       out.close
+    }
+  }
+
+  def unmapSenseKey(sk : String) = {
+    if(sk.contains("__")) {
+      val e = sk.split("__")
+      val l = e(0).substring(4)
+      val r = e.drop(1).mkString("__")
+      l.replaceAll("-ap-", "'").replaceAll("-sl-", "/").replaceAll("-ex-", "!").
+        replaceAll("-cm-",",").replaceAll("-cl-",":") + "%" + 
+        r.replaceAll("_", ":").replaceAll("-sp-","_")
+    } else {
+        sk.substring(4).replaceAll("__", "%").replaceAll("-ap-", "'").replaceAll("-sl-", "/").replaceAll("-ex-", "!").replaceAll("-cm-",",").replaceAll("-cl-",":")
     }
   }
 }

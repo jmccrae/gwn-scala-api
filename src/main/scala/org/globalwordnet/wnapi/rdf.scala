@@ -334,6 +334,7 @@ object WNRDF extends Format {
 
   private def readSynBehavior(r : Resource)(implicit model : Model) : SyntacticBehaviour = {
     SyntacticBehaviour(
+      Some(toId(r)),
       (r lit RDFS.label).headOrElse(throw new WNRDFException("Syntactic behaviour without label")).getLexicalForm(),
       (r \* WN.senses).map(toId).toSeq)
   }

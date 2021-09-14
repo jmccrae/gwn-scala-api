@@ -154,7 +154,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "@url").headOption.map(_.text),
       (elem \ "@citation").headOption.map(_.text),
       (elem \ "LexicalEntry").map(readEntry),
-      (elem \ "Synset").map(readSynset)), elem)
+      (elem \ "Synset").map(readSynset),
+      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem)
   }
 
   private def readMeta[A <: Meta](a : A, elem : Node) : A = {
@@ -172,6 +173,20 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     (elem \ "@{http://purl.org/dc/elements/1.1/}subject").foreach(x => a.subject = Some(x.text))
     (elem \ "@{http://purl.org/dc/elements/1.1/}title").foreach(x => a.title = Some(x.text))
     (elem \ "@{http://purl.org/dc/elements/1.1/}type").foreach(x => a.`type` = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}contributor").foreach(x => a.contributor = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}coverage").foreach(x => a.coverage = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}creator").foreach(x => a.creator = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}date").foreach(x => a.date = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}description").foreach(x => a.description = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}format").foreach(x => a.format = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}identifier").foreach(x => a.identifier = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}publisher").foreach(x => a.publisher = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}relation").foreach(x => a.relation = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}rights").foreach(x => a.rights = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}source").foreach(x => a.source = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}subject").foreach(x => a.subject = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}title").foreach(x => a.title = Some(x.text))
+    (elem \ "@{https://globalwordnet.github.io/schemas/dc/}type").foreach(x => a.`type` = Some(x.text))
     (elem \ "@status").foreach(x => a.status = Some(x.text))
     (elem \ "@note").foreach(x => a.note = Some(x.text))
     (elem \ "@confidenceScore").foreach(x => a.confidenceScore = Some(x.text.toDouble))
@@ -218,7 +233,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "SenseRelation").map(readSenseRelation),
       (elem \ "Example").map(readSenseExample),
       (elem \ "Count").map(readCount),
-      (elem \ "@adjposition").map(readAdjPosition).headOption), elem)
+      (elem \ "@adjposition").map(readAdjPosition).headOption,
+      if((elem \ "@subcat").text == "") { Nil }
+      else { (elem \ "@subcat").text.split(" ") }), elem)
   }
 
   private def readAdjPosition(elem : Node) : AdjPosition = {
@@ -248,6 +265,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def readSyntacticBehaviour(elem : Node) = {
     SyntacticBehaviour(
+      (elem \ "@id").headOption.map(_.text),
       (elem \ "@subcategorizationFrame").text,
       if((elem \ "@senses").isEmpty) { Nil } else { (elem \ "@senses").text.split(" ").toSeq })
   }
@@ -260,7 +278,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "ILIDefinition").headOption.map(readILIDefinition),
       (elem \ "SynsetRelation").map(readSynsetRelation),
       (elem \ "Example").map(readSenseExample),
-      (elem \ "@partOfSpeech").headOption.map(e => readPartOfSpeech(e.text))), elem)
+      (elem \ "@partOfSpeech").headOption.map(e => readPartOfSpeech(e.text)),
+      if((elem \ "@members").text == "") { Nil }
+      else { (elem \ "@members").text.split(" ") }), elem)
   }
 
   private def readDefinition(elem : Node) : Definition = {
