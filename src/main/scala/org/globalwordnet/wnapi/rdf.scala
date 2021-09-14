@@ -298,7 +298,9 @@ object WNRDF extends Format {
   private def readSense(r : Resource)(implicit model : Model) : Sense = {
     readMeta(Sense(
       toId(r),
-      toId((r \* ONTOLEX.reference).headOrElse(throw new WNRDFException("Sense without synset"))),
+      toId(((r \* ONTOLEX.reference) 
+        ++ (r \* ONTOLEX.isLexicalizedSenseOf)).headOrElse(
+          throw new WNRDFException("Sense without synset"))),
       (r / VARTRANS.source).map(readSenseRelation).toSeq,
       (r \* WN.example).map(readExample).toSeq,
       (r \* WN.count).map(readCount).toSeq), r)
@@ -595,7 +597,7 @@ object WNRDF extends Format {
     r + RDF.`type` + ONTOLEX.LexicalSense
     r - VARTRANS.source ++ s.senseRelations.map(writeSenseRelation)
     r + WN.example ++ s.senseExamples.map(writeExample)
-    r + ONTOLEX.reference + model.createResource(baseUrl + s.synsetRef)
+    r + ONTOLEX.isLexicalizedSenseOf + model.createResource(baseUrl + s.synsetRef)
     r + WN.count ++ s.counts.map(writeCount)
     r
   }
