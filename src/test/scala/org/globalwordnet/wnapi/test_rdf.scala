@@ -67,6 +67,9 @@ class RDFSpec extends FlatSpec with Matchers {
   "RDF Writer" should "write a file" in {
     WNRDF.write(resource, f)
   }
+  it should "use isLexicalizedSenseOf" in {
+    io.Source.fromFile(f).mkString.contains("isLexicalizedSenseOf") should be (true)
+  }
   var resource2 : LexicalResource = null
   "roundtripping" should "work" in {
     resource2 = WNRDF.read(f)

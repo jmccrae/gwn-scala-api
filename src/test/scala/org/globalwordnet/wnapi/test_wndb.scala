@@ -9,7 +9,7 @@ class WNDBSpec extends FlatSpec with Matchers {
 
 
   it should "output a correct data.noun file" in {
-    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None)
+    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None, None)
     import org.globalwordnet.api.MultiMap._
     val entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]] = lr.lexicons(0).entries.flatMap({ entry =>
       entry.senses.map({ sense =>
@@ -61,7 +61,7 @@ class WNDBSpec extends FlatSpec with Matchers {
   }
 
   it should "output a correct index.noun file" in {
-    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None)
+    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None, None)
     import org.globalwordnet.api.MultiMap._
     val entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]] = lr.lexicons(0).entries.flatMap({ entry =>
       entry.senses.map({ sense =>
@@ -116,7 +116,7 @@ paternal_grandfather n 1 1 + 1 0 00001740
   }
 
   it should "output a correct index.sense" in {
-    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None)
+    val wndb = new WNDB(null, null, null, null, null, null, null, None, None, true, None, None)
     import org.globalwordnet.api.MultiMap._
     val entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]] = lr.lexicons(0).entries.flatMap({ entry =>
       entry.senses.map({ sense =>
