@@ -1,4 +1,4 @@
-FROM tomcat
+FROM tomcat:9.0-jdk8-openjdk
 MAINTAINER john@mccr.ae
 
 EXPOSE 8080
