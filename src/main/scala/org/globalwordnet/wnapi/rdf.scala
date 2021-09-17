@@ -100,7 +100,7 @@ object WNRDF extends Format {
     }
   }
 
-  val WN = new NameSpace("http://globalwordnet.github.io/schemas/wn#")
+  val WN = new NameSpace("https://globalwordnet.github.io/schemas/wn#")
   val ONTOLEX = new NameSpace("http://www.w3.org/ns/lemon/ontolex#")
   val SYNSEM = new NameSpace("http://www.w3.org/ns/lemon/synsem#")
   val VARTRANS = new NameSpace("http://www.w3.org/ns/lemon/vartrans#")
@@ -110,7 +110,7 @@ object WNRDF extends Format {
   val ILI = new NameSpace("http://ili.globalwordnet.org/ili/")
   val namespaces = Map("wn" -> WN, "ontolex" -> ONTOLEX, "synsem" -> SYNSEM,
     "vartrans" -> VARTRANS, "lime" -> LIME, "schema" -> SCHEMA, 
-    "cc" -> CC, "ili" -> ILI)
+    "cc" -> CC, "ili" -> ILI, "skos" -> new NameSpace(SKOS.getURI()))
 
   def guessLang(file : File) = {
     if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
@@ -298,7 +298,9 @@ object WNRDF extends Format {
   private def readSense(r : Resource)(implicit model : Model) : Sense = {
     readMeta(Sense(
       toId(r),
-      toId((r \* ONTOLEX.reference).headOrElse(throw new WNRDFException("Sense without synset"))),
+      toId(((r \* ONTOLEX.reference) 
+        ++ (r \* ONTOLEX.isLexicalizedSenseOf)).headOrElse(
+          throw new WNRDFException("Sense without synset"))),
       (r / VARTRANS.source).map(readSenseRelation).toSeq,
       (r \* WN.example).map(readExample).toSeq,
       (r \* WN.count).map(readCount).toSeq), r)
@@ -334,6 +336,7 @@ object WNRDF extends Format {
 
   private def readSynBehavior(r : Resource)(implicit model : Model) : SyntacticBehaviour = {
     SyntacticBehaviour(
+      Some(toId(r)),
       (r lit RDFS.label).headOrElse(throw new WNRDFException("Syntactic behaviour without label")).getLexicalForm(),
       (r \* WN.senses).map(toId).toSeq)
   }
@@ -594,7 +597,7 @@ object WNRDF extends Format {
     r + RDF.`type` + ONTOLEX.LexicalSense
     r - VARTRANS.source ++ s.senseRelations.map(writeSenseRelation)
     r + WN.example ++ s.senseExamples.map(writeExample)
-    r + ONTOLEX.reference + model.createResource(baseUrl + s.synsetRef)
+    r + ONTOLEX.isLexicalizedSenseOf + model.createResource(baseUrl + s.synsetRef)
     r + WN.count ++ s.counts.map(writeCount)
     r
   }

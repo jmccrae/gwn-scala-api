@@ -10,7 +10,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix synsem: <http://www.w3.org/ns/lemon/synsem#> .
 @prefix vartrans: <http://www.w3.org/ns/lemon/vartrans#> .
-@prefix wn: <http://globalwordnet.github.io/schemas/wn#> .
+@prefix wn: <https://globalwordnet.github.io/schemas/wn#> .
 
 <#example-en> a lime:Lexicon ;
   rdfs:label "Example wordnet (English)"@en ;

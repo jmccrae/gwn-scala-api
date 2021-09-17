@@ -28,7 +28,8 @@ object Main {
     validate : Boolean = false,
     coreWordNetFilter : Option[File] = None,
     bySubject : Boolean = false,
-    blankNodes : Boolean = true
+    blankNodes : Boolean = true,
+    wordnetLicense : Option[File] = None
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C", "OMWNLMF")
@@ -137,6 +138,10 @@ object Main {
       opt[Unit]("no-blank-nodes") action { (x, c) =>
         c.copy(blankNodes = false)
       } text("Do not generate blank nodes in RDF exports")
+
+      opt[File]("wordnet-license") valueName("<wn-license.txt>") action { (x, c) =>
+        c.copy(wordnetLicense = Some(x))
+      } text("WordNet license to be included in the header of all files")
     }
 
     parser.parse(args, GWNAPIConfig()) match {
@@ -248,8 +253,9 @@ object Main {
           config.version,
           config.url,
           config.citation,
-          true, // TODO
-          config.coreWordNetFilter).read(config.inputFile)
+          config.wordnetLicense == None,
+          config.coreWordNetFilter,
+          config.wordnetLicense).read(config.inputFile)
       case "OMWN" =>
         OpenMultilingualWordNet.read(
             config.inputFile,
@@ -379,8 +385,9 @@ object Main {
           config.version,
           config.url,
           config.citation,
-          true, // TODO
-          config.coreWordNetFilter).write(resource, config.outputFile)
+          config.wordnetLicense == None,
+          config.coreWordNetFilter,
+          config.wordnetLicense).write(resource, config.outputFile)
       case _ =>
         System.err.println("Unsupported format: " + config.outputFormat)
         System.exit(-1)

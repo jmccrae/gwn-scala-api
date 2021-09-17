@@ -80,7 +80,8 @@ case class Lexicon(id : String,
   license : String, version : String, url : Option[String] = None, 
   citation : Option[String] = None,
   entries : Seq[LexicalEntry] = Nil, 
-  synsets : Seq[Synset] = Nil) extends Meta {
+  synsets : Seq[Synset] = Nil,
+  frames : Seq[SyntacticBehaviour] = Nil) extends Meta {
   if(!synsets.forall(synset => synset.ili != Some("in") || synset.id.startsWith(id + "-"))) {
     throw new WordNetFormatException("Synset identifiers do not start with %s-" format id)
   }
@@ -94,6 +95,8 @@ SYNSETS
 ${synsets.mkString("\n")}"""
 
   def metadata : Lexicon = this.copy(entries = Nil, synsets = Nil)
+
+  lazy val framesById : Map[String, SyntacticBehaviour] = frames.groupBy(_.id.getOrElse("")).mapValues(_.head)
 }
  
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
@@ -115,7 +118,8 @@ case class Tag(category : String, value : String) {
 
 case class Sense(id : String, synsetRef : String,
   senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,
-  counts : Seq[Count] = Nil, adjposition : Option[AdjPosition] = None) extends Meta {
+  counts : Seq[Count] = Nil, adjposition : Option[AdjPosition] = None,
+  subcats : Seq[String] = Nil) extends Meta {
   override def toString = s"""Sense[$id](${(Seq(synsetRef) ++ senseRelations.map(_.toString) ++ senseExamples.map(_.toString) ++ counts.map(_.toString)).mkString(", ")})"""
 }
 
@@ -123,7 +127,8 @@ case class Synset(id : String, ili : Option[String] = None,
   definitions : Seq[Definition] = Nil, iliDefinition : Option[ILIDefinition] = None,
   synsetRelations : Seq[SynsetRelation] = Nil, 
   synsetExamples : Seq[Example] = Nil,
-  partOfSpeech : Option[PartOfSpeech] = None) extends Meta {
+  partOfSpeech : Option[PartOfSpeech] = None,
+  members : Seq[String] = Nil) extends Meta {
   ili match {
     case Some("in") if iliDefinition == None =>
       throw new WordNetFormatException("If the ILI is set to \"in\" there must be an ILI Definition [" + id + "]")
@@ -160,7 +165,8 @@ case class SenseRelation(target : String, relType : SenseRelType) extends Meta {
   override def toString = s"""$relType -> $target"""
 }
 
-case class SyntacticBehaviour(subcategorizationFrame : String, senses : Seq[String])
+case class SyntacticBehaviour(id : Option[String], 
+    subcategorizationFrame : String, senses : Seq[String])
 
 case class Count(value : Int) extends Meta
 

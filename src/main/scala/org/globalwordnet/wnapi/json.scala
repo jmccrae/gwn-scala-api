@@ -341,6 +341,7 @@ object WNJSON extends Format {
       }
       def read(v : JsValue) = v match {
         case JsObject(m) => SyntacticBehaviour(
+          m.get("id").map(stringOrFail),
           stringOrFail(m.getOrElse("label", throw new WNJsonException("Syntactic Behaviour must have a label"))),
           m.getOrElse("senses", JsArray()) match {
             case JsArray(x) => x.map(stringOrFail)
