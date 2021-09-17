@@ -980,10 +980,13 @@ class WNDB(
     if(sk.contains("__")) {
       val e = sk.split("__")
       val l = e(0).substring(4)
-      val r = e.drop(1).mkString("__")
+      var r = e.drop(1).mkString("__")
+      if(sk.endsWith("__")) {
+        r = r + "__"
+      }
       l.replaceAll("-ap-", "'").replaceAll("-sl-", "/").replaceAll("-ex-", "!").
         replaceAll("-cm-",",").replaceAll("-cl-",":") + "%" + 
-        r.replaceAll("_", ":").replaceAll("-sp-","_")
+        r.replaceAll("_", ":").replaceAll("\\.", ":").replaceAll("-sp-","_")
     } else {
         sk.substring(4).replaceAll("__", "%").replaceAll("-ap-", "'").replaceAll("-sl-", "/").replaceAll("-ex-", "!").replaceAll("-cm-",",").replaceAll("-cl-",":")
     }
