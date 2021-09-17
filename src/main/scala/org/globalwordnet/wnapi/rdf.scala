@@ -110,7 +110,7 @@ object WNRDF extends Format {
   val ILI = new NameSpace("http://ili.globalwordnet.org/ili/")
   val namespaces = Map("wn" -> WN, "ontolex" -> ONTOLEX, "synsem" -> SYNSEM,
     "vartrans" -> VARTRANS, "lime" -> LIME, "schema" -> SCHEMA, 
-    "cc" -> CC, "ili" -> ILI)
+    "cc" -> CC, "ili" -> ILI, "skos" -> new NameSpace(SKOS.getURI()))
 
   def guessLang(file : File) = {
     if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {

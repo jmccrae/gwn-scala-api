@@ -70,6 +70,14 @@ class RDFSpec extends FlatSpec with Matchers {
   it should "use isLexicalizedSenseOf" in {
     io.Source.fromFile(f).mkString.contains("isLexicalizedSenseOf") should be (true)
   }
+  val f2 = java.io.File.createTempFile("lexicon", ".xml")
+  f2.deleteOnExit()
+  it should "use SKOS namespace" in {
+    WNRDF.write(resource, f2)
+    val rdf = io.Source.fromFile(f2).mkString
+    rdf.contains("xmlns:skos") should be (true)
+    rdf.contains("j.0") should be (false)
+  }
   var resource2 : LexicalResource = null
   "roundtripping" should "work" in {
     resource2 = WNRDF.read(f)
