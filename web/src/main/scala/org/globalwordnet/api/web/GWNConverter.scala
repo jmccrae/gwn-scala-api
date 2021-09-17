@@ -153,6 +153,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
                 optString(params("url")),
                 optString(params("citation")),
                 true, // TODO
+                None,
                 None).read(inputFile))))
       case "omwn" =>
         loadAuxiliary().flatMap(aux =>
