@@ -466,11 +466,7 @@ class WNDB(
       case "$" => similar 
       case "&" => similar 
       case "<" => participle 
-      case "\\" => if(pos == "a" || pos == "s" || pos == "n") {
-          pertainym
-      } else if(pos == "r") {
-          pertainym
-      } else throw new IllegalArgumentException("pos="+pos)
+      case "\\" => pertainym
       case _ => {
         throw new IllegalArgumentException("pos="+pos)
       }
@@ -503,7 +499,6 @@ class WNDB(
       else if(r == similar) "&" 
       else if(r == participle) "<" 
       else if(r == pertainym) "\\"
-      else if(r == derivation) "\\"
       else throw new WNDBNotSerializable("Unsupported relation type: " + r)
     }
  
