@@ -65,3 +65,22 @@ Command to generate Princeton WordNet 3.1 in XML
       --license "http://wordnet.princeton.edu/wordnet/license/" \
       --email "***@princeton.edu"
 
+Development
+===========
+
+To compile the system we use SBT. The following command is used to regenerate 
+the file for use with the `gwn` command
+
+    sbt assembly
+
+The web interface is a separate project under the `web/` folder. In order to 
+build this you first need to run the `publishLocal` command in the **root** folder
+and then start `sbt` and run `jetty:start`
+
+    sbt publishLocal
+    cd web/
+    sbt
+    > jetty:start
+    > browse
+    
+We welcome any changes or suggestions. Please make an issue or a pull request.
