@@ -12,7 +12,7 @@ import scala.language.reflectiveCalls
 
 case class WNRDFException(msg : String = "", cause : Throwable = null) extends RuntimeException(msg, cause)
 
-object WNRDF extends Format {
+class WNRDF(shortRelations : Boolean = false) extends Format {
   // To make log4j shut up :)
   org.apache.log4j.BasicConfigurator.configure()
 
@@ -112,22 +112,8 @@ object WNRDF extends Format {
     "vartrans" -> VARTRANS, "lime" -> LIME, "schema" -> SCHEMA, 
     "cc" -> CC, "ili" -> ILI, "skos" -> new NameSpace(SKOS.getURI()))
 
-  def guessLang(file : File) = {
-    if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
-      "RDF/XML"
-    } else if(file.getName().endsWith(".ttl")) {
-      "TURTLE"
-    } else if(file.getName().endsWith(".nt")) {
-      "N-TRIPLE"
-    } else if(file.getName().endsWith(".n3")) {
-      "N3"
-    } else {
-      "RDF/XML"
-    }
-  }
-
   def read(file : File) : LexicalResource = {
-    read(new FileReader(file), guessLang(file), file.toURI().toString() + "#")
+    read(new FileReader(file), WNRDF.guessLang(file), file.toURI().toString() + "#")
   }
 
   def read(file : File, lang : String) : LexicalResource = {
@@ -301,7 +287,8 @@ object WNRDF extends Format {
       toId(((r \* ONTOLEX.reference) 
         ++ (r \* ONTOLEX.isLexicalizedSenseOf)).headOrElse(
           throw new WNRDFException("Sense without synset"))),
-      (r / VARTRANS.source).map(readSenseRelation).toSeq,
+      (r / VARTRANS.source).map(readSenseRelation).toSeq ++
+        readShortSenseRelation(r),
       (r \* WN.example).map(readExample).toSeq,
       (r \* WN.count).map(readCount).toSeq), r)
   }
@@ -322,6 +309,16 @@ object WNRDF extends Format {
       toId((r \* VARTRANS.target).headOrElse(throw new WNRDFException("Relation without target"))),
       relType), r)
   }
+
+  private def readShortSenseRelation(r : Resource)(implicit model : Model) : Seq[SenseRelation] = {
+    SenseRelType.values.flatMap(relType => {
+      (r \* WN(relType.name)).map(target => {
+        SenseRelation(toId(target), relType)
+      })
+    })
+  }
+
+
 
   private def readExample(r : Resource)(implicit model : Model) : Example = {
     readMeta(Example(
@@ -354,7 +351,8 @@ object WNRDF extends Format {
       },
       (r \* WN.definition).map(readDefinition).toSeq,
       (r \* WN.iliDefinition).headOption.map(readILIDefinition),
-      (r / VARTRANS.source).map(readSynsetRelation).toSeq,
+      (r / VARTRANS.source).map(readSynsetRelation).toSeq ++ 
+        readShortSynsetRelation(r),
       (r \* WN.example).map(readExample).toSeq,
       (r \* WN.partOfSpeech).headOption.map(pos => PartOfSpeech.fromName(pos.getURI().drop(WN.prefix.length)))), r)
   }
@@ -389,10 +387,18 @@ object WNRDF extends Format {
       relType), r)
   }
 
+  private def readShortSynsetRelation(r : Resource)(implicit model : Model) : Seq[SynsetRelation] = {
+    SynsetRelType.values.flatMap(relType => {
+      (r \* WN(relType.name)).map(target => {
+        SynsetRelation(toId(target), relType)
+      })
+    })
+  }
+
   def write(lr : LexicalResource, output : File) {
     write(lr, new FileWriter(output),
           output.toURI().toString() + "#",
-          guessLang(output), true)
+          WNRDF.guessLang(output), true)
   } 
 
   def write(lr : LexicalResource, output : File, lang : String, bnodes : Boolean) {
@@ -595,7 +601,13 @@ object WNRDF extends Format {
     val r = model.createResource(baseUrl + s.id)
     writeMeta(s, r)
     r + RDF.`type` + ONTOLEX.LexicalSense
-    r - VARTRANS.source ++ s.senseRelations.map(writeSenseRelation)
+    if(shortRelations) {
+      for(sr <- s.senseRelations) {
+        r + WN(sr.relType.name) + model.createResource(baseUrl + sr.target)
+      }
+    } else {
+      r - VARTRANS.source ++ s.senseRelations.map(writeSenseRelation)
+    }
     r + WN.example ++ s.senseExamples.map(writeExample)
     r + ONTOLEX.isLexicalizedSenseOf + model.createResource(baseUrl + s.synsetRef)
     r + WN.count ++ s.counts.map(writeCount)
@@ -658,7 +670,13 @@ object WNRDF extends Format {
         r + WN.iliDefinition + writeILIDefinition(i)
       case None =>
     }
-    r - VARTRANS.source ++ s.synsetRelations.map(writeSynsetRelation)
+    if(shortRelations) {
+      for(sr <- s.synsetRelations) {
+        r + WN(sr.relType.name) + model.createResource(baseUrl + sr.target)
+      }
+    } else {
+      r - VARTRANS.source ++ s.synsetRelations.map(writeSynsetRelation)
+    }
     s.ili match {
       case Some(i) =>
         r + WN.ili + model.createResource("http://ili.globalwordnet.org/ili/" + i)
@@ -700,7 +718,7 @@ object WNRDF extends Format {
   private def writeSynsetRelation(s : SynsetRelation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
     val r = model.createResource()
     writeMeta(s, r)
-    r + RDF.`type` + VARTRANS.SynsetRelation
+    r + RDF.`type` + VARTRANS.ConceptualRelation
     s.relType match {
       case other(x) =>
         r + DC_11.`type` + (if(x.startsWith("http")) {
@@ -750,3 +768,20 @@ object WNRDF extends Format {
     }
   }
 }
+
+object WNRDF {
+  def guessLang(file : File) = {
+    if(file.getName().endsWith(".rdf") || file.getName().endsWith(".xml")) {
+      "RDF/XML"
+    } else if(file.getName().endsWith(".ttl")) {
+      "TURTLE"
+    } else if(file.getName().endsWith(".nt")) {
+      "N-TRIPLE"
+    } else if(file.getName().endsWith(".n3")) {
+      "N3"
+    } else {
+      "RDF/XML"
+    }
+  }
+}
+

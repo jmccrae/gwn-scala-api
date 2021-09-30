@@ -149,10 +149,10 @@ class CoverageTest extends FlatSpec with Matchers {
   val rdfFile = File.createTempFile("lexicon", ".rdf")
   rdfFile.deleteOnExit()
   "RDF reader" should "write the coverage model" in {
-    WNRDF.write(resource, rdfFile)
+    new WNRDF().write(resource, rdfFile)
   }
   it should "successfully read the same data" in {
-    val r2 = WNRDF.read(rdfFile)
+    val r2 = new WNRDF().read(rdfFile)
     testCoverage(r2)
   }
 

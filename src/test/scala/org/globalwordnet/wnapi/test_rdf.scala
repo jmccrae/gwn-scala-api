@@ -7,7 +7,7 @@ import org.scalatest._
 class RDFSpec extends FlatSpec with Matchers {
   var resource : LexicalResource = null
   "RDF reader" should "successfully read an RDF file" in {
-    resource = WNRDF.read(new java.io.File("src/test/resources/example.ttl"))
+    resource = new WNRDF().read(new java.io.File("src/test/resources/example.ttl"))
   }
   it should "produce 2 lexicons" in {
     resource.lexicons.size should be (2)
@@ -65,7 +65,7 @@ class RDFSpec extends FlatSpec with Matchers {
   val f = java.io.File.createTempFile("lexicon", ".ttl")
   f.deleteOnExit()
   "RDF Writer" should "write a file" in {
-    WNRDF.write(resource, f)
+    new WNRDF().write(resource, f)
   }
   it should "use isLexicalizedSenseOf" in {
     io.Source.fromFile(f).mkString.contains("isLexicalizedSenseOf") should be (true)
@@ -73,14 +73,14 @@ class RDFSpec extends FlatSpec with Matchers {
   val f2 = java.io.File.createTempFile("lexicon", ".xml")
   f2.deleteOnExit()
   it should "use SKOS namespace" in {
-    WNRDF.write(resource, f2)
+    new WNRDF().write(resource, f2)
     val rdf = io.Source.fromFile(f2).mkString
     rdf.contains("xmlns:skos") should be (true)
     rdf.contains("j.0") should be (false)
   }
   var resource2 : LexicalResource = null
   "roundtripping" should "work" in {
-    resource2 = WNRDF.read(f)
+    resource2 = new WNRDF().read(f)
   }
   it should "produce 2 lexicons" in {
     resource2.lexicons.size should be (2)
@@ -134,5 +134,13 @@ class RDFSpec extends FlatSpec with Matchers {
     s.definitions(0).content should be ("the father of your father or mother")
     s.synsetRelations(0).relType should be (hypernym)
     s.synsetRelations(0).target should be ("example-en-10162692-n")
+  }
+  it should "produce short relations" in {
+    new WNRDF(shortRelations=true).write(resource, f)
+    val resource3 = new WNRDF().read(f)
+    val s = resource3.lexicons.find(_.id == "example-en").get.entries.find(_.id == "w2").get.senses(0)
+    val r = s.senseRelations(0)
+    r.relType should be (derivation)
+    r.target should be ("example-en-10161911-n-1")
   }
  }

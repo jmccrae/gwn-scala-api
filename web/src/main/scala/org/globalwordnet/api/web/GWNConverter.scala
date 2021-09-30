@@ -89,7 +89,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
         Try(WNJSON.read(aux))
       case "rdf" =>
         createTmpFile(fileParams("auxFile")).flatMap(aux =>
-          Try(WNRDF.read(aux)))
+          Try(new WNRDF().read(aux)))
     }
   }
 
@@ -132,10 +132,10 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
       case "rdf" =>
         val rdfType = params("inputRdfLang")
         if(params("outputRdfBaseUrl") != "") {
-          Try(WNRDF.read(input,
+          Try(new WNRDF().read(input,
             rdfType, params("outputRdfBaseUrl")))
         } else {
-          Try(WNRDF.read(inputFile, rdfType))
+          Try(new WNRDF().read(inputFile, rdfType))
         }
       case "wndb" =>
         val inputFile = unzipFiles(fileParams("inputFile"))
@@ -215,7 +215,9 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
           Try(WNJSON.write(resource, outputFile))
         case "rdf" =>
           val rdfType = params("outputRdfLang")
-          Try(WNRDF.write(resource, outputFile, params("outputRdfBaseUrl"), rdfType, true))
+          val shortRelations = params.contains("shortRelations") &&
+            params("shortRelations") == "on"
+          Try(new WNRDF(shortRelations).write(resource, outputFile, params("outputRdfBaseUrl"), rdfType, true))
         case x =>
           Try(throw new RuntimeException("Form submission error: " + x))
       }
@@ -263,7 +265,7 @@ class GWNConverter extends ScalatraServlet with FileUploadSupport {
       case "json" =>
         Try(WNJSON.read(input))
       case "rdf" =>
-        Try(WNRDF.read(input, params("inputRdfLang"), ""))
+        Try(new WNRDF().read(input, params("inputRdfLang"), ""))
     }
     views.html.validate(result)
   }

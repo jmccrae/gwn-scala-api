@@ -391,6 +391,15 @@
                         </label>
                     </div>
                 </div>
+                <div class="col">
+                    <div class="form-group">
+                        <input type="checkbox"
+                               name="shortRelations"
+                               id="shortRelations">
+                        <label for="shortRelations">Use short relations</label>
+                        <small class="form-text text-muted">Use shorter relation format in RDF output</small>
+                    </div>
+                </div>
             </div>
             <div class="row"
                  v-if="converter.outputFormat=='rdf' || converter.outputFormat=='w3c'">

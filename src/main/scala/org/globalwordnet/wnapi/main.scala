@@ -29,7 +29,8 @@ object Main {
     coreWordNetFilter : Option[File] = None,
     bySubject : Boolean = false,
     blankNodes : Boolean = true,
-    wordnetLicense : Option[File] = None
+    wordnetLicense : Option[File] = None,
+    shortRelations : Boolean = false
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C", "OMWNLMF")
@@ -142,6 +143,9 @@ object Main {
       opt[File]("wordnet-license") valueName("<wn-license.txt>") action { (x, c) =>
         c.copy(wordnetLicense = Some(x))
       } text("WordNet license to be included in the header of all files")
+      opt[Unit]("short-relations") action { (x, c) =>
+        c.copy(shortRelations = true)
+      } text("Generate short relations in RDF exports")
     }
 
     parser.parse(args, GWNAPIConfig()) match {
@@ -168,7 +172,7 @@ object Main {
       case "JSON" =>
         WNJSON.read(config.auxFile)
       case "RDF" =>
-        WNRDF.read(config.auxFile)
+        new WNRDF().read(config.auxFile)
       case _ =>
         System.err.println("Invalid auxiliary format")
         System.exit(-1)
@@ -191,9 +195,9 @@ object Main {
               format
           }
           if(config.outputRdfBaseUrl != "") {
-            WNRDF.read(config.inputFile, rdfType, config.inputRdfBaseUrl)
+            new WNRDF().read(config.inputFile, rdfType, config.inputRdfBaseUrl)
           } else {
-            WNRDF.read(config.inputFile, rdfType)
+            new WNRDF().read(config.inputFile, rdfType)
           }
         case format =>
           System.err.println("Validation of unexpected format: " + format)
@@ -230,9 +234,9 @@ object Main {
             format
         }
         if(config.outputRdfBaseUrl != "") {
-          WNRDF.read(config.inputFile, rdfType, config.outputRdfBaseUrl)
+          new WNRDF().read(config.inputFile, rdfType, config.outputRdfBaseUrl)
         } else {
-          WNRDF.read(config.inputFile, rdfType)
+          new WNRDF().read(config.inputFile, rdfType)
         }
       case "WNDB" =>
         if(!config.inputFile.isDirectory) {
@@ -350,12 +354,12 @@ object Main {
         }
         if(config.outputRdfBaseUrl != "") {
           if(config.outputFile != null) {
-            WNRDF.write(resource, config.outputFile, config.outputRdfBaseUrl, rdfType, config.blankNodes)
+            new WNRDF(config.shortRelations).write(resource, config.outputFile, config.outputRdfBaseUrl, rdfType, config.blankNodes)
           } else {
-            WNRDF.write(resource, new PrintWriter(System.out), config.outputRdfBaseUrl, rdfType, config.blankNodes)
+            new WNRDF(config.shortRelations).write(resource, new PrintWriter(System.out), config.outputRdfBaseUrl, rdfType, config.blankNodes)
           }
         } else if(config.outputFile != null) {
-          WNRDF.write(resource, config.outputFile, rdfType, config.blankNodes)
+          new WNRDF(config.shortRelations).write(resource, config.outputFile, rdfType, config.blankNodes)
         } else {
           System.err.println("RDF can only be written to a file: Please specify a file with -o or URL with --output-base-url")
           System.exit(-1)
