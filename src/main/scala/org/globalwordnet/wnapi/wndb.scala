@@ -715,7 +715,7 @@ class WNDB(
   29 Princeton University and LICENSEE agrees to preserve same.  
 """
 
-  val lexIdxExtract = ".*%\\d+:\\d+:(\\d+):.*:\\d*".r
+  val lexIdxExtract = ".*(?:%|__)\\d+[:\\.]\\d+[:\\.](\\d+)[:\\.].*[:\\.]\\d*".r
 
   def synsetPartOfSpeech(lr : LexicalResource, ss : Synset) : Option[PartOfSpeech] = {
     ss.partOfSpeech match {
@@ -762,7 +762,10 @@ class WNDB(
           }
           val lexId = sense.identifier.getOrElse(sense.id) match {
             case lexIdxExtract(id) => id.toInt
-            case _ => 0
+            case other => { 
+              println("Could not extract LEX ID from " + other)
+              0
+            }
           }
           data ++= " %x " format lexId
         }
@@ -954,6 +957,7 @@ class WNDB(
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
     out : PrintWriter) {
     try {
+      var lines = new collection.mutable.ListBuffer[String]()
       for(entry <- lexicon.entries) {
         for(sense <- entry.senses) {
           val synset = lexicon.synsetsById(sense.synsetRef)
@@ -962,10 +966,13 @@ class WNDB(
             case Some(id) => id
             case None => unmapSenseKey(sense.id)
           }
-          out.write("%s %s %d 0\n" format (id, synsetLookup(synset.id)._1, 
+          lines :+= ("%s %s %d 0" format (id, synsetLookup(synset.id)._1, 
             entries.zipWithIndex.find(x => x._1._1.id == entry.id).map(x => x._2 + 1).get))
         }
       }    
+      for(entry <- lines.sorted) {
+        out.println(entry)
+      }
     } finally {
       out.close
     }
@@ -974,7 +981,7 @@ class WNDB(
   def unmapSenseKey(sk : String) = {
     if(sk.contains("__")) {
       val e = sk.split("__")
-      val l = e(0).substring(4)
+      val l = e(0).substring(sk.indexOf("-")+1)
       var r = e.drop(1).mkString("__")
       if(sk.endsWith("__")) {
         r = r + "__"
