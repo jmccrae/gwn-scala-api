@@ -956,18 +956,22 @@ class WNDB(
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
     out : PrintWriter) {
+    val entriesByLowercaseLemma = lexicon.entries.groupBy(entry => {
+      (entry.lemma.writtenForm.toLowerCase(), entry.lemma.partOfSpeech) })
     try {
       var lines = new collection.mutable.ListBuffer[String]()
-      for(entry <- lexicon.entries) {
+      for(entryGrp <- entriesByLowercaseLemma.values) {
         var i = 1
-        for(sense <- entry.senses) {
-          val synset = lexicon.synsetsById(sense.synsetRef)
-          val id = sense.identifier match {
-            case Some(id) => id
-            case None => unmapSenseKey(sense.id)
+        for(entry <- entryGrp) {
+          for(sense <- entry.senses) {
+            val synset = lexicon.synsetsById(sense.synsetRef)
+            val id = sense.identifier match {
+              case Some(id) => id
+              case None => unmapSenseKey(sense.id)
+            }
+            lines :+= ("%s %s %d 0" format (id, synsetLookup(synset.id)._1, i))
+            i += 1
           }
-          lines :+= ("%s %s %d 0" format (id, synsetLookup(synset.id)._1, i))
-          i += 1
         }
       }    
       for(entry <- lines.sorted) {
