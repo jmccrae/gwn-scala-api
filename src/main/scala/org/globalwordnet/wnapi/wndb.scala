@@ -959,15 +959,15 @@ class WNDB(
     try {
       var lines = new collection.mutable.ListBuffer[String]()
       for(entry <- lexicon.entries) {
+        var i = 1
         for(sense <- entry.senses) {
           val synset = lexicon.synsetsById(sense.synsetRef)
-          val entries = entriesForSynset.getOrElse(synset.id, Nil)
           val id = sense.identifier match {
             case Some(id) => id
             case None => unmapSenseKey(sense.id)
           }
-          lines :+= ("%s %s %d 0" format (id, synsetLookup(synset.id)._1, 
-            entries.zipWithIndex.find(x => x._1._1.id == entry.id).map(x => x._2 + 1).get))
+          lines :+= ("%s %s %d 0" format (id, synsetLookup(synset.id)._1, i))
+          i += 1
         }
       }    
       for(entry <- lines.sorted) {
