@@ -42,24 +42,24 @@ object OpenMultilingualWordNet {
       }
     ).groupBy(_._1).mapValues(_.map(_._2).groupBy(_._1).mapValues(_.map(_._2)))
     enLexicon match {
-      case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, Nil) =>
+      case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, frames) =>
         Lexicon(id, label, language, email, license, version,
           url, citation, entries,
           synsets.map({
-            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples, partOfSpeech, Nil) =>
+            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples, partOfSpeech, members, lexfile) =>
               Synset(id, ili, definitions ++ elements.getOrElse(id, Map()).getOrElse("definition", Nil).map({
                 case (lang, value) => Definition(value, Some(lang))
               }), iliDefinition, synsetRelations,
               synsetExamples ++ elements.getOrElse(id, Map()).getOrElse("example", Nil).map({
                 case (lang, value) => Example(value, Some(lang))
-              }), partOfSpeech)
-          }))
+              }), partOfSpeech, members, lexfile)
+          }), frames)
     }
   }
 
   private def buildLexicon(lang : Language, props : Map[String, Seq[(String, String)]], 
       lexicon : Lexicon) : Lexicon = lexicon match {
-    case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, Nil) =>
+    case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, frames) =>
       val lemmas = props.getOrElse("lemma", Nil)
       Lexicon(
         id, label, language, email, license, version, url, citation,
@@ -73,7 +73,7 @@ object OpenMultilingualWordNet {
               senses=Seq(
                 Sense(id=makeId("sense-%s-%s" format (language, lemma)), 
                   synsetRef=synset)))
-        }), synsets)
+        }), synsets, frames)
   }
 
   private def readRaw(file : File, defLang : String, prefix : String) = {

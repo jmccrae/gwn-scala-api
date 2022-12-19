@@ -750,11 +750,16 @@ class WNDB(
         }
         synsetLookup.put(id, (eightDigitCode, pos))
         data ++= eightDigitCode
-        data ++= " %02d " format (lexName(synset.subject.getOrElse("none")))
+        data ++= " %02d " format (lexName(synset.lexfile.getOrElse(synset.subject.getOrElse("none"))))
         data ++= synsetPartOfSpeech(lr, synset).get.shortForm
         val entries = entriesForSynset.getOrElse(synset.id, Nil)
         data ++= " %02x " format entries.size
-        for((entry, sense) <- entries.sortBy(_._2.id.takeRight(2))) {
+        val entriesSorted = if(synset.members != Nil) {
+          entries.sortBy(e => synset.members.indexOf(e._1.id))
+        } else {
+          entries.sortBy(_._2.id.takeRight(2))
+        }
+        for((entry, sense) <- entriesSorted) {
           data ++= entry.lemma.writtenForm.replace(" ", "_")
           sense.adjposition match {
             case Some(a) => data ++= s"(${a.shortForm})"
@@ -849,7 +854,7 @@ class WNDB(
         })
         if(!frameRefs.isEmpty) {
           // HACK: some inconsistencies in the PWN serialization
-          val frameRefs2 = if(eightDigitCode == "02599707") {
+          val frameRefs3 = if(eightDigitCode == "02599707") {
             frameRefs :+ (2,3) :+ (2,4)
           } else if(eightDigitCode == "02592711") {
             frameRefs.filterNot(_ == (2,0)) :+ (2,1) :+ (2,2)
@@ -858,16 +863,25 @@ class WNDB(
           } else {
             frameRefs
           }
+          val frameRefs2 = frameRefs3.filter(_._1 < 36)
           data ++= "%02d " format (frameRefs2.size)
           for((id1,id2) <- frameRefs2) {
             data ++= "+ %02d %02x " format (id1, id2)
           }
         }
-        for(defn <- synset.definitions) {
+        for(defn <- synset.definitions.take(1)) {
           data ++= "| " + defn.content.replaceAll("\u00a0", " ")
         }
         for(example <- synset.synsetExamples) {
-          data ++= "; " + example.content.replaceAll("\u00a0", " ") + ""
+          if(example.content.startsWith("\"")) {
+              data ++= "; " + example.content.replaceAll("\u00a0", " ") + ""
+          } else {
+            data ++= "; \"" + example.content.replaceAll("\u00a0", " ") + "\""
+            example.source match {
+              case Some(src) if !src.startsWith("http") => data ++= " - " + src
+              case _ => 
+            }
+          }
         }
         data ++= "  \n"
       }
@@ -914,6 +928,9 @@ class WNDB(
         .filter(e => posMatch(e.lemma.partOfSpeech, pos))
         .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
       for((lemma, entries) <- words) {
+        if(entries.size > 1) {
+          println(lemma + " " + pos.shortForm)
+        }
         val synsetCnt = entries.map(_.senses.size).sum
         val _ptrs = entries.flatMap({ entry =>
           entry.senses.flatMap({ sense =>

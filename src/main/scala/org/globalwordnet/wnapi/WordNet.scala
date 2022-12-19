@@ -128,7 +128,8 @@ case class Synset(id : String, ili : Option[String] = None,
   synsetRelations : Seq[SynsetRelation] = Nil, 
   synsetExamples : Seq[Example] = Nil,
   partOfSpeech : Option[PartOfSpeech] = None,
-  members : Seq[String] = Nil) extends Meta {
+  members : Seq[String] = Nil,
+  lexfile : Option[String] = None) extends Meta {
   ili match {
     case Some("in") if iliDefinition == None =>
       throw new WordNetFormatException("If the ILI is set to \"in\" there must be an ILI Definition [" + id + "]")

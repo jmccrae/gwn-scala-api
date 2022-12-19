@@ -280,7 +280,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "Example").map(readSenseExample),
       (elem \ "@partOfSpeech").headOption.map(e => readPartOfSpeech(e.text)),
       if((elem \ "@members").text == "") { Nil }
-      else { (elem \ "@members").text.split(" ") }), elem)
+      else { (elem \ "@members").text.split(" ") },
+      (elem \ "@lexfile").headOption.map(_.text)), elem)
   }
 
   private def readDefinition(elem : Node) : Definition = {
