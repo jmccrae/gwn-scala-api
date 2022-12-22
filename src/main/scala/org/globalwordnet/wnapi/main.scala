@@ -30,7 +30,8 @@ object Main {
     bySubject : Boolean = false,
     blankNodes : Boolean = true,
     wordnetLicense : Option[File] = None,
-    shortRelations : Boolean = false
+    shortRelations : Boolean = false,
+    senseOrders : Option[File] = None
   )
 
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C", "OMWNLMF")
@@ -146,6 +147,9 @@ object Main {
       opt[Unit]("short-relations") action { (x, c) =>
         c.copy(shortRelations = true)
       } text("Generate short relations in RDF exports")
+      opt[File]("sense-orders") valueName("<sense-orders.csv>") action { (x, c) =>
+        c.copy(senseOrders = Some(x))
+      } text("The ordering of senses (used to ensure WNDB export does not reorder senses)")
     }
 
     parser.parse(args, GWNAPIConfig()) match {
@@ -259,7 +263,8 @@ object Main {
           config.citation,
           config.wordnetLicense == None,
           config.coreWordNetFilter,
-          config.wordnetLicense).read(config.inputFile)
+          config.wordnetLicense,
+          config.senseOrders).read(config.inputFile)
       case "OMWN" =>
         OpenMultilingualWordNet.read(
             config.inputFile,
@@ -391,7 +396,8 @@ object Main {
           config.citation,
           config.wordnetLicense == None,
           config.coreWordNetFilter,
-          config.wordnetLicense).write(resource, config.outputFile)
+          config.wordnetLicense,
+          config.senseOrders).write(resource, config.outputFile)
       case _ =>
         System.err.println("Unsupported format: " + config.outputFormat)
         System.exit(-1)

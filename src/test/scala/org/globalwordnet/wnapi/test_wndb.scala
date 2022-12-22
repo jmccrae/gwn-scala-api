@@ -57,7 +57,7 @@ class WNDBSpec extends FlatSpec with Matchers {
 00001740 45 n 01 paternal_grandfather 0 001 + 00001848 n 0101 | A father's father; a paternal grandfather  
 00001848 45 n 01 grandfather 0 001 @ 00001941 n 0000 | the father of your father or mother  
 00001941 45 n 00 000   
-""")
+""".replaceAll("\r",""))
   }
 
   it should "output a correct index.noun file" in {
@@ -79,9 +79,9 @@ class WNDBSpec extends FlatSpec with Matchers {
         wndb.replaceAll(data, oldId, newId)
       })
 
-    wndb.writeIndex(lr.lexicons(0), noun, synsetLookup, out)
+    wndb.writeIndex(lr.lexicons(0), noun, synsetLookup, Map(), out)
 
-    sw.toString should be ("""  1 This software and database is being provided to you, the LICENSEE, by  
+    sw.toString.replaceAll("\r","") should be ("""  1 This software and database is being provided to you, the LICENSEE, by  
   2 Princeton University under the following license.  By obtaining, using  
   3 and/or copying this software and database, you agree that you have  
   4 read, understood, and will comply with these terms and conditions.:  
@@ -112,7 +112,7 @@ class WNDBSpec extends FlatSpec with Matchers {
   29 Princeton University and LICENSEE agrees to preserve same.  
 grandfather n 1 1 @ 1 0 00001848  
 paternal_grandfather n 1 1 + 1 0 00001740  
-""")
+""".replaceAll("\r",""))
   }
 
   it should "output a correct index.sense" in {
