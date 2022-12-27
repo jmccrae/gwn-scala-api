@@ -552,8 +552,8 @@ class WNDB(
     senseOrders match {
       case Some(f) => {
         Source.fromFile(f).getLines().map(line => {
-          val e = line.split(" ")
-          (e(0), e.slice(1, e.size).toList)
+          val e = line.split(",")
+          (e(0), e(2).split(" ").map(id => "oewn-" + id + "-" + e(1)).toList)
         }).toMap
       }
       case None => Map()
@@ -942,9 +942,9 @@ class WNDB(
         .filter(e => posMatch(e.lemma.partOfSpeech, pos))
         .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
       for((lemma, entries) <- words) {
-        if(entries.size > 1) {
-          println(lemma + " " + pos.shortForm)
-        }
+        //if(entries.size > 1) {
+        //  println(lemma + " " + pos.shortForm)
+        //}
         val synsetCnt = entries.map(_.senses.size).sum
         val _ptrs = entries.flatMap({ entry =>
           entry.senses.flatMap({ sense =>
@@ -968,13 +968,20 @@ class WNDB(
         val ptrsStr = ptrs.mkString("")
         var synsets2 = entries.flatMap({ entry =>
           entry.senses.map({ sense => sense.synsetRef })})
-        if(senseOrders contains lemma.replace(" ", "_")) {
-          if(senseOrders(lemma.replace(" ", "_")).toSet.equals(synsets2.toSet)) {
-            synsets2 = senseOrders(lemma.replace(" ", "_"))
-          } else {
-            System.err.println("%s has different set of keys to ordering ([%s] vs. [%s])" format (lemma, 
-              senseOrders(lemma.replace(" ", "_")), synsets2))
+        senseOrders.get(lemma.replace(" ", "_")) match {
+          case Some(newOrder) => {
+            if(newOrder(0).charAt(newOrder(0).size - 1) == pos.shortForm.charAt(0)) {
+              val newOrderNoPos = newOrder.map(s => s.substring(0, s.size - 2))
+              val synsets2NoPos = synsets2.map(s => s.substring(0, s.size - 2))
+              if(newOrderNoPos.toSet.equals(synsets2NoPos.toSet)) {
+                synsets2 = synsets2.sortBy(sskey => newOrderNoPos.indexOf(sskey.substring(0, sskey.size - 2)))
+              } else {
+                System.err.println("%s has different set of keys to ordering ([%s] vs. [%s])" format (lemma, 
+                  newOrder, synsets2))
+              }
+            }
           }
+          case None => {}
         }
         val synsets = synsets2.map(synsetRef => {
             synsetLookup.getOrElse(synsetRef,

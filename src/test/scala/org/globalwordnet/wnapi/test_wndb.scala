@@ -79,7 +79,7 @@ class WNDBSpec extends FlatSpec with Matchers {
         wndb.replaceAll(data, oldId, newId)
       })
 
-    wndb.writeIndex(lr.lexicons(0), noun, synsetLookup, Map(), out)
+    wndb.writeIndex(lr.lexicons(0), noun, synsetLookup, Map("grandfather" -> List("example-en-10161911-n")), out)
 
     sw.toString.replaceAll("\r","") should be ("""  1 This software and database is being provided to you, the LICENSEE, by  
   2 Princeton University under the following license.  By obtaining, using  
