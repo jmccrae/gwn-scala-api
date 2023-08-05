@@ -172,7 +172,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Count must be an object")
       }
     }
-    implicit val metaCountFormat = new MetaFormat(countFormat)
+    implicit val metaCountFormat : MetaFormat[Count] = new MetaFormat(countFormat)
 
     implicit object tagFormat extends JsonFormat[Tag] {
       def write(t : Tag) = JsObject(Map(
@@ -221,7 +221,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Definition must be an object")
       }
     }
-    implicit val metaDefinitionFormat = new MetaFormat(definitionFormat)
+    implicit val metaDefinitionFormat : MetaFormat[Definition] = new MetaFormat(definitionFormat)
     object iliDefinitionFormat extends JsonFormat[ILIDefinition] {
       def write(d : ILIDefinition) = JsObject(
         "gloss" -> JsString(d.content))
@@ -232,7 +232,7 @@ object WNJSON extends Format {
           throw new WNJsonException("ILI Definition must be an object")
       }
     }
-    implicit val metaILIDefinitionFormat = new MetaFormat(iliDefinitionFormat)
+    implicit val metaILIDefinitionFormat : MetaFormat[ILIDefinition] = new MetaFormat(iliDefinitionFormat)
 
     object senseExampleFormat extends JsonFormat[Example] {
       def write(e : Example) = JsObject(Map(
@@ -247,7 +247,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Sense example must be an object")
       }
     }
-    implicit val metaExampleFormat = new MetaFormat(senseExampleFormat)
+    implicit val metaExampleFormat : MetaFormat[Example] = new MetaFormat(senseExampleFormat)
     object synsetRelationFormat extends JsonFormat[SynsetRelation] {
       def write(r : SynsetRelation) = r.relType match {
         case other(x) => JsObject(
@@ -269,7 +269,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Synset relation must be an object")
       }
     }
-    implicit val metaSynsetRelationFormat = new MetaFormat(synsetRelationFormat)
+    implicit val metaSynsetRelationFormat : MetaFormat[SynsetRelation] = new MetaFormat(synsetRelationFormat)
 
     object senseRelationFormat extends JsonFormat[SenseRelation] {
       def write(r : SenseRelation) = r.relType match {
@@ -292,7 +292,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Sense relation must be an object")
       }
     }
-    implicit val metaSenseRelationFormat = new MetaFormat(senseRelationFormat)
+    implicit val metaSenseRelationFormat : MetaFormat[SenseRelation] = new MetaFormat(senseRelationFormat)
 
     object senseFormat extends JsonFormat[Sense] {
       def write(s : Sense) = new JsObject(Map(
@@ -331,7 +331,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Sense should be an object")
       }
     }
-    implicit val metaSenseFormat = new MetaFormat(senseFormat)
+    implicit val metaSenseFormat : MetaFormat[Sense] = new MetaFormat(senseFormat)
 
     implicit object syntacticBehaviourFormat extends JsonFormat[SyntacticBehaviour] {
       def write(e : SyntacticBehaviour) = if(e.senses.isEmpty) {
@@ -412,7 +412,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Lexical entry must be an object")
       }
     }
-    implicit val metaLexicalEntryFormat = new MetaFormat(lexicalEntryFormat)
+    implicit val metaLexicalEntryFormat : MetaFormat[LexicalEntry] = new MetaFormat(lexicalEntryFormat)
 
     object synsetFormat extends JsonFormat[Synset] {
       def write(s : Synset) = JsObject(Map(
@@ -455,7 +455,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Synset must be an object")
       }
     }
-    implicit val metaSynsetFormat = new MetaFormat(synsetFormat)
+    implicit val metaSynsetFormat : MetaFormat[Synset] = new MetaFormat(synsetFormat)
 
     object lexiconFormat extends JsonFormat[Lexicon] {
       def write(l : Lexicon) = JsObject(Map(
@@ -500,7 +500,7 @@ object WNJSON extends Format {
           throw new WNJsonException("Lexicon must be an object")
       }
     }
-    implicit val metaLexiconFormat = new MetaFormat(lexiconFormat)
+    implicit val metaLexiconFormat : MetaFormat[Lexicon] = new MetaFormat(lexiconFormat)
     implicit object lexicalResourceFormat extends JsonFormat[LexicalResource] {
       def write(lr : LexicalResource) = JsObject(
         "@context" -> JsString("http://globalwordnet.github.io/schemas/wn-json-context-1.0.json"),
@@ -525,7 +525,7 @@ object WNJSON extends Format {
     JsonParser(new ReaderAsSprayParserInput(input)).convertTo[LexicalResource]
   }
 
-  private def prettyWrite(out : PrintWriter, v : JsValue, indent : Int) {
+  private def prettyWrite(out : PrintWriter, v : JsValue, indent : Int) : Unit = {
     v match {
       case JsObject(m) =>
         out.println("{")

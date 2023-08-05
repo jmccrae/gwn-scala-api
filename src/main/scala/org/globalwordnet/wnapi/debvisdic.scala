@@ -114,18 +114,18 @@ class DebVisDic(id : String, label : String, language : Language,
         (elem \ "SUMO" \ "@type").text + (elem \ "SUMO").text }).mkString(", ")
   }
 
-  def write(resource : LexicalResource, output : File) {
+  def write(resource : LexicalResource, output : File) : Unit = {
     write(resource, new java.io.FileWriter(output))
   }
 
-  def write(resource : LexicalResource, _output : Writer) {
+  def write(resource : LexicalResource, _output : Writer) : Unit = {
     val out = new PrintWriter(_output)
     writeLexicalResource(out, resource)
     out.flush
     out.close
   } 
 
-  private def writeLexicalResource(out : PrintWriter, e : LexicalResource) {
+  private def writeLexicalResource(out : PrintWriter, e : LexicalResource) : Unit = {
     out.print("""<?xml version="1.0" encoding="UTF-8"?>
 <WN>""")
     if(e.lexicons.size != 1) {
@@ -133,7 +133,7 @@ class DebVisDic(id : String, label : String, language : Language,
     }
     val synset2Entries : Map[String, Seq[LexicalEntry]] = e.lexicons(0).entries.flatMap({ e =>
       e.senses.map(s => s.synsetRef -> e) 
-    }).groupBy(_._1).mapValues(_.map(_._2))
+    }).groupBy(_._1).view.mapValues(_.map(_._2)).toMap
     for(synset <- e.lexicons(0).synsets) {
       out.print(s"""
   <SYNSET>
@@ -166,7 +166,7 @@ class DebVisDic(id : String, label : String, language : Language,
   private val iliIdType2 = "<(i\\d+)>".r
  
   private def loadILIMap(fileName : File) : Map[(Int, String), String] = {
-    (io.Source.fromFile(fileName).getLines.filter(_.contains("owl:sameAs")).flatMap { line =>
+    (io.Source.fromFile(fileName).getLines().filter(_.contains("owl:sameAs")).flatMap { line =>
       val elems = line.split("\\s+")
       val ili = elems(0) match {
         case iliIdType1(id) => id

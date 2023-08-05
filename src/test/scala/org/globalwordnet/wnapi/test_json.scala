@@ -67,8 +67,8 @@ class JsonSpec extends FlatSpec with Matchers {
     WNJSON.write(resource, f)
   }
   it should "roundtrip" in {
-    val text1 = io.Source.fromFile("src/test/resources/example.json").getLines.mkString(" ").replaceAll("\\s+", "")
-    val text2 = io.Source.fromFile(f).getLines.mkString("\n").replaceAll("\\s+","")
+    val text1 = io.Source.fromFile("src/test/resources/example.json").getLines().mkString(" ").replaceAll("\\s+", "")
+    val text2 = io.Source.fromFile(f).getLines().mkString("\n").replaceAll("\\s+","")
     text2.length should be (text1.length)
     //val f1 = text1.groupBy(x => x).mapValues(_.size)
     //val f2 = text2.groupBy(x => x).mapValues(_.size)

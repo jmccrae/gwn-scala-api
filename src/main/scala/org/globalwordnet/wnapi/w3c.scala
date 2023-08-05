@@ -61,7 +61,7 @@ class W3C(id : String, label : String, language : Language,
          model.createResource(wn20schema + "AdverbWordSense")).asScala) {
            senses += readSense(sense, adverb, model)
     }
-    senses2entries(senses)
+    senses2entries(senses.toSeq)
   }
 
   def senses2entries(senses : Seq[(Sense,LexicalEntry)]) : Seq[LexicalEntry] = {

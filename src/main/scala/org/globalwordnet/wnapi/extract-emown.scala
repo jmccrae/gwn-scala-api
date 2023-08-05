@@ -13,7 +13,7 @@ object EmoWNExtract {
         x._2 == "213").map(_._1)
   }
 
-  def main(args : Array[String]) {
+  def main(args : Array[String]) : Unit = {
 
     import org.globalwordnet.api.serialize.plWordNetReader._
     import org.globalwordnet.api.plwn._
@@ -30,7 +30,7 @@ object EmoWNExtract {
 
     val (em, sm) = map_plwordnet_to_pwn(eentries, esenses, esynsets, pwn_entries, pwn_defns)
 
-    val plD = pdescriptions.mapValues(parseDescription)
+    val plD = pdescriptions.view.mapValues(parseDescription)
  
     var nolink = 0
     var noili = 0

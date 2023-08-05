@@ -15,7 +15,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       entry.senses.map({ sense =>
         sense.synsetRef -> (entry, sense)
       })
-    }).toMultiMap
+    }).iterator.toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
     val data = (new ByteStringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
@@ -67,7 +67,7 @@ class WNDBSpec extends FlatSpec with Matchers {
       entry.senses.map({ sense =>
         sense.synsetRef -> (entry, sense)
       })
-    }).toMultiMap
+    }).iterator.toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
     val data = (new ByteStringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     
@@ -122,7 +122,7 @@ paternal_grandfather n 1 1 + 1 0 00001740
       entry.senses.map({ sense =>
         sense.synsetRef -> (entry, sense)
       })
-    }).toMultiMap
+    }).iterator.toMultiMap
     val synsetLookup = collection.mutable.Map[String, (String, PartOfSpeech)]()
     val data = (new ByteStringBuilder(), collection.mutable.Map[String, Seq[Int]]())
     

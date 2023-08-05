@@ -102,11 +102,11 @@ package serialize {
       val lexrelations = (root \\ "lexicalrelations").filter(
         x => (lexicalunits contains (x \ "@child").text)).map(
         x => ((x \ "@child").text, (x \ "@parent").text, (x \ "@relation").text)).
-        groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
+        groupBy(_._1).view.mapValues(_.map(x => (x._2, x._3))).toMap
       val synrelations = (root \\ "synsetrelations").filter(
         x => (synsets contains (x \ "@child").text)).map(
         x => ((x \ "@child").text, (x \ "@parent").text, (x \ "@relation").text)).
-        groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
+        groupBy(_._1).view.mapValues(_.map(x => (x._2, x._3))).toMap
        (pwn_entries, synsets, lexrelations, synrelations, descriptions)
     }
 
@@ -114,7 +114,7 @@ package serialize {
       synsets.flatMap({
         case (sid, (lids, _)) =>
           lids.map(_ -> sid)
-      }).groupBy(_._1).mapValues(_.map(_._2).toSeq)
+      }).groupBy(_._1).view.mapValues(_.map(_._2).toSeq).toMap
     }
 
     def polishToPos(polish : String) = polish match {
@@ -308,8 +308,8 @@ package serialize {
 
       val synset_definitions = wordnet.synsets.map(x => (x.id, x.definitions.head.content, x.ili.get))
 
-      (lemma_synsets.groupBy(_._1).mapValues(_.flatMap(_._2)),
-        synset_definitions.groupBy(_._1).mapValues(_.map(_._2).toSeq),
+      (lemma_synsets.groupBy(_._1).view.mapValues(_.flatMap(_._2)).toMap,
+        synset_definitions.groupBy(_._1).view.mapValues(_.map(_._2).toSeq).toMap,
         synset_definitions.map(x => x._1 -> x._3).toMap)
     }
 
@@ -655,7 +655,7 @@ package serialize {
       val enLexicon = {
         val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(true, plWordNetFile)
 
-        val enD = descriptions.mapValues(parseDescription)
+        val enD = descriptions.view.mapValues(parseDescription).toMap
         val (pwn_entries, pwn_defns, ili) = load_pwn(wn31)
 
         val senses = build_senses(synsets)
@@ -671,7 +671,7 @@ package serialize {
       val plLexicon = {
         val (entries, synsets, lexrelations, synrelations, descriptions) = load_plwordnet(false, plWordNetFile)
 
-        val plD = descriptions.mapValues(parseDescription)
+        val plD = descriptions.view.mapValues(parseDescription).toMap
         System.err.println("Error Count: %d" format (errorCount))
         recognitionErrors.flush()
 

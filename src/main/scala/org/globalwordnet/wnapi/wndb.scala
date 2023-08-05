@@ -61,12 +61,12 @@ class WNDB(
   }
   
   private final val filterLine = "([nvar]) \\[(.*)%(.*)\\] \\[(.*)\\]( .*)?".r
-  private def loadFilter(file : File) = io.Source.fromFile(file).getLines.map({
+  private def loadFilter(file : File) = io.Source.fromFile(file).getLines().map({
     case filterLine(pos, keylemma, sensekey, lemma, defn) => "%s-%s#%s" format (keylemma, pos, sensekey)
   }).toSet
 
 
-  private def loadLexname(file : File) = io.Source.fromFile(file).getLines.map({ line =>
+  private def loadLexname(file : File) = io.Source.fromFile(file).getLines().map({ line =>
     val l = line.split("\\s+")
     l(0).toInt -> l(1)
   }).toMap
@@ -77,7 +77,7 @@ class WNDB(
         case Array(variant,lemma) => Some(lemma -> variant)
         case _ => None
       }
-    }).flatten.toSeq.groupBy(_._1).mapValues(_.map(_._2).toList)
+    }).flatten.toSeq.groupBy(_._1).view.mapValues(_.map(_._2).toList).toMap
   }
 
   private def buildSatellites(items : Seq[WordNetDataItem]) = {
@@ -108,7 +108,7 @@ class WNDB(
     }).toMap
 
 
-  private def loadCounts(file : File) = io.Source.fromFile(file).getLines.map({ line =>
+  private def loadCounts(file : File) = io.Source.fromFile(file).getLines().map({ line =>
     val l = line.split("\\s+")
     l(1) -> l(0).toInt
   }).toMap
@@ -195,7 +195,7 @@ class WNDB(
                     case Frame(_, wnum) => wnum == 0 || wnum == x.lemmas.find(_.lemma == lemma).get.synNo 
                   })
                   .map(y => y -> ("%s-%08d-%02d" format (lexEntId, x.offset, x.lemmas.find(_.lemma == lemma).get.synNo)))
-            }).toMultiMap
+            }).iterator.toMultiMap
             (for((frame,senses) <- frames) yield {
               SyntacticBehaviour(None, subcategorizationFrame=sentences.getOrElse(frame.frameId, "ERROR"),senses=senses)
             }).toSeq 
@@ -275,7 +275,7 @@ class WNDB(
     }
 
   private def loadSentences(fileName : File) : Map[Int, String] = {
-    (io.Source.fromFile(fileName).getLines.map { line =>
+    (io.Source.fromFile(fileName).getLines().map { line =>
       val (id, sentence) = line.splitAt(line.indexOf(" "))
       id.toInt -> sentence.drop(1)
     }).toMap
@@ -285,7 +285,7 @@ class WNDB(
   private val iliIdType2 = "<(i\\d+)>".r
 
   private def loadILIMap(fileName : File) : Map[(Int, String), String] = {
-    (io.Source.fromFile(fileName).getLines.filter(_.contains("owl:sameAs")).flatMap { line =>
+    (io.Source.fromFile(fileName).getLines().filter(_.contains("owl:sameAs")).flatMap { line =>
       val elems = line.split("\\s+")
       val ili = elems(0) match {
         case iliIdType1(id) => id
@@ -311,7 +311,7 @@ class WNDB(
     }).toMap
   }
 
-  private def dumpDefinitions(items : Seq[WordNetDataItem]) {
+  private def dumpDefinitions(items : Seq[WordNetDataItem]) : Unit = {
     val out = new java.io.PrintWriter("defs-wn30.csv")
     for(WordNetDataItem(offset, _, pos, _, _, _, gloss) <- items) {
       out.println("%s,%08d,%s" format (gloss.replaceAll(",",""), offset, pos.shortForm))
@@ -504,7 +504,7 @@ class WNDB(
  
   }
 
-  def write(lr : LexicalResource, file : File) { 
+  def write(lr : LexicalResource, file : File) : Unit = { 
     if(lr.lexicons.size != 1) {
       throw new WNDBNotSerializable("WNDB can only write a single lexicon")
     }
@@ -514,7 +514,7 @@ class WNDB(
       entry.senses.map({ sense =>
         sense.synsetRef -> (entry, sense)
       })
-    }).toMultiMap
+    }).iterator.toMultiMap
     val synsetLookup = collection.mutable.Map[String,(String,PartOfSpeech)]()
     val stringBuilders = Seq(adjective,adverb,noun,verb)
       .map(p => p -> (new ByteStringBuilder(), collection.mutable.Map[String,Seq[Int]]())).toMap
@@ -548,7 +548,7 @@ class WNDB(
   }
 
   def replaceAll(data : (ByteStringBuilder, collection.mutable.Map[String, Seq[Int]]),
-      oldId : String, newId : String) {
+      oldId : String, newId : String) : Unit = {
     data match {
         case (sb, indexes) => indexes.getOrElse(oldId, Nil).map(i => {
             sb.replace(i, i + oldId.length, newId)
@@ -556,7 +556,7 @@ class WNDB(
     }
   }
 
-  def writeExc(lexicon : Lexicon, pos : PartOfSpeech, target : File) { 
+  def writeExc(lexicon : Lexicon, pos : PartOfSpeech, target : File) : Unit = { 
     val out = new PrintWriter(target)
     try {
       for((form, lemma) <-
@@ -731,7 +731,7 @@ class WNDB(
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
     _data : (ByteStringBuilder, collection.mutable.Map[String, Seq[Int]]), 
-    updateId : (String, String) => Unit) {
+    updateId : (String, String) => Unit) : Unit = {
       val (data, indexes) = _data
       if(usePrincetonHeader) {
         data ++= PRINCETON_HEADER
@@ -823,9 +823,9 @@ class WNDB(
         val frames2 : Map[String, Seq[SyntacticBehaviour]] = entries.
           flatMap(x => x._2.subcats.map(y => (lexicon.framesById(y), x._2.id))).
           groupBy(_._1.subcategorizationFrame).
-          mapValues(y => Seq(SyntacticBehaviour(None, 
+          view.mapValues(y => Seq(SyntacticBehaviour(None, 
             y.head._1.subcategorizationFrame,
-            y.map(_._2))))
+            y.map(_._2)))).toMap
         val frames : Map[String, Seq[SyntacticBehaviour]] = entries.flatMap(_._1.syntacticBehaviours).groupBy(_.subcategorizationFrame) ++ frames2
         val frameRefs : Seq[(Int, Int)] = frames.toSeq.flatMap({
           case (subcat, frameList) => {
@@ -849,7 +849,7 @@ class WNDB(
                 }
               })
             }
-            wNum.map(x => (PRINCETON_FRAMES(subcat), x))
+            wNum.map(x => (PRINCETON_FRAMES.getOrElse(subcat,0), x))
           }
         })
         if(!frameRefs.isEmpty) {
@@ -913,7 +913,7 @@ class WNDB(
 
   def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, 
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
-    out : PrintWriter) { 
+    out : PrintWriter) : Unit = { 
     try {
       if(usePrincetonHeader) {
         out.print(PRINCETON_HEADER)
@@ -972,7 +972,7 @@ class WNDB(
   def writeSenseIndex(lexicon : Lexicon, 
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
     entriesForSynset : Map[String, Seq[(LexicalEntry,Sense)]],
-    out : PrintWriter) {
+    out : PrintWriter) : Unit = {
     val entriesByLowercaseLemma = lexicon.entries.groupBy(entry => {
       (entry.lemma.writtenForm.toLowerCase(), entry.lemma.partOfSpeech) })
     try {

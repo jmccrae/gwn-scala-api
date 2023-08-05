@@ -67,8 +67,8 @@ class XMLSpec extends FlatSpec with Matchers {
     new WNLMF(false).write(resource, f)
   }
   it should "roundtrip" in {
-    val text1 = io.Source.fromFile("src/test/resources/example.xml").getLines.mkString(" ").replaceAll("<!--[^!]*-->", "").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
-    val text2 = io.Source.fromFile(f).getLines.mkString(" ").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
+    val text1 = io.Source.fromFile("src/test/resources/example.xml").getLines().mkString(" ").replaceAll("<!--[^!]*-->", "").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
+    val text2 = io.Source.fromFile(f).getLines().mkString(" ").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
     text2 should be (text1)
   }
 

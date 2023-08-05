@@ -6,7 +6,7 @@ import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
 import org.apache.jena.rdf.model.{Model, ModelFactory, Resource, Property, RDFNode, Literal}
 import org.apache.jena.vocabulary.{RDF, RDFS, DC_11, SKOS, OWL, XSD}
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.language.dynamics
 import scala.language.reflectiveCalls
 
@@ -23,13 +23,13 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
 
   private implicit class PimpedResource(resource : Resource) {
     def \(p : Property)(implicit model : Model) : Iterator[RDFNode] = {
-      model.listObjectsOfProperty(resource, p)
+      asScala(model.listObjectsOfProperty(resource, p))
     }
     def \(r : Resource)(implicit model : Model) : Iterator[RDFNode] = {
       \(model.createProperty(r.getURI()))
     }
     def \*(r : Property)(implicit model : Model) : Iterator[Resource] = {
-      model.listObjectsOfProperty(resource, r).flatMap({
+      asScala(model.listObjectsOfProperty(resource, r)).flatMap({
         case r : Resource => Some(r)
         case _ => None
       })
@@ -37,11 +37,11 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     def \*(r : Resource)(implicit model : Model) : Iterator[Resource] = \*(model.createProperty(r.getURI()))(model)
     def /(r : Resource)(implicit model : Model) : Iterator[Resource] = /(model.createProperty(r.getURI()))(model)
     def /(p : Property)(implicit model : Model) : Iterator[Resource] = {
-      model.listSubjectsWithProperty(p, resource)
+      asScala(model.listSubjectsWithProperty(p, resource))
     }
     def lit(r : Resource)(implicit model : Model) : Iterator[Literal] = lit(model.createProperty(r.getURI()))(model)
     def lit(p : Property)(implicit model : Model) : Iterator[Literal] = {
-      model.listObjectsOfProperty(resource, p).flatMap({
+      asScala(model.listObjectsOfProperty(resource, p)).flatMap({
         case l : Literal => Some(l)
         case _ => None
       })
@@ -50,7 +50,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       def ++(vs : Seq[RDFNode]) = vs.foreach({v =>
         resource.addProperty(p, v)
       })
-      def +(v : RDFNode) {
+      def +(v : RDFNode) : Unit = {
         resource.addProperty(p ,v)
       }
     }
@@ -58,7 +58,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       def ++(vs : Seq[RDFNode]) = vs.foreach({v =>
         resource.addProperty(model.createProperty(r.getURI()), v)
       })
-      def +(v : RDFNode) {
+      def +(v : RDFNode) : Unit = {
         resource.addProperty(model.createProperty(r.getURI()) ,v)
       }
     }
@@ -66,7 +66,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       def ++(vs : Seq[Resource]) = vs.foreach({v =>
         v.addProperty(p, resource)
       })
-      def +(v : Resource) {
+      def +(v : Resource) : Unit = {
         v.addProperty(p ,resource)
       }
     }
@@ -74,7 +74,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       def ++(vs : Seq[Resource]) = vs.foreach({v =>
         v.addProperty(model.createProperty(r.getURI()), resource)
       })
-      def +(v : Resource) {
+      def +(v : Resource) : Unit = {
         v.addProperty(model.createProperty(r.getURI()), resource)
       }
     }
@@ -85,7 +85,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   private implicit class PimpedRDFNodeIterator[A <: RDFNode](iter : Iterator[A]) {
     def headOrElse(foo : => A) = {
       if(iter.hasNext) {
-        iter.next
+        iter.next()
       } else {
         foo
       }
@@ -93,7 +93,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
 
     def headOption = {
       if(iter.hasNext) {
-        Some(iter.next)
+        Some(iter.next())
       } else {
         None
       }
@@ -139,7 +139,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   }
 
   private def readLexicalResource(implicit model : Model) : LexicalResource = {
-    LexicalResource(model.listSubjectsWithProperty(RDF.`type`, LIME.Lexicon).map(readLexicon).toSeq)
+    LexicalResource(asScala(model.listSubjectsWithProperty(RDF.`type`, LIME.Lexicon)).map(readLexicon _).toSeq)
   }
 
   private def readLexicon(r : Resource)(implicit model : Model) : Lexicon = {
@@ -395,24 +395,24 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     })
   }
 
-  def write(lr : LexicalResource, output : File) {
+  def write(lr : LexicalResource, output : File) : Unit = {
     write(lr, new FileWriter(output),
           output.toURI().toString() + "#",
           WNRDF.guessLang(output), true)
   } 
 
-  def write(lr : LexicalResource, output : File, lang : String, bnodes : Boolean) {
+  def write(lr : LexicalResource, output : File, lang : String, bnodes : Boolean) : Unit = {
     write(lr, new FileWriter(output),
       output.toURI().toString() + "#",
       lang, bnodes)
   }
 
-  def write(lr : LexicalResource, output : File, baseUrl : String, lang : String, bnodes : Boolean) {
+  def write(lr : LexicalResource, output : File, baseUrl : String, lang : String, bnodes : Boolean) : Unit = {
     write(lr, new FileWriter(output),
       baseUrl, lang, bnodes)
   }
 
-  def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String, bnodes : Boolean) {
+  def write(lr : LexicalResource, output : Writer, baseUrl : String, lang : String, bnodes : Boolean) : Unit = {
     var model = writeLexicalResource(lr)(baseUrl)
     for((prefix, ns) <- namespaces) {
       model.setNsPrefix(prefix, ns.prefix)
@@ -424,7 +424,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     output.flush()
   }
 
-  private def writeMeta(a : Meta, r : Resource)(implicit model : Model) {
+  private def writeMeta(a : Meta, r : Resource)(implicit model : Model) : Unit = {
     a.contributor match {
       case Some(l) => 
         r + DC_11.contributor + model.createLiteral(l)
@@ -736,14 +736,14 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   private def removeBlanks(model : Model, baseUrl : String) : Model = {
     val random = new scala.util.Random()
     var remap = collection.mutable.HashMap[Resource, Resource]()
-    for(stat <- model.listStatements) {
-       if(stat.getSubject().isAnon() && !remap.containsKey(stat.getSubject())) {
+    for(stat <- asScala(model.listStatements)) {
+       if(stat.getSubject().isAnon() && !remap.contains(stat.getSubject())) {
          val bytes = new Array[Byte](32)
          random.nextBytes(bytes)
          val newRes = model.createResource(baseUrl + bytes.map(x => "%X" format x).mkString(""))
          remap.put(stat.getSubject(), newRes)
        }
-       if(stat.getObject().isAnon() && !remap.containsKey(stat.getObject())) {
+       if(stat.getObject().isAnon() && !remap.contains(stat.getObject().asInstanceOf[Resource])) {
          val bytes = new Array[Byte](32)
          random.nextBytes(bytes)
          val newRes = model.createResource(baseUrl + bytes.map(x => "%X" format x).mkString(""))
@@ -752,7 +752,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     }
     if(!remap.isEmpty) {
       val newModel = ModelFactory.createDefaultModel()
-      for(stat <- model.listStatements) {
+      for(stat <- asScala(model.listStatements)) {
         newModel.add(newModel.createStatement(
           remap.getOrElse(stat.getSubject(), stat.getSubject()),
           stat.getPredicate(),

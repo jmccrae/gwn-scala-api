@@ -5,9 +5,9 @@ import java.io.File
 import org.globalwordnet.api.wn._
 import org.scalatest.{Tag => _, _}
 
-class CoverageTest extends FlatSpec with Matchers {
+class CoverageTest extends org.scalatest.FlatSpec with Matchers {
   var resource : LexicalResource = null
-  def testMetaData(m : Meta) {
+  def testMetaData(m : Meta) : Unit = {
     m.contributor should be (Some("contributor"))
     m.coverage should be (Some("coverage"))
     m.creator should be (Some("creator"))
@@ -27,7 +27,7 @@ class CoverageTest extends FlatSpec with Matchers {
     m.confidenceScore should be (Some(1.0))
   }
 
-  def testCoverage(r : LexicalResource) {
+  def testCoverage(r : LexicalResource) : Unit = {
     r.lexicons should have size (1)
     val l = r.lexicons(0)
     l.id should be ("ex2")

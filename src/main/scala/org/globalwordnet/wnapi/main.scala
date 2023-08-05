@@ -36,7 +36,7 @@ object Main {
   final val supportedInputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB", "OMWN", "PLWN", "DEBVISDIC", "W3C", "OMWNLMF")
   final val supportedOutputFormats = Seq("WNLMF", "JSON", "RDF", "WNDB")
 
-  def main(args : Array[String]) {
+  def main(args : Array[String]) : Unit = {
     val parser = new scopt.OptionParser[GWNAPIConfig]("gwn") {
       head("Global WordNet Converter and Validator", "0.2")
 
@@ -44,7 +44,7 @@ object Main {
         c.copy(validate = true)
       } text("Validate the input file only")
 
-      opt[File]('i', "input") required() valueName("<inputFile>") action { (x, c) =>
+      opt[File]('i', "input").required() valueName("<inputFile>") action { (x, c) =>
         c.copy(inputFile = x)
       } validate { x =>
         if(x.exists) { success } else { failure("Input file does not exist") }
@@ -180,7 +180,7 @@ object Main {
     }
   }
 
-  def validate(config : GWNAPIConfig) {
+  def validate(config : GWNAPIConfig) : Unit = {
     try {
       val resource : LexicalResource = config.inputFormat match {
         case "WNLMF" =>
@@ -220,7 +220,7 @@ object Main {
     }
   }
  
-  def convertFormat(config : GWNAPIConfig) {
+  def convertFormat(config : GWNAPIConfig) : Unit = {
     val resource : LexicalResource = config.inputFormat match {
       case "WNLMF" =>
         new WNLMF().read(config.inputFile)

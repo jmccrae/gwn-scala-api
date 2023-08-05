@@ -14,10 +14,10 @@ object OpenMultilingualWordNet {
 
   private def buildRaw(input : Iterator[(String, (String, String, String))],
       baseResource : LexicalResource) = {
-    val m : Map[String, Map[String, Seq[(String, String)]]] = input.toSeq.groupBy(_._1).mapValues({
+    val m : Map[String, Map[String, Seq[(String, String)]]] = input.toSeq.groupBy(_._1).view.mapValues({
       ss =>
-        ss.map(_._2).groupBy(_._1).mapValues(_.map(x => (x._2, x._3)))
-    })
+        ss.map(_._2).groupBy(_._1).view.mapValues(_.map(x => (x._2, x._3))).toMap
+    }).toMap
     val languages = m.keys.map(Language.get).toSet ++ baseResource.lexicons.map(_.language) - Language.ENGLISH
     LexicalResource(
       Seq(buildEnLexicon(m, baseResource.lexicons.find(_.language == Language.ENGLISH).get)) ++
@@ -40,7 +40,7 @@ object OpenMultilingualWordNet {
       } yield {
         synset -> (prop -> (Language.get(lang), value))
       }
-    ).groupBy(_._1).mapValues(_.map(_._2).groupBy(_._1).mapValues(_.map(_._2)))
+    ).groupBy(_._1).view.mapValues(_.map(_._2).groupBy(_._1).view.mapValues(_.map(_._2)).toMap).toMap
     enLexicon match {
       case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, frames) =>
         Lexicon(id, label, language, email, license, version,
@@ -77,7 +77,7 @@ object OpenMultilingualWordNet {
   }
 
   private def readRaw(file : File, defLang : String, prefix : String) = {
-    for(line <- io.Source.fromFile(file).getLines if !line.startsWith("#")) yield {
+    for(line <- io.Source.fromFile(file).getLines() if !line.startsWith("#")) yield {
       val elems = line.split("\t")
       val synset = prefix + elems(0)
       val rel = elems(1)

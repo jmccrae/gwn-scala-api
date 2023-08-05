@@ -3,13 +3,13 @@ import org.globalwordnet.api.wn._
 
 object MultiMap {
   import scala.language.higherKinds
-  implicit class MultiMapFromTraversable[A, B, T[X] <: scala.collection.TraversableLike[X,T[X]]](t : T[(A, B)]) {
-    def toMultiMap(implicit cbf: scala.collection.generic.CanBuildFrom[T[A],B,T[B]], cbf2 : scala.collection.generic.CanBuildFrom[T[(A,B)], B, T[B]]) : Map[A, T[B]] = {
-      t.groupBy(_._1).mapValues(_.map(_._2)) } }
+//  implicit class MultiMapFromTraversable[A, B, T[X] <: scala.collection.Iterable[X]](t : T[(A, B)]) {
+//    def toMultiMap(implicit cbf: scala.collection.generic.CanBuildFrom[T[A],B,T[B]], cbf2 : scala.collection.generic.CanBuildFrom[T[(A,B)], B, T[B]]) : Map[A, T[B]] = {
+//      t.groupBy(_._1).view.mapValues(_.map(_._2)).toMap } }
 
   implicit class MultiMapFromIterator[A, B](t : Iterator[(A,B)]) {
-    def toMultiMap : Map[A, Set[B]] = {
-      t.toSeq.groupBy(_._1).mapValues(_.map(_._2).toSet) } }
+    def toMultiMap : Map[A, Seq[B]] = {
+      t.toSeq.groupBy(_._1).view.mapValues(_.map(_._2).toSeq).toMap } }
 }
 
 /** Split a resource by subject and name each subject */
@@ -24,12 +24,12 @@ object BySubject {
     for(lexicon <- resource.lexicons) {
       val synsetsBySubject = lexicon.synsets.map({ss =>
           ss.subject.getOrElse("") -> ss
-      }).toMultiMap
+      }).iterator.toMultiMap
       val entriesBySynset : Map[String, Seq[Int]] = lexicon.entries.zipWithIndex.flatMap({ case(e, id) =>
         e.senses.map({ s =>
           s.synsetRef -> id
         })
-      }).toMultiMap
+      }).iterator.toMultiMap
       for((subj,synsets) <- synsetsBySubject) {
         val synsetIds = synsets.map(_.id).toSet
         lexicons += ((subj,
@@ -43,7 +43,7 @@ object BySubject {
       }
     }
     lexicons.groupBy(_._1).values.map(s => 
-        s(0)._1 -> LexicalResource(s.map(_._2))).toSeq
+        s(0)._1 -> LexicalResource(s.map(_._2).toSeq)).toSeq
   }
 
   private def mapEntry(entry : LexicalEntry, ids : Set[String]) : LexicalEntry = {

@@ -60,8 +60,8 @@ class DebVisDicSpec extends FlatSpec with Matchers {
     dvdReader.write(model1, file1)
     val model2 = dvdReader.read(file1)
     dvdReader.write(model2, file2)
-    val data1 = io.Source.fromFile(file1).getLines.mkString("\n")
-    val data2 = io.Source.fromFile(file2).getLines.mkString("\n")
+    val data1 = io.Source.fromFile(file1).getLines().mkString("\n")
+    val data2 = io.Source.fromFile(file2).getLines().mkString("\n")
     data1 should be (data2)
   }
 

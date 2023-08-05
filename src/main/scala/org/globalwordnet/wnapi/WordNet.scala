@@ -64,14 +64,14 @@ case class LexicalResource(lexicons : Seq[Lexicon]) {
       entry.senses.map({ sense =>
         sense.synsetRef -> entry.lemma.writtenForm
       })
-    })).toMultiMap
+    })).iterator.toMultiMap
   }
   lazy val entryObjectsForSynset : Map[String, Seq[LexicalEntry]] = {
     lexicons.flatMap(lexicon => lexicon.entries.flatMap({ entry =>
       entry.senses.map({ sense =>
         sense.synsetRef -> entry
       })
-    })).toMultiMap
+    })).iterator.toMultiMap
   }
  }
 
@@ -86,7 +86,7 @@ case class Lexicon(id : String,
     throw new WordNetFormatException("Synset identifiers do not start with %s-" format id)
   }
 
-  lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).mapValues(_.head)
+  lazy val synsetsById : Map[String, Synset] = synsets.groupBy(_.id).view.mapValues(_.head).toMap
 
   override def toString = s"""Lexicon(id=$id label=$label language=$language email=$email license=$license version=$version ${url.map("url=" + _).getOrElse("")}${citation.map("citation" + _).getOrElse("")}
 ENTRIES
@@ -96,7 +96,7 @@ ${synsets.mkString("\n")}"""
 
   def metadata : Lexicon = this.copy(entries = Nil, synsets = Nil)
 
-  lazy val framesById : Map[String, SyntacticBehaviour] = frames.groupBy(_.id.getOrElse("")).mapValues(_.head)
+  lazy val framesById : Map[String, SyntacticBehaviour] = frames.groupBy(_.id.getOrElse("")).view.mapValues(_.head).toMap
 }
  
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
