@@ -21,7 +21,8 @@ class WNDB(
   citation : Option[String],
   usePrincetonHeader : Boolean = true,
   filterFile : Option[File] = None,
-  licenseFile : Option[File]) extends Format {
+  licenseFile : Option[File] = None,
+  senseOrders : Option[File] = None) extends Format {
 
   var lexNames : Map[Int, String] = null
   def read(wnFolder : File) : LexicalResource = {
@@ -540,11 +541,23 @@ class WNDB(
       } finally {
         out.close
       }
-      writeIndex(lexicon2, posShort, synsetLookup, 
+      writeIndex(lexicon2, posShort, synsetLookup, readSenseOrders(),
         new PrintWriter(new File(file, "index." + posLong)))
     }
     writeSenseIndex(lexicon2, synsetLookup, entriesForSynset,
       new PrintWriter(new File(file, "index.sense")))
+  }
+
+  def readSenseOrders() : Map[String, List[String]] = {
+    senseOrders match {
+      case Some(f) => {
+        Source.fromFile(f).getLines().map(line => {
+          val e = line.split(",")
+          (e(0), e(2).split(" ").map(id => "oewn-" + id + "-" + e(1)).toList)
+        }).toMap
+      }
+      case None => Map()
+    }
   }
 
   def replaceAll(data : (ByteStringBuilder, collection.mutable.Map[String, Seq[Int]]),
@@ -713,7 +726,7 @@ class WNDB(
   27 and/or database.  Title to copyright in this software, database and  
   28 any associated documentation shall at all times remain with  
   29 Princeton University and LICENSEE agrees to preserve same.  
-"""
+""".replaceAll("\r","")
 
   val lexIdxExtract = ".*(?:%|__)\\d+[:\\.]\\d+[:\\.](\\d+)[:\\.].*[:\\.]\\d*".r
 
@@ -913,7 +926,8 @@ class WNDB(
 
   def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, 
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
-    out : PrintWriter) : Unit = { 
+    senseOrders : Map[String, List[String]],
+    out : PrintWriter) { 
     try {
       if(usePrincetonHeader) {
         out.print(PRINCETON_HEADER)
@@ -928,9 +942,9 @@ class WNDB(
         .filter(e => posMatch(e.lemma.partOfSpeech, pos))
         .groupBy(_.lemma.writtenForm.replaceAll(" ", "_").toLowerCase).toSeq.sortBy(_._1)
       for((lemma, entries) <- words) {
-        if(entries.size > 1) {
-          println(lemma + " " + pos.shortForm)
-        }
+        //if(entries.size > 1) {
+        //  println(lemma + " " + pos.shortForm)
+        //}
         val synsetCnt = entries.map(_.senses.size).sum
         val _ptrs = entries.flatMap({ entry =>
           entry.senses.flatMap({ sense =>
@@ -952,12 +966,27 @@ class WNDB(
             case other => other
           })
         val ptrsStr = ptrs.mkString("")
-        val synsets = entries.flatMap({ entry =>
-          entry.senses.map({ sense =>
-            synsetLookup.getOrElse(sense.synsetRef,
-              throw new RuntimeException("Failed to find synset in indexing (should be impossible) on " + sense.synsetRef))._1
+        var synsets2 = entries.flatMap({ entry =>
+          entry.senses.map({ sense => sense.synsetRef })})
+        senseOrders.get(lemma.replace(" ", "_")) match {
+          case Some(newOrder) => {
+            if(newOrder(0).charAt(newOrder(0).size - 1) == pos.shortForm.charAt(0)) {
+              val newOrderNoPos = newOrder.map(s => s.substring(0, s.size - 2))
+              val synsets2NoPos = synsets2.map(s => s.substring(0, s.size - 2))
+              if(newOrderNoPos.toSet.equals(synsets2NoPos.toSet)) {
+                synsets2 = synsets2.sortBy(sskey => newOrderNoPos.indexOf(sskey.substring(0, sskey.size - 2)))
+              } else {
+                System.err.println("%s has different set of keys to ordering ([%s] vs. [%s])" format (lemma, 
+                  newOrder, synsets2))
+              }
+            }
+          }
+          case None => {}
+        }
+        val synsets = synsets2.map(synsetRef => {
+            synsetLookup.getOrElse(synsetRef,
+              throw new RuntimeException("Failed to find synset in indexing (should be impossible) on " + synsetRef))._1
           })
-        })
 
         // TODO: Add sense tag information ('0' below)
         out.println("%s %s %d %d %s%d 0 %s  " format(lemma.replace(" ", "_").toLowerCase, pos.shortForm,
