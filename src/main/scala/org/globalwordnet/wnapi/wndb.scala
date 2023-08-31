@@ -348,12 +348,12 @@ class WNDB(
   private object WordNetDataItem {
     def fromString(s : String) = s.split("\\| ") match {
       case Array(data,gloss) => {
-        readData(data.split(" ")) match {
+        readData(data.split(" ").toIndexedSeq) match {
           case (o,l,p,ls,ps,fs) => WordNetDataItem(o,l,p,ls,ps,fs,gloss.replaceAll("  $",""))
         }
       }
       case Array(data) => {
-        readData(data.split(" ")) match {
+        readData(data.split(" ").toIndexedSeq) match {
           case (o,l,p,ls,ps,fs) => WordNetDataItem(o,l,p,ls,ps,fs,"")
         }
       }
@@ -927,7 +927,7 @@ class WNDB(
   def writeIndex(lexicon : Lexicon, pos : PartOfSpeech, 
     synsetLookup : collection.mutable.Map[String, (String, PartOfSpeech)],
     senseOrders : Map[String, List[String]],
-    out : PrintWriter) { 
+    out : PrintWriter) : Unit = { 
     try {
       if(usePrincetonHeader) {
         out.print(PRINCETON_HEADER)
