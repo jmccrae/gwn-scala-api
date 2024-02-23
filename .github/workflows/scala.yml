@@ -29,3 +29,16 @@ jobs:
         cache: 'sbt'
     - name: Run tests
       run: sbt test
+    - name: Build assembly
+      run: sbt assembly
+    - name: Deploy dev-latest
+    - name: Update automatic release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "dev-latest"
+          prerelease: true
+          title: "Latest Version"
+          files: |
+            target/scala-2.12/*.jar
+
