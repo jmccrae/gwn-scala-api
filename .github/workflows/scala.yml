@@ -36,5 +36,5 @@ jobs:
           prerelease: true
           title: "Latest Version"
           files: |
-            target/scala-2.12/*.jar
+            target/scala-2.13/*.jar
 
