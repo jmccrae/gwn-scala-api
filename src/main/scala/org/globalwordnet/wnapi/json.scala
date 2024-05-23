@@ -6,6 +6,7 @@ import org.globalwordnet.api.wn._
 import java.io.{Writer, Reader, PrintWriter, File}
 import spray.json._
 import java.nio.charset.Charset
+import java.util.Locale
 
 private class ReaderAsSprayParserInput(reader : Reader) extends ParserInput.DefaultParserInput {
   private final val EOI = '\uFFFF' 
@@ -125,7 +126,7 @@ object WNJSON extends Format {
           a.`type`.map(x => "type" -> JsString(x)) ++
           a.status.map(x => "status" -> JsString(x)) ++
           a.note.map(x => "note" -> JsString(x)) ++
-          a.confidenceScore.map(x => "confidenceScore" -> JsString("%.8f" format x)))
+          a.confidenceScore.map(x => "confidenceScore" -> JsString(String.format(Locale.US, "%.8f", x))))
       }
       def read(v : JsValue) = v match {
         case v : JsObject =>
