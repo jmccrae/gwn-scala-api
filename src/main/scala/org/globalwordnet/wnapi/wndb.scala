@@ -474,33 +474,33 @@ class WNDB(
     }
 
     def toWN(r : RelType, pos : PartOfSpeech) = {
-      if(r == antonym) "!" 
-      else if(r == hypernym) "@" 
-      else if(r == instance_hypernym) "@i" 
-      else if(r == hyponym) "~" 
-      else if(r == instance_hyponym) "~i" 
-      else if(r == holo_member) "#m" 
-      else if(r == holo_substance) "#s" 
-      else if(r == holo_part) "#p" 
-      else if(r == mero_member) "%m" 
-      else if(r == mero_substance) "%s" 
-      else if(r == mero_part) "%p" 
-      else if(r == attribute) "=" 
-      else if(r == derivation) "+" 
-      else if(r == domain_topic) ";c" 
-      else if(r == has_domain_topic) "-c" 
-      else if(r == domain_region) ";r" 
-      else if(r == has_domain_region) "-r" 
-      else if(r == exemplifies) ";u" 
-      else if(r == is_exemplified_by) "-u" 
-      else if(r == entails) "*" 
-      else if(r == causes) ">" 
-      else if(r == also) "^" 
-      else if(r == similar && pos == verb) "$" 
-      else if(r == similar) "&" 
-      else if(r == participle) "<" 
-      else if(r == pertainym) "\\"
-      else throw new WNDBNotSerializable("Unsupported relation type: " + r)
+      if(r == antonym) Some("!")
+      else if(r == hypernym) Some("@")
+      else if(r == instance_hypernym) Some("@i") 
+      else if(r == hyponym) Some("~") 
+      else if(r == instance_hyponym) Some("~i") 
+      else if(r == holo_member) Some("#m") 
+      else if(r == holo_substance) Some("#s") 
+      else if(r == holo_part) Some("#p") 
+      else if(r == mero_member) Some("%m") 
+      else if(r == mero_substance) Some("%s") 
+      else if(r == mero_part) Some("%p") 
+      else if(r == attribute) Some("=") 
+      else if(r == derivation) Some("+") 
+      else if(r == domain_topic) Some(";c") 
+      else if(r == has_domain_topic) Some("-c") 
+      else if(r == domain_region) Some(";r") 
+      else if(r == has_domain_region) Some("-r") 
+      else if(r == exemplifies) Some(";u") 
+      else if(r == is_exemplified_by) Some("-u") 
+      else if(r == entails) Some("*") 
+      else if(r == causes) Some(">") 
+      else if(r == also) Some("^") 
+      else if(r == similar && pos == verb) Some("$") 
+      else if(r == similar) Some("&") 
+      else if(r == participle) Some("<") 
+      else if(r == pertainym) Some("\\")
+      else None
     }
  
   }
@@ -788,19 +788,25 @@ class WNDB(
           data ++= " %x " format lexId
         }
         var totalRelations = synset.synsetRelations.filter(rel => 
-            rel.relType != is_caused_by && rel.relType != is_entailed_by
+            rel.relType != is_caused_by && rel.relType != is_entailed_by &&
+            PointerType.toWN(rel.relType, pos) != None
         ).size + entries.map({
-          case (entry, sense) => sense.senseRelations.size
+          case (entry, sense) => sense.senseRelations.filter(rel => {
+              PointerType.toWN(rel.relType, pos) != None
+          }).size
         }).sum
         data ++= "%03d " format totalRelations
         for(rel <- synset.synsetRelations if rel.relType == hypernym) {
           val (targetId, targetPos) = wnSynsetIdFromGlobal(rel.target, lr, synsetLookup)
-          indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
-            (data.length + PointerType.toWN(rel.relType, pos).length + 1))
+          for(p <- PointerType.toWN(rel.relType, pos)) {
+            indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
+              (data.length + p.length + 1))
 
-          data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
-            targetId, targetPos.shortForm)
-          totalRelations -= 1
+            data ++= "%s %s %s 0000 " format (p,
+              targetId, targetPos.shortForm)
+          
+            totalRelations -= 1
+          }
         }
         for((entry, sense) <- entries) {
           for(rel <- sense.senseRelations) {
@@ -808,30 +814,34 @@ class WNDB(
               throw new WNDBNotSerializable("Target of sense relation not in lexical resource: " + rel.target))
             val (targetId, targetPos) = wnSynsetIdFromGlobal(targetSense.synsetRef, lr, synsetLookup)
 
-            indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
-              (data.length + PointerType.toWN(rel.relType, pos).length + 1))
+            for(pointer <- PointerType.toWN(rel.relType,pos)) {
+              indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
+                (data.length + pointer.length + 1))
 
-            val srcIdx = entries.sortBy(_._2.id.takeRight(2)).indexOf((entry, sense))
-            val trgIdx = entriesForSynset.getOrElse(targetSense.synsetRef, Nil)
-              .sortBy(_._2.id.takeRight(2))
-              .indexOf((targetEntry, targetSense))
+              val srcIdx = entries.sortBy(_._2.id.takeRight(2)).indexOf((entry, sense))
+              val trgIdx = entriesForSynset.getOrElse(targetSense.synsetRef, Nil)
+                .sortBy(_._2.id.takeRight(2))
+                .indexOf((targetEntry, targetSense))
 
-            data ++= "%s %s %s %02x%02x " format (PointerType.toWN(rel.relType, pos),
-              targetId, targetPos.shortFormNoSatellite, srcIdx+1, trgIdx+1)
-            totalRelations -= 1
+              data ++= "%s %s %s %02x%02x " format (pointer,
+                targetId, targetPos.shortFormNoSatellite, srcIdx+1, trgIdx+1)
+              totalRelations -= 1
+            }
           }
         }
         for(rel <- synset.synsetRelations.sortBy(_.target) if rel.relType != hypernym && rel.relType != is_caused_by && rel.relType != is_entailed_by) {
           val (targetId, targetPos) = wnSynsetIdFromGlobal(rel.target, lr, synsetLookup)
-          indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
-            (data.length + PointerType.toWN(rel.relType, pos).length + 1))
+          for(pointer <- PointerType.toWN(rel.relType, pos)) {
+            indexes.put(targetId, indexes.getOrElse(targetId, Nil) :+
+              (data.length + pointer.length + 1))
 
-          data ++= "%s %s %s 0000 " format (PointerType.toWN(rel.relType, pos),
-            targetId, targetPos.shortFormNoSatellite)
+            data ++= "%s %s %s 0000 " format (pointer,
+              targetId, targetPos.shortFormNoSatellite)
             totalRelations -= 1
+          }
         }
         if(totalRelations != 0) {
-          System.err.println("Wrong count of pointers for " + synset.id)
+          System.err.println("Wrong count of pointers for " + synset.id + " totalRelations=" + totalRelations)
         }
         val frames2 : Map[String, Seq[SyntacticBehaviour]] = entries.
           flatMap(x => x._2.subcats.map(y => (lexicon.framesById(y), x._2.id))).
@@ -953,7 +963,7 @@ class WNDB(
           })
         }).toSet
         val ptrs = _ptrs.filter(rt => rt != is_caused_by && rt != is_entailed_by)
-          .map(rt => PointerType.toWN(rt, pos) + " ")
+          .flatMap(rt => PointerType.toWN(rt, pos).map(p => p + " "))
           .map({
             case ";u " => "; "
             case "-u " => "- "

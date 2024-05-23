@@ -249,7 +249,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readSenseRelation(elem : Node) : SenseRelation = {
     readMeta(SenseRelation(
       (elem \ "@target").text,
-      readSenseRel((elem \ "@relType").text, (elem \ "@{http://purl.org/dc/elements/1.1/}type").headOption.map(_.text))), elem)
+      readSenseRel((elem \ "@relType").text, 
+        ((elem \ "@{http://purl.org/dc/elements/1.1/}type") ++
+         (elem \ "@{https://globalwordnet.github.io/schemas/dc/}type")).headOption.map(_.text))), elem)
   }
 
   private def readSenseRel(code : String, `type` : Option[String]) = {
