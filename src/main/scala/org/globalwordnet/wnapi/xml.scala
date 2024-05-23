@@ -7,6 +7,7 @@ import java.io.{Reader, Writer, PrintWriter, File}
 import scala.xml.{XML, Elem, Node}
 import scala.xml.Utility.trim
 import org.apache.commons.lang3.StringEscapeUtils.{escapeXml10 => escapeXml}
+import java.util.Locale
 
 object MoreStringEscapeUtils {
 
@@ -401,7 +402,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     writeProp(e.`type`, "dc:type")
     writeProp(e.status, "status")
     writeProp(e.note, "note")
-    writeProp(e.confidenceScore.map(s => "%.8f" format s), "confidenceScore")
+    writeProp(e.confidenceScore.map(s => String.format(Locale.US, "%.8f", s)), "confidenceScore")
   }
  
   private def writeEntry(out : PrintWriter, e : LexicalEntry, entriesForSynset : Map[String, Seq[String]]) : Unit = {
