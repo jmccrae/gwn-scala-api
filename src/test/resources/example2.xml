@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF-1.0.dtd">
+<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF-1.4.dtd">
 <!-- Not a real example but used for parsing and round trip coverage testing -->
-<LexicalResource xmlns:dc="http://purl.org/dc/elements/1.1/">
+<LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">
     <Lexicon id="ex2" label="Example" language="de" email="email" license="http://www.license.com/"
         version="1.0" citation="citation" url="http://example.com/"
         dc:contributor="contributor"

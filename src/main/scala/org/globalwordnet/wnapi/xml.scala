@@ -302,7 +302,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readSynsetRelation(elem : Node) : SynsetRelation = {
     readMeta(SynsetRelation(
       (elem \ "@target").text,
-      readSynsetRelType((elem \ "@relType").text, (elem \ "@{http://purl.org/dc/elements/1.1/}type").headOption.map(_.text))), elem)
+      readSynsetRelType((elem \ "@relType").text, 
+        (elem \ "@{http://purl.org/dc/elements/1.1/}type").headOption.map(_.text)
+          .orElse((elem \ "@{https://globalwordnet.github.io/schemas/dc/}type").headOption.map(_.text)))), elem)
   }
 
   private def readSynsetRelType(code : String, `type` : Option[String]) = {
@@ -339,8 +341,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def writeLexicalResource(out : PrintWriter, e : LexicalResource,
     entriesForSynset : Map[String, Seq[String]]) : Unit = {
     out.print("""<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF""" + (if(relaxed) { "-relaxed" } else { "" }) + """-1.0.dtd">
-<LexicalResource xmlns:dc="http://purl.org/dc/elements/1.1/">""")
+<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF""" + (if(relaxed) { "-relaxed" } else { "" }) + """-1.4.dtd">
+<LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">""")
     for(lexicon <- e.lexicons) {
       writeLexicon(out, lexicon, entriesForSynset)
     }

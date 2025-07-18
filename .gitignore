@@ -63,3 +63,7 @@ english-wordnet-2022.zip
 english-wordnet-2023.zip
 english-wordnet-2024.zip
 wordnet-2.0.xml
+.bloop
+.metals
+.vscode
+project
