@@ -598,7 +598,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def writePronunciation(out : PrintWriter, e : Pronunciation) : Unit = {
     out.print(s"""
-      <Pronunciation pronunciation="${escapeXml(e.pronunciation)}"""")
+      <Pronunciation""")
     e.variety match {
       case Some(v) => out.print(s""" variety="${escapeXml(v)}"""")
       case None => {}
