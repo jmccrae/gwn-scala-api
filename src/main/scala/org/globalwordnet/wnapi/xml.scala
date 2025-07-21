@@ -349,8 +349,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readExternalEntries(elem : Node) : ExternalEntries = {
     if(elem.label == "LexicalEntry") {
       readEntry(elem)
-    } else /*elem.label == "ExternalLexicalEntry"*/ {
+    } else if(elem.label == "ExternalLexicalEntry") {
       readExternalEntry(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
     }
   }
 
