@@ -389,8 +389,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readExternalSenses(elem : Node) : ExternalSenses = {
     if(elem.label == "Sense") {
       readSense(elem)
-    } else /*elem.label == "ExternalSense"*/ {
+    } else if(elem.label == "ExternalSense") {
       readExternalSense(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
     }
   }
 
