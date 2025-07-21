@@ -378,6 +378,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def readExternalLemma(elem : Node) : ExternalLemma = {
     ExternalLemma(
+      (elem \ "Pronunciation").map(readPronunciation),
       (elem \ "Tag").map(readTag))
   }
 
@@ -394,6 +395,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readExternalForm(elem : Node) : ExternalForm = {
     ExternalForm(
       (elem \ "@id").text,
+      (elem \ "Pronunciation").map(readPronunciation),
       (elem \ "Tag").map(readTag))
   }
 
@@ -841,6 +843,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def writeExternalLemma(out : PrintWriter, e : ExternalLemma) : Unit = {
     out.print("""
         <ExternalLemma>""")
+    for(p <- e.pronunciation) {
+      writePronunciation(out, p)
+    }
     for(t <- e.tag) {
       out.print(s"""
         <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
@@ -852,10 +857,13 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def writeExternalForm(out : PrintWriter, e : ExternalForm) : Unit = {
     out.print(s"""
         <ExternalForm id="${escapeXmlId(e.id)}"""")
-    if(e.tag.isEmpty) {
+    if(e.tag.isEmpty && e.pronunciation.isEmpty) {
       out.print("/>")
     } else {
       out.print(">")
+      for(p <- e.pronunciation) {
+        writePronunciation(out, p)
+      }
       for(t <- e.tag) {
         out.print(s"""
         <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")

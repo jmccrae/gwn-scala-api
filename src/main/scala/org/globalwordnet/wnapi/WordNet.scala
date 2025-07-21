@@ -207,12 +207,14 @@ case class ExternalLexicalEntry(
   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends ExternalEntries
 
 case class ExternalLemma(
+  pronunciation : Seq[Pronunciation] = Nil,
   tag : Seq[Tag] = Nil) 
 
 sealed trait ExternalForms
 
 case class ExternalForm(
   id : String,
+  pronunciation : Seq[Pronunciation] = Nil,
   tag : Seq[Tag] = Nil) extends ExternalForms
 
 sealed trait ExternalSenses
