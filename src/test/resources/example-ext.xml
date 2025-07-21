@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF-1.4.dtd">
+<LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">
+    <LexiconExtension id="ewn-cs-example"
+                      label="English WordNet Computer Science Terms (example)"
+                      language="en"
+                      email="goodmami@uw.edu"
+                      license="https://creativecommons.org/publicdomain/zero/1.0/"
+                      version="1.0">
+        <Extends ref="ewn" version="2020" />
+        <ExternalLexicalEntry id="ewn-process-n">
+            <ExternalLemma>
+                <Tag category="external">external</Tag>
+            </ExternalLemma>
+            <ExternalForm id="ewn-process-n-lemma">
+                <Tag category="external">process</Tag>
+            </ExternalForm>
+            <Sense id="ewn-process-n-20000123" synset="ewn-20000123-n" />
+            <ExternalSense id="ewn-process-n-20000123-ext">
+                <SenseRelation relType="derivation" target="ewn-06581154-n" />
+            </ExternalSense>
+        </ExternalLexicalEntry>
+        <ExternalSynset id="ewn-06581154-n" />
+        <Synset id="ewn-20000123-n" ili="" partOfSpeech="n">
+            <Definition>a running instance of a computer program</Definition>
+            <SynsetRelation relType="hypernym" target="ewn-06581154-n" />
+        </Synset>
+    </LexiconExtension>
+</LexicalResource>

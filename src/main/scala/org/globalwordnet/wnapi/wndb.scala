@@ -131,6 +131,7 @@ class WNDB(
               version,
               url,
               citation,
+              Nil,
               buildEntries(items, id, sentences, exc, satellites, counts, filter, lemmas, posMap).toSeq,
               buildSynsets(items, id, language, ili, satellites, filter, posMap))
   }
