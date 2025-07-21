@@ -28,8 +28,7 @@
              version="1.0"
              citation="CILI: the Collaborative Interlingual Index. Francis Bond, Piek Vossen, John P. McCrae and Christiane Fellbaum, Proceedings of the Global WordNet Conference 2016, (2016)."
              url="http://globalwordnet.github.io/schemas/"
-             dc:publisher="Global Wordnet Association"
-             confidenceScore="1.00000000">
+             dc:publisher="Global Wordnet Association">
         <!-- The list of lexical entries (words) in your wordnet -->
         <LexicalEntry id="w1">
             <!-- The part of speech values are as follows:
@@ -121,8 +120,7 @@
              version="1.0"
              citation="CILI: the Collaborative Interlingual Index. Francis Bond, Piek Vossen, John P. McCrae and Christiane Fellbaum, Proceedings of the Global WordNet Conference 2016, (2016)."
              url="http://globalwordnet.github.io/schemas/"
-             dc:publisher="Global Wordnet Association"
-             confidenceScore="1.00000000">
+             dc:publisher="Global Wordnet Association">
         <!-- The list of lexical entries (words) in your wordnet -->
         <LexicalEntry id="w4">
             <Lemma writtenForm="farfar" partOfSpeech="n"/>

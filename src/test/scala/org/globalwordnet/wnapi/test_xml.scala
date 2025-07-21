@@ -71,6 +71,25 @@ class XMLSpec extends FlatSpec with Matchers {
     val text2 = io.Source.fromFile(f).getLines().mkString(" ").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
     text2 should be (text1)
   }
+  var resource2 : LexicalResource = null
+  "XML reader" should "successfully read an XML file with extensions" in {
+    resource2 = new WNLMF(false).read(new java.io.FileReader("src/test/resources/example-ext.xml"))
+  }
+
+  it should "have a non confidence score for the extension" in {
+    resource2.lexiconExtensions(0).confidenceScore should be (None)
+  }
+
+  val f2 = java.io.File.createTempFile("lexicon-ext", ".xml")
+  f2.deleteOnExit()
+  "XML Writer with extensions" should "write a file" in {
+    new WNLMF(false).write(resource2, f2)
+  }
+  it should "roundtrip with extensions" in {
+    val text1 = io.Source.fromFile("src/test/resources/example-ext.xml").getLines().mkString(" ").replaceAll("<!--[^!]*-->", "").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
+    val text2 = io.Source.fromFile(f2).getLines().mkString(" ").replaceAll("\\s+", " ").replaceAll(" >", ">").replaceAll(" />", "/>")
+    text2 should be (text1)
+  }
 
 
 }
