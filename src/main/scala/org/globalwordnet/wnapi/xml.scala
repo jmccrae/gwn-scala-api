@@ -215,7 +215,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "@writtenForm").text,
       readPartOfSpeech((elem \ "@partOfSpeech").text),
       (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)),
-      (elem \ "Tag").map(readTag))
+      (elem \ "Tag").map(readTag),
+      (elem \ "Pronunciation").map(readPronunciation))
   }
 
   private def readPartOfSpeech(code : String) = PartOfSpeech.fromString(code)
@@ -224,7 +225,17 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     Form(
       (elem \ "@writtenForm").text,
       (elem \ "Tag").map(readTag),
-      (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)))
+      (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)),
+      (elem \ "Pronunciation").map(readPronunciation))
+  }
+
+  private def readPronunciation(elem : Node) : Pronunciation = {
+    Pronunciation(
+      elem.text,
+      (elem \ "@variety").headOption.map(_.text),
+      (elem \ "@notation").headOption.map(_.text),
+      (elem \ "@phonemic").headOption.map(_.text.toBoolean).getOrElse(true),
+      (elem \ "@audio").headOption.map(_.text))
   }
 
   private def readSense(elem : Node) : Sense = {
@@ -418,13 +429,16 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
         out.print(s""" script="$t" """)
       case None =>
     }
-    if(e.lemma.tag.isEmpty) {
+    if(e.lemma.tag.isEmpty && e.lemma.pronunciation.isEmpty) {
       out.print("/>")
     } else {
       out.print(">")
       for(t <- e.lemma.tag) {
         out.print(s"""
         <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
+      }
+      for(p <- e.lemma.pronunciation) {
+        writePronunciation(out, p)
       }
       out.print("""
       </Lemma>""")
@@ -450,7 +464,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
         out.print(s""" script="$s" """)
       case None =>
     }
-    if(e.tag.isEmpty) {
+    if(e.tag.isEmpty && e.pronunciation.isEmpty) {
       out.print("/>")
     } else {
       out.print(">")
@@ -458,9 +472,33 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
         out.print(s"""
         <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
       }
+      for(p <- e.pronunciation) {
+        writePronunciation(out, p)
+      }
       out.print("""
       </Form>""")
     }
+  }
+
+  private def writePronunciation(out : PrintWriter, e : Pronunciation) : Unit = {
+    out.print(s"""
+      <Pronunciation pronunciation="${escapeXml(e.pronunciation)}"""")
+    e.variety match {
+      case Some(v) => out.print(s""" variety="${escapeXml(v)}"""")
+      case None => {}
+    }
+    e.notation match {
+      case Some(n) => out.print(s""" notation="${escapeXml(n)}"""")
+      case None => {}
+    }
+    if(!e.phonemic) {
+      out.print(""" phonemic="false"""")
+    }
+    e.audio match {
+      case Some(a) => out.print(s""" audio="${escapeXml(a)}"""")
+      case None => {}
+    }
+    out.print(s">${escapeXml(e.pronunciation)}</Pronunciation>")
   }
 
   private def writeSense(out : PrintWriter, e : Sense, entriesForSynset : Map[String, Seq[String]]) : Unit = {

@@ -43,11 +43,13 @@
                 script="Latn"
                 partOfSpeech="n">
                 <Tag category="penn">NN</Tag>
+                <Pronunciation variety="variety" notation="notation" phonemic="false" audio="audio">pronunciation</Pronunciation>
             </Lemma>
             <Form
                 writtenForm="tests"
                 script="Cyrl">
                 <Tag category="penn">NNS</Tag>
+                <Pronunciation variety="variety" notation="notation" phonemic="false" audio="audio">pronunciation</Pronunciation>
             </Form>
             <Sense id="ws1" synset="ex2-s1" dc:contributor="contributor"
                 dc:coverage="coverage"
