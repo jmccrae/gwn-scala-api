@@ -407,8 +407,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readExternalSynsets(elem : Node) : ExternalSynsets = {
     if(elem.label == "Synset") {
       readSynset(elem)
-    } else /*elem.label == "ExternalSynset"*/ {
+    } else if (elem.label == "ExternalSynset") {
       readExternalSynset(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
     }
   }
 
