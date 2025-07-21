@@ -130,7 +130,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   }
 
   private def readLexicalResource(elem : Elem) : LexicalResource = {
-    LexicalResource((elem \ "Lexicon").map(readLexicon))
+    LexicalResource((elem \ "Lexicon").map(readLexicon), (elem \ "LexiconExtension").map(readLexiconExtension))
   }
 
   private def attText(elem : Node, prop : String, deflt : String) : String = {
@@ -154,9 +154,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       attText(elem, "@version", ""),
       (elem \ "@url").headOption.map(_.text),
       (elem \ "@citation").headOption.map(_.text),
+      (elem \ "Requires").map(readRequires),
       (elem \ "LexicalEntry").map(readEntry),
       (elem \ "Synset").map(readSynset),
-      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem)
+      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem).removeDefaultConfidence
   }
 
   private def readMeta[A <: Meta](a : A, elem : Node) : A = {
@@ -326,6 +327,113 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     readMeta(Count(elem.text.toInt), elem)
   }
 
+  private def readLexiconExtension(elem : Node) : LexiconExtension = {
+    readMeta(LexiconExtension(
+      (elem \ "@id").text,
+      (elem \ "@label").text,
+      Language.get((elem \ "@language").text),
+      (elem \ "@email").text,
+      (elem \ "@license").text,
+      (elem \ "@version").text,
+      (elem \ "@url").headOption.map(_.text),
+      (elem \ "@citation").headOption.map(_.text),
+      readExtends((elem \ "Extends").head),
+      (elem \ "Requires").map(readRequires),
+      (elem.child.filter(n => n.label == "LexicalEntry" || n.label == "ExternalLexicalEntry")).map(readExternalEntries).toIndexedSeq,
+      (elem.child.filter(n => n.label == "Synset" || n.label == "ExternalSynset")).map(readExternalSynsets).toIndexedSeq), elem).removeDefaultConfidence
+  }
+
+  private def readRequires(elem : Node) : Requires = {
+    Requires(
+      (elem \ "@ref").text,
+      (elem \ "@version").text,
+      (elem \ "@url").headOption.map(_.text))
+  }
+
+  private def readExtends(elem : Node) : Extends = {
+    Extends(
+      (elem \ "@ref").text,
+      (elem \ "@version").text,
+      (elem \ "@url").headOption.map(_.text))
+  }
+
+  private def readExternalEntries(elem : Node) : ExternalEntries = {
+    if(elem.label == "LexicalEntry") {
+      readEntry(elem)
+    } else if(elem.label == "ExternalLexicalEntry") {
+      readExternalEntry(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
+    }
+  }
+
+  private def readExternalEntry(elem : Node) : ExternalLexicalEntry = {
+    ExternalLexicalEntry(
+      (elem \ "@id").text,
+      (elem \ "ExternalLemma").headOption.map(readExternalLemma),
+      (elem.child.filter(n => n.label == "Form" || n.label == "ExternalForm")).map(readExternalForms).toIndexedSeq,
+      (elem.child.filter(n => n.label == "Sense" || n.label == "ExternalSense")).map(readExternalSenses).toIndexedSeq,
+      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour))
+  }
+
+  private def readExternalLemma(elem : Node) : ExternalLemma = {
+    ExternalLemma(
+      (elem \ "Tag").map(readTag))
+  }
+
+  private def readExternalForms(elem : Node) : ExternalForms = {
+    if(elem.label == "Form") {
+      readForm(elem)
+    } else if(elem.label == "ExternalForm") {
+      readExternalForm(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
+    }
+  }
+
+  private def readExternalForm(elem : Node) : ExternalForm = {
+    ExternalForm(
+      (elem \ "@id").text,
+      (elem \ "Tag").map(readTag))
+  }
+
+  private def readExternalSenses(elem : Node) : ExternalSenses = {
+    if(elem.label == "Sense") {
+      readSense(elem)
+    } else if(elem.label == "ExternalSense") {
+      readExternalSense(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
+    }
+  }
+
+  private def readExternalSense(elem : Node) : ExternalSense = {
+    ExternalSense(
+      (elem \ "@id").text,
+      (elem \ "SenseRelation").map(readSenseRelation),
+      (elem \ "Example").map(readSenseExample),
+      (elem \ "Count").map(readCount))
+  }
+
+  private def readExternalSynsets(elem : Node) : ExternalSynsets = {
+    if(elem.label == "Synset") {
+      readSynset(elem)
+    } else if (elem.label == "ExternalSynset") {
+      readExternalSynset(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
+    }
+  }
+
+  private def readExternalSynset(elem : Node) : ExternalSynset = {
+    ExternalSynset(
+      (elem \ "@id").text,
+      (elem \ "Definition").map(readDefinition),
+      (elem \ "SynsetRelation").map(readSynsetRelation),
+      (elem \ "Example").map(readSenseExample))
+  }
+  
+
   def write(resource : LexicalResource, output : File) : Unit = {
     write(resource, new java.io.FileWriter(output), resource.entriesForSynset)
   }
@@ -357,6 +465,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     for(lexicon <- e.lexicons) {
       writeLexicon(out, lexicon, entriesForSynset)
     }
+    for(externalLexicon <- e.lexiconExtensions) {
+      writeLexiconExtension(out, externalLexicon, entriesForSynset)
+    }
     out.println("""
 </LexicalResource>""")
   }
@@ -377,6 +488,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
            url="${escapeXml(u)}""""))
      writeMeta(out, 11, e)
     out.print(""">""")
+    for(requires <- e.requires) {
+      writeRequires(out, requires)
+    }
     for(entry <- e.entries) {
       writeEntry(out, entry, entriesForSynset)
     }
@@ -634,5 +748,162 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       <Count""")
     writeMeta(out, 14, e)
     out.print(s""">${e.value}</Count>""")
+  }
+
+  private def writeLexiconExtension(out : PrintWriter, e : LexiconExtension, entriesForSynset : Map[String, Seq[String]]) : Unit = {
+    out.print(s"""
+  <LexiconExtension id="${escapeXmlId(e.id)}" 
+                  label="${escapeXml(e.label)}" 
+                  language="${e.language}"
+                  email="${escapeXml(e.email)}"
+                  license="${escapeXml(e.license)}"
+                  version="${escapeXml(e.version)}"""")
+    e.citation.foreach(c =>
+        out.print(s"""
+           citation="${escapeXml(c)}""""))
+    e.url.foreach(u =>
+        out.print(s"""
+           url="${escapeXml(u)}""""))
+    writeMeta(out, 11, e)
+    out.print(""">""")
+    writeExtends(out, e.`extends`)
+    for(requires <- e.requires) {
+      writeRequires(out, requires)
+    }
+    for(entry <- e.entries) {
+      if(entry.isInstanceOf[ExternalLexicalEntry]) {
+        writeExternalEntry(out, entry.asInstanceOf[ExternalLexicalEntry], entriesForSynset)
+      } else {
+        writeEntry(out, entry.asInstanceOf[LexicalEntry], entriesForSynset)
+      }
+    }
+    for(synset <- e.synsets) {
+      if(synset.isInstanceOf[ExternalSynset]) {
+        writeExternalSynset(out, synset.asInstanceOf[ExternalSynset], entriesForSynset)
+      } else {
+        writeSynset(out, synset.asInstanceOf[Synset], entriesForSynset)
+      }
+    }
+    out.print("""
+  </LexiconExtension>""")
+  } 
+
+  private def writeRequires(out : PrintWriter, e : Requires) : Unit = {
+    out.print(s"""
+      <Requires ref="${escapeXmlId(e.ref)}" version="${escapeXml(e.version)}"""")
+    e.url match {
+      case Some(u) => out.print(s""" url="${escapeXml(u)}"""")
+      case None =>
+    }
+    out.print("/>")
+  }
+
+  private def writeExtends(out : PrintWriter, e : Extends) : Unit = {
+    out.print(s"""
+      <Extends ref="${escapeXmlId(e.ref)}" version="${escapeXml(e.version)}"""")
+    e.url match {
+      case Some(u) => out.print(s""" url="${escapeXml(u)}"""")
+      case None =>
+    }
+    out.print("/>")
+  }
+
+  private def writeExternalEntry(out : PrintWriter, e : ExternalLexicalEntry, entriesForSynset : Map[String, Seq[String]]) : Unit = {
+    out.print(s"""
+      <ExternalLexicalEntry id="${escapeXmlId(e.id)}"""")
+    if(e.lemma.isDefined) {
+      out.print(">")
+      writeExternalLemma(out, e.lemma.get)
+    } else {
+      out.print("/>")
+    }
+    for(form <- e.forms) {
+      if (form.isInstanceOf[ExternalForm]) {
+        writeExternalForm(out, form.asInstanceOf[ExternalForm])
+      } else {
+        writeForm(out, form.asInstanceOf[Form], entriesForSynset)
+      }
+    }
+    for(sense <- e.senses) {
+      if (sense.isInstanceOf[ExternalSense]) {
+        writeExternalSense(out, sense.asInstanceOf[ExternalSense])
+      } else {
+        writeSense(out, sense.asInstanceOf[Sense], entriesForSynset)
+      }
+    }
+    for(synBeh <- e.syntacticBehaviours) {
+      writeSyntacticBehaviour(out, synBeh, entriesForSynset)
+    }
+    out.print("""
+      </ExternalLexicalEntry>""")
+  }
+
+  private def writeExternalLemma(out : PrintWriter, e : ExternalLemma) : Unit = {
+    out.print("""
+        <ExternalLemma>""")
+    for(t <- e.tag) {
+      out.print(s"""
+        <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
+    }
+    out.print("""
+        </ExternalLemma>""")
+  }
+
+  private def writeExternalForm(out : PrintWriter, e : ExternalForm) : Unit = {
+    out.print(s"""
+        <ExternalForm id="${escapeXmlId(e.id)}"""")
+    if(e.tag.isEmpty) {
+      out.print("/>")
+    } else {
+      out.print(">")
+      for(t <- e.tag) {
+        out.print(s"""
+        <Tag category="${escapeXml(t.category)}">${escapeXml(t.value)}</Tag>""")
+      }
+      out.print("""
+        </ExternalForm>""")
+    }
+  }
+
+  private def writeExternalSense(out : PrintWriter, e : ExternalSense) : Unit = {
+    out.print(s"""
+        <ExternalSense id="${escapeXmlId(e.id)}"""")
+    if(e.senseRelations.isEmpty && e.examples.isEmpty && e.counts.isEmpty) {
+      out.print("/>")
+    } else {
+      out.print(">")
+      for(rel <- e.senseRelations) {
+        writeSenseRel(out, rel, Map.empty)
+      }
+      for(x <- e.examples) {
+        writeSenseExample(out, x, Map.empty)
+      }
+      for(c <- e.counts) {
+        writeCount(out, c)
+      }
+      out.print("""
+        </ExternalSense>""")
+    }
+  }
+
+  private def writeExternalSynset(out : PrintWriter, e : ExternalSynset, entriesForSynset : Map[String, Seq[String]]) : Unit = {
+    out.print(s"""
+        <ExternalSynset id="${escapeXmlId(e.id)}"""")
+    if(e.definitions.isEmpty && e.synsetRelations.isEmpty && e.examples.isEmpty) {
+      out.print("/>")
+    } else {
+      out.print(">")
+      for(d <- e.definitions) {
+        writeDefinition(out, d, entriesForSynset)
+      }
+      for(r <- e.synsetRelations) {
+        writeSynsetRel(out, r, entriesForSynset)
+      }
+      for(x <- e.examples) {
+        writeSenseExample(out, x, entriesForSynset)
+      }
+      out.print(s"""
+          </ExternalSynset>""")
+    }
   }
 }

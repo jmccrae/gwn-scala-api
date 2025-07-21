@@ -29,7 +29,7 @@ class DebVisDic(id : String, label : String, language : Language,
   private def readWN(elem : Node) : Lexicon = {
     val entries = (elem \ "SYNSET").flatMap(readEntry).groupBy(_.id).values.map(mergeEntries).toSeq
     val synsets = (elem \ "SYNSET").map(readSynset)
-    Lexicon(id, label, language, email, license, version, url, citation, entries, synsets)
+    Lexicon(id, label, language, email, license, version, url, citation, Nil, entries, synsets)
   }
 
 

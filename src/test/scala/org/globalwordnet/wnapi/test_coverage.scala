@@ -24,7 +24,7 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
     m.`type` should be (Some("type"))
     m.status should be (Some("status"))
     m.note should be (Some("note"))
-    m.confidenceScore should be (Some(1.0))
+    m.confidenceScore should be (Some(0.9))
   }
 
   def testCoverage(r : LexicalResource) : Unit = {

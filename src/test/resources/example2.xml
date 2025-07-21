@@ -20,7 +20,7 @@
         dc:type="type"
         status="status"
         note="note"
-        confidenceScore="1.0">
+        confidenceScore="0.9">
         <LexicalEntry id="w1" dc:contributor="contributor"
             dc:coverage="coverage"
             dc:creator="creator"
@@ -37,7 +37,7 @@
             dc:type="type"
             status="status"
             note="note"
-            confidenceScore="1.0">
+            confidenceScore="0.9">
             <Lemma
                 writtenForm="test"
                 script="Latn"
@@ -67,7 +67,7 @@
                 dc:type="type"
                 status="status"
                 note="note"
-                confidenceScore="1.0">
+                confidenceScore="0.9">
                 <SenseRelation target="ws1" relType="antonym" dc:contributor="contributor"
                     dc:coverage="coverage"
                     dc:creator="creator"
@@ -84,7 +84,7 @@
                     dc:type="type"
                     status="status"
                     note="note"
-                    confidenceScore="1.0"/>
+                    confidenceScore="0.9"/>
                 <SenseRelation target="ws1" relType="antonym"/>
                 <SenseRelation target="ws1" relType="also"/>
                 <SenseRelation target="ws1" relType="participle"/>
@@ -114,7 +114,7 @@
                     dc:type="type"
                     status="status"
                     note="note"
-                    confidenceScore="1.0">
+                    confidenceScore="0.9">
                     example
                 </Example>
                 <Count dc:contributor="contributor"
@@ -133,7 +133,7 @@
                     dc:type="type"
                     status="status"
                     note="note"
-                    confidenceScore="1.0">10</Count>
+                    confidenceScore="0.9">10</Count>
             </Sense>
             <SyntacticBehaviour subcategorizationFrame="subcategorizationFrame"/>
         </LexicalEntry>
@@ -162,7 +162,7 @@
             dc:type="type"
             status="status"
             note="note"
-            confidenceScore="1.0"
+            confidenceScore="0.9"
             partOfSpeech="n">
             <Definition language="en" dc:contributor="contributor"
                 dc:coverage="coverage"
@@ -181,7 +181,7 @@
                 status="status"
                 sourceSense="ws1"
                 note="note"
-                confidenceScore="1.0">definition</Definition>
+                confidenceScore="0.9">definition</Definition>
             <ILIDefinition dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"
@@ -198,7 +198,7 @@
                 dc:type="type"
                 status="status"
                 note="note"
-                confidenceScore="1.0">iliDefinition</ILIDefinition>
+                confidenceScore="0.9">iliDefinition</ILIDefinition>
             <SynsetRelation target="ex2-s1" relType="agent" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"
@@ -215,7 +215,7 @@
                 dc:type="type"
                 status="status"
                 note="note"
-                confidenceScore="1.0"/>
+                confidenceScore="0.9"/>
             <SynsetRelation target="ex2-s1" relType="also"/>
             <SynsetRelation target="ex2-s1" relType="attribute"/>
             <SynsetRelation target="ex2-s1" relType="be_in_state"/>
@@ -302,7 +302,7 @@
                 dc:type="type"
                 status="status"
                 note="note"
-                confidenceScore="1.0">example</Example>
+                confidenceScore="0.9">example</Example>
         </Synset>
     </Lexicon>
 </LexicalResource>

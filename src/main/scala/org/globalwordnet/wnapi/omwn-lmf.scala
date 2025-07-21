@@ -65,6 +65,7 @@ class OMWNLMF(email : String, license : String) extends Format {
       attText(elem, "@version", ""),
       (elem \ "@owner").headOption.map(_.text),
       None,
+      Nil,
       (elem \ "LexicalEntry").map(readEntry),
       (elem \ "Synset").map(readSynset))
   }

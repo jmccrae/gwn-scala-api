@@ -37,9 +37,15 @@ trait Meta {
   def withNote(s : String) : this.type = { note = Some(s) ; this }
   var confidenceScore : Option[Double] = None
   def withConfidenceScore(s : Double) : this.type = { confidenceScore = Some(s) ; this }
+  def removeDefaultConfidence : this.type = {
+    if (this.confidenceScore == Some(1.0)) {
+      confidenceScore = None
+    }
+    this
+  }
 }
 
-case class LexicalResource(lexicons : Seq[Lexicon]) {
+case class LexicalResource(lexicons : Seq[Lexicon], lexiconExtensions: Seq[LexiconExtension] = Nil) {
   import org.globalwordnet.api.MultiMap._
   lazy val synsetLookup : Map[String, Synset] = lexicons.flatMap({ 
     lexicon =>
@@ -79,6 +85,7 @@ case class Lexicon(id : String,
   label : String, language : Language, email : String,
   license : String, version : String, url : Option[String] = None, 
   citation : Option[String] = None,
+  requires : Seq[Requires] = Nil,
   entries : Seq[LexicalEntry] = Nil, 
   synsets : Seq[Synset] = Nil,
   frames : Seq[SyntacticBehaviour] = Nil) extends Meta {
@@ -100,7 +107,7 @@ ${synsets.mkString("\n")}"""
 }
  
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
-   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends Meta {
+   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends ExternalEntries with Meta {
   override def toString = s"""LexicalEntry[$id](${(Seq(lemma.toString) ++ forms.map(_.toString) ++ senses.map(_.toString) ++ syntacticBehaviours.map(_.toString)).mkString(", ")})"""
 }
 
@@ -108,7 +115,7 @@ case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Opt
   override def toString = s"""Lemma(${(Seq(writtenForm, partOfSpeech.toString) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
 }
 
-case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None, pronunciation : Seq[Pronunciation] = Nil) {
+case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None, pronunciation : Seq[Pronunciation] = Nil) extends ExternalForms{
   override def toString = s"""Form(${(Seq(writtenForm) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
 }
 
@@ -124,7 +131,7 @@ case class Tag(category : String, value : String) {
 case class Sense(id : String, synsetRef : String,
   senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,
   counts : Seq[Count] = Nil, adjposition : Option[AdjPosition] = None,
-  subcats : Seq[String] = Nil) extends Meta {
+  subcats : Seq[String] = Nil) extends ExternalSenses with Meta {
   override def toString = s"""Sense[$id](${(Seq(synsetRef) ++ senseRelations.map(_.toString) ++ senseExamples.map(_.toString) ++ counts.map(_.toString)).mkString(", ")})"""
 }
 
@@ -134,7 +141,7 @@ case class Synset(id : String, ili : Option[String] = None,
   synsetExamples : Seq[Example] = Nil,
   partOfSpeech : Option[PartOfSpeech] = None,
   members : Seq[String] = Nil,
-  lexfile : Option[String] = None) extends Meta {
+  lexfile : Option[String] = None) extends ExternalSynsets with Meta {
   ili match {
     case Some("in") if iliDefinition == None =>
       throw new WordNetFormatException("If the ILI is set to \"in\" there must be an ILI Definition [" + id + "]")
@@ -175,6 +182,56 @@ case class SyntacticBehaviour(id : Option[String],
     subcategorizationFrame : String, senses : Seq[String])
 
 case class Count(value : Int) extends Meta
+
+case class LexiconExtension(id : String, 
+  label : String, language : Language, email : String,
+  license : String, version : String, 
+  url : Option[String] = None, 
+  citation : Option[String] = None,
+  `extends` : Extends,
+  requires : Seq[Requires] = Nil,
+  entries : Seq[ExternalEntries] = Nil, 
+  synsets : Seq[ExternalSynsets] = Nil) extends Meta 
+
+case class Requires(ref : String, version: String, url : Option[String] = None) 
+
+case class Extends(ref : String, version: String, url : Option[String] = None) 
+
+sealed trait ExternalEntries
+
+case class ExternalLexicalEntry(
+  id : String,
+  lemma : Option[ExternalLemma] = None,
+  forms : Seq[ExternalForms] = Nil,
+  senses : Seq[ExternalSenses] = Nil,
+  syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends ExternalEntries
+
+case class ExternalLemma(
+  tag : Seq[Tag] = Nil) 
+
+sealed trait ExternalForms
+
+case class ExternalForm(
+  id : String,
+  tag : Seq[Tag] = Nil) extends ExternalForms
+
+sealed trait ExternalSenses
+
+case class ExternalSense(
+  id : String,
+  senseRelations : Seq[SenseRelation] = Nil,
+  examples : Seq[Example] = Nil,
+  counts : Seq[Count] = Nil
+) extends ExternalSenses
+
+sealed trait ExternalSynsets
+
+case class ExternalSynset(
+  id : String,
+  definitions : Seq[Definition] = Nil,
+  synsetRelations : Seq[SynsetRelation] = Nil,
+  examples : Seq[Example] = Nil) extends ExternalSynsets
+  
 
 trait RelType {
   def name = this.getClass.getSimpleName().dropRight(1)

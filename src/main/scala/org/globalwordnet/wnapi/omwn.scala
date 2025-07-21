@@ -42,9 +42,9 @@ object OpenMultilingualWordNet {
       }
     ).groupBy(_._1).view.mapValues(_.map(_._2).groupBy(_._1).view.mapValues(_.map(_._2)).toMap).toMap
     enLexicon match {
-      case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, frames) =>
+      case Lexicon(id, label, language, email, license, version, url, citation, _, entries, synsets, frames) =>
         Lexicon(id, label, language, email, license, version,
-          url, citation, entries,
+          url, citation, Nil, entries,
           synsets.map({
             case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples, partOfSpeech, members, lexfile) =>
               Synset(id, ili, definitions ++ elements.getOrElse(id, Map()).getOrElse("definition", Nil).map({
@@ -59,10 +59,10 @@ object OpenMultilingualWordNet {
 
   private def buildLexicon(lang : Language, props : Map[String, Seq[(String, String)]], 
       lexicon : Lexicon) : Lexicon = lexicon match {
-    case Lexicon(id, label, language, email, license, version, url, citation, entries, synsets, frames) =>
+    case Lexicon(id, label, language, email, license, version, url, citation, _, entries, synsets, frames) =>
       val lemmas = props.getOrElse("lemma", Nil)
       Lexicon(
-        id, label, language, email, license, version, url, citation,
+        id, label, language, email, license, version, url, citation, Nil,
         entries ++ lemmas.map({ 
           case (synset, lemma) =>
             LexicalEntry(
