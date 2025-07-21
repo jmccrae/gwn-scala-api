@@ -371,8 +371,10 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readExternalForms(elem : Node) : ExternalForms = {
     if(elem.label == "Form") {
       readForm(elem)
-    } else /*elem.label == "ExternalForm"*/ {
+    } else if(elem.label == "ExternalForm") {
       readExternalForm(elem)
+    } else {
+      throw new IllegalArgumentException(s"Unexpected element label: ${elem.label}")
     }
   }
 
