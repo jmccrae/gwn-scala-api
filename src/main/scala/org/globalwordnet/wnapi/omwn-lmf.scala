@@ -5,6 +5,7 @@ import org.globalwordnet.api._
 import org.globalwordnet.api.wn._
 import scala.xml.{XML, Elem, Node}
 import eu.monnetproject.lang.{Language, Script}
+import scala.collection.immutable.ArraySeq
 
 class OMWNLMF(email : String, license : String) extends Format {
   def read(file : File) : LexicalResource = {
@@ -117,7 +118,7 @@ class OMWNLMF(email : String, license : String) extends Format {
   }
 
   private def readSynsetRelation(elem : Node) : Seq[SynsetRelation] = {
-    (elem \ "@targets").text.split(" ").map { target =>
+    ArraySeq.unsafeWrapArray((elem \ "@targets").text.split(" ")).map { target =>
       readMeta(SynsetRelation(
         target,
         readSynsetRelType((elem \ "@relType").text)), elem)

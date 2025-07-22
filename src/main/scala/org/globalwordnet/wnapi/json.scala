@@ -192,6 +192,7 @@ object WNJSON extends Format {
     implicit object formFormat extends JsonFormat[Form] {
       def write(f : Form) = JsObject(Map(
         "writtenForm" -> JsString(f.writtenForm)) ++
+        f.id.map(id => "@id" -> JsString(id)).toMap ++
         (if(f.tag.isEmpty) Map[String,JsValue]() else Map("tag" -> JsArray(
           f.tag.map(tagFormat.write):_*))) ++
         (if(f.pronunciation.isEmpty) Map[String,JsValue]() else Map("pronunciation" -> JsArray(
@@ -201,6 +202,7 @@ object WNJSON extends Format {
         case JsObject(m) =>
           Form(
             writtenForm=stringOrFail(m.getOrElse("writtenForm", throw new WNJsonException("Form needs a written form"))),
+            id=m.get("@id").map(stringOrFail),
             tag=m.getOrElse("tag", JsArray()) match {
               case JsArray(x) => x.map(tagFormat.read)
               case _ => throw new WNJsonException("Tag must be list of objects")

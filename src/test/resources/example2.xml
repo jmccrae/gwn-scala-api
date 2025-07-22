@@ -46,6 +46,7 @@
                 <Pronunciation variety="variety" notation="notation" phonemic="false" audio="audio">pronunciation</Pronunciation>
             </Lemma>
             <Form
+                id="f1"
                 writtenForm="tests"
                 script="Cyrl">
                 <Tag category="penn">NNS</Tag>

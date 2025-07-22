@@ -115,7 +115,8 @@ case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Opt
   override def toString = s"""Lemma(${(Seq(writtenForm, partOfSpeech.toString) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
 }
 
-case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None, pronunciation : Seq[Pronunciation] = Nil) extends ExternalForms{
+case class Form(writtenForm : String, id : Option[String] = None,
+  tag : Seq[Tag] = Nil, script : Option[Script] = None, pronunciation : Seq[Pronunciation] = Nil) extends ExternalForms{
   override def toString = s"""Form(${(Seq(writtenForm) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
 }
 

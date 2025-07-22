@@ -139,6 +139,14 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     }
   }
 
+  private def toOptionalId(r : Resource) : Option[String] = {
+    if(r.isURIResource()) {
+      Some(r.getLocalName())
+    } else {
+      None
+    }
+  }
+
   private def readLexicalResource(implicit model : Model) : LexicalResource = {
     LexicalResource(model.listSubjectsWithProperty(RDF.`type`, LIME.Lexicon).asScala.map(readLexicon _).toSeq)
   }
@@ -159,87 +167,87 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   }
 
   private def readMeta[A <: Meta](a : A, r : Resource)(implicit model : Model) : A = {
-    (r lit DC_11.contributor).toStream.headOption match {
+    (r lit DC_11.contributor).to(LazyList).headOption match {
       case Some(l) => 
         a.contributor = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.coverage).toStream.headOption match {
+    (r lit DC_11.coverage).to(LazyList).headOption match {
       case Some(l) => 
         a.coverage = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.creator).toStream.headOption match {
+    (r lit DC_11.creator).to(LazyList).headOption match {
       case Some(l) => 
         a.creator = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.date).toStream.headOption match {
+    (r lit DC_11.date).to(LazyList).headOption match {
       case Some(l) => 
         a.date = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.description).toStream.headOption match {
+    (r lit DC_11.description).to(LazyList).headOption match {
       case Some(l) => 
         a.description = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.format).toStream.headOption match {
+    (r lit DC_11.format).to(LazyList).headOption match {
       case Some(l) => 
         a.format = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.identifier).toStream.headOption match {
+    (r lit DC_11.identifier).to(LazyList).headOption match {
       case Some(l) => 
         a.identifier = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.publisher).toStream.headOption match {
+    (r lit DC_11.publisher).to(LazyList).headOption match {
       case Some(l) => 
         a.publisher = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.relation).toStream.headOption match {
+    (r lit DC_11.relation).to(LazyList).headOption match {
       case Some(l) => 
         a.relation = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.rights).toStream.headOption match {
+    (r lit DC_11.rights).to(LazyList).headOption match {
       case Some(l) => 
         a.rights = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.source).toStream.headOption match {
+    (r lit DC_11.source).to(LazyList).headOption match {
       case Some(l) => 
         a.source = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.subject).toStream.headOption match {
+    (r lit DC_11.subject).to(LazyList).headOption match {
       case Some(l) => 
         a.subject = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.title).toStream.headOption match {
+    (r lit DC_11.title).to(LazyList).headOption match {
       case Some(l) => 
         a.title = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit DC_11.`type`).toStream.headOption match {
+    (r lit DC_11.`type`).to(LazyList).headOption match {
       case Some(l) => 
         a.`type` = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit WN.status).toStream.headOption match {
+    (r lit WN.status).to(LazyList).headOption match {
       case Some(l) => 
         a.status = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit WN.note).toStream.headOption match {
+    (r lit WN.note).to(LazyList).headOption match {
       case Some(l) => 
         a.note = Some(l.getLexicalForm())
       case None =>
     }
-    (r lit WN.confidenceScore).toStream.headOption match {
+    (r lit WN.confidenceScore).to(LazyList).headOption match {
       case Some(l) => 
         a.confidenceScore = Some(l.getDouble())
       case None =>
@@ -274,6 +282,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   private def readForm(r : Resource)(implicit model : Model) : Form = {
     Form(
       (r lit ONTOLEX.writtenRep).headOrElse(throw new WNRDFException("No written representation for " + r)).getLexicalForm(),
+      toOptionalId(r),
       (r \* WN.tag).map(readTag).toSeq,
       (r lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())),
       (r \* WN.pronunciation).map(readPronunciation).toSeq)
@@ -346,7 +355,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
 
   private def readSynBehavior(r : Resource)(implicit model : Model) : SyntacticBehaviour = {
     SyntacticBehaviour(
-      Some(toId(r)),
+      toOptionalId(r),
       (r lit RDFS.label).headOrElse(throw new WNRDFException("Syntactic behaviour without label")).getLexicalForm(),
       (r \* WN.senses).map(toId).toSeq)
   }
@@ -596,7 +605,10 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   }
 
   private def writeForm(f : Form)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
-    val r = model.createResource()
+    val r = f.id match {
+      case Some(id) => model.createResource(baseUrl + id)
+      case None => model.createResource()
+    }
     r + RDF.`type` + ONTOLEX.Form
     r + ONTOLEX.writtenRep + model.createLiteral(f.writtenForm, lexicon.language.toString())
     f.script match {
@@ -657,7 +669,10 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
   }
 
   private def writeSyntacticBehavior(s : SyntacticBehaviour)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
-    val r = model.createResource()
+    val r = s.id match {
+      case Some(id) => model.createResource(baseUrl + id)
+      case None => model.createResource()
+    }
     r + RDF.`type` + SYNSEM.SyntacticFrame
     r + RDFS.label + model.createLiteral(s.subcategorizationFrame)
     r + WN.senses ++ s.senses.map(x => model.createResource(baseUrl + x))

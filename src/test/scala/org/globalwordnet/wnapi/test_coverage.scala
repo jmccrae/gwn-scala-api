@@ -49,6 +49,7 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
     e.lemma.tag should be (Seq(Tag("penn", "NN")))
     e.lemma.pronunciation should be (Seq(Pronunciation("pronunciation", Some("variety"), Some("notation"), false, Some("audio"))))
     val f = e.forms(0)
+    f.id should be (Some("f1"))
     f.writtenForm should be ("tests")
     f.script should be (Some(Script.CYRILLIC))
     f.tag should be (Seq(Tag("penn","NNS")))
