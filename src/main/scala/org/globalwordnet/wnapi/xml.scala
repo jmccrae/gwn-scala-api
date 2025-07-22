@@ -225,6 +225,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readForm(elem : Node) : Form = {
     Form(
       (elem \ "@writtenForm").text,
+      (elem \ "@id").headOption.map(_.text),
       (elem \ "Tag").map(readTag),
       (elem \ "@script").headOption.map(s => Script.getByAlpha4Code(s.text)),
       (elem \ "Pronunciation").map(readPronunciation))
@@ -575,6 +576,11 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def writeForm(out : PrintWriter, e : Form, entriesForSynset : Map[String, Seq[String]]) : Unit = {
     out.print(s"""
       <Form writtenForm="${escapeXml(e.writtenForm)}"""")
+    e.id match {
+      case Some(id) =>
+        out.print(s""" id="${escapeXmlId(id)}"""")
+      case None => {}
+    }  
     e.script match {
       case Some(s) =>
         out.print(s""" script="$s" """)
