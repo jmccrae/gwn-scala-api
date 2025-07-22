@@ -72,10 +72,6 @@ object EmoWNExtract {
         }
       }
     }
-    println(nolink)
-    println(noili)
-    println(emo)
-    println(emouniq)
     out.flush
     out.close
   }

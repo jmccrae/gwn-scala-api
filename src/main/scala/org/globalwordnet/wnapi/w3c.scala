@@ -6,7 +6,7 @@ import org.globalwordnet.api.wn._
 import java.io.{File, FileReader, Reader}
 import org.apache.jena.rdf.model.{ModelFactory, Model, Resource, Statement}
 import org.apache.jena.vocabulary.{RDF, RDFS}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import MoreStringEscapeUtils._
 
 class W3C(id : String, label : String, language : Language,
@@ -77,10 +77,10 @@ class W3C(id : String, label : String, language : Language,
   def readSense(sense : Resource, partOfSpeech : PartOfSpeech, model : Model) : (Sense, LexicalEntry) = {
     val id = url2id(sense)
     val synset = getSynsetId(model.listSubjectsWithProperty(
-      model.createProperty(wn20schema, "containsWordSense"), sense).asScala.toStream.
+      model.createProperty(wn20schema, "containsWordSense"), sense).asScala.to(LazyList).
         headOption.getOrElse(throw new W3CFormatException("Sense not in any synsets:" + sense)), model)
     val word = model.listObjectsOfProperty(sense,
-      model.createProperty(wn20schema, "word")).asScala.toStream.headOption.
+      model.createProperty(wn20schema, "word")).asScala.to(LazyList).headOption.
         getOrElse(throw new W3CFormatException("Sense without a word:" + sense))
     val frames = model.listObjectsOfProperty(sense,
       model.createProperty(wn20schema, "frame")).asScala.map(_.asLiteral().getString()).toSeq
@@ -95,7 +95,7 @@ class W3C(id : String, label : String, language : Language,
       frames : Seq[String], model : Model) : LexicalEntry = {
     val id = url2id(word)
     val lemma = model.listObjectsOfProperty(word,
-      model.createProperty(wn20schema, "lexicalForm")).asScala.toStream.
+      model.createProperty(wn20schema, "lexicalForm")).asScala.to(LazyList).
         headOption.getOrElse(throw new W3CFormatException("Word without lemma" 
           + word)).asLiteral().getString()
     LexicalEntry(id=id, lemma=Lemma(lemma, partOfSpeech),
@@ -129,7 +129,7 @@ class W3C(id : String, label : String, language : Language,
 
   def getSynsetId(synset : Resource, model : Model) : String = {
     id + "-" + model.listObjectsOfProperty(synset,
-      model.createProperty(wn20schema, "synsetId")).asScala.toStream.headOption.
+      model.createProperty(wn20schema, "synsetId")).asScala.to(LazyList).headOption.
         getOrElse(throw new W3CFormatException("Synset without an ID: " + 
           synset)).asLiteral().getString()
   }
@@ -219,7 +219,6 @@ class W3C(id : String, label : String, language : Language,
 
   def readSenseRelations(sense : Resource, model : Model) : Seq[SenseRelation] = {
     model.listStatements(sense, null, null).asScala.flatMap(statement => {
-      println(statement)
       if(statement.getPredicate() == 
         model.createProperty(wn20schema, "adjectivePertainsTo")) {
           Some(mkSenseRel(statement, pertainym, model))

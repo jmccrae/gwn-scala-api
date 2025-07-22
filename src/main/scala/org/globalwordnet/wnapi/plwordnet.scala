@@ -5,6 +5,7 @@ import java.io.File
 import org.apache.commons.lang3.StringEscapeUtils._
 import org.globalwordnet.api.wn._
 import scala.xml._
+import scala.collection.immutable.ArraySeq
 
 package plwn {
     sealed trait plWNDescription
@@ -608,12 +609,12 @@ package serialize {
                 None
               } else {
                 Some(Emotion(an.toInt, 
-                  pes.split(",\\s*").flatMap(EmotionValue.fromPolish), 
-                  Option(ues).getOrElse("").split(",\\s*").
+                  ArraySeq.unsafeWrapArray(pes.split(",\\s*")).flatMap(EmotionValue.fromPolish), 
+                  ArraySeq.unsafeWrapArray(Option(ues).getOrElse("").split(",\\s*")).
                     flatMap(EmotionValue.fromPolish), 
 
                   Option(sent).map(Sentiment.fromString).getOrElse(NoSent), 
-                  ex.trim().drop(1).dropRight(1).split("\\] \\[").map(_.trim())))
+                  ArraySeq.unsafeWrapArray(ex.trim().drop(1).dropRight(1).split("\\] \\[")).map(_.trim())))
               }
             case ref(to) =>
               Some(Ref(to))
