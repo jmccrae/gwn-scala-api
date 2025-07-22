@@ -133,7 +133,8 @@ case class Tag(category : String, value : String) {
 case class Sense(id : String, synsetRef : String,
   senseRelations : Seq[SenseRelation] = Nil, senseExamples : Seq[Example] = Nil,
   counts : Seq[Count] = Nil, adjposition : Option[AdjPosition] = None,
-  subcats : Seq[String] = Nil) extends ExternalSenses with Meta {
+  subcats : Seq[String] = Nil,
+  n : Option[Int] = None, lexicalized : Boolean =  true) extends ExternalSenses with Meta {
   override def toString = s"""Sense[$id](${(Seq(synsetRef) ++ senseRelations.map(_.toString) ++ senseExamples.map(_.toString) ++ counts.map(_.toString)).mkString(", ")})"""
 }
 
@@ -143,6 +144,7 @@ case class Synset(id : String, ili : Option[String] = None,
   synsetExamples : Seq[Example] = Nil,
   partOfSpeech : Option[PartOfSpeech] = None,
   members : Seq[String] = Nil,
+  lexicalized : Boolean = true,
   lexfile : Option[String] = None) extends ExternalSynsets with Meta {
   ili match {
     case Some("in") if iliDefinition == None =>
@@ -583,6 +585,15 @@ object PartOfSpeech {
 }
 
 sealed class AdjPosition(val shortForm : String)
+
+object AdjPosition {
+  def fromString(code : String) = code match {
+    case "a" => attributive
+    case "p" => predicative
+    case "ip" => postpositive
+    case _ => throw new IllegalArgumentException(code + " is not a valid adj position code")
+  }
+}
 
 object attributive extends AdjPosition("a")
 object predicative extends AdjPosition("p")

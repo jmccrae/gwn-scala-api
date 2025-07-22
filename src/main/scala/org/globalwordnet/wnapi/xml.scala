@@ -251,7 +251,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "Count").map(readCount),
       (elem \ "@adjposition").map(readAdjPosition).headOption,
       if((elem \ "@subcat").text == "") { Nil }
-      else { (elem \ "@subcat").text.split(" ").toIndexedSeq }), elem)
+      else { (elem \ "@subcat").text.split(" ").toIndexedSeq },
+      (elem \ "@n").headOption.map(_.text.toInt),
+      (elem \ "@lexicalized").headOption.map(_.text.toBoolean).getOrElse(true)), elem)
   }
 
   private def readAdjPosition(elem : Node) : AdjPosition = {
@@ -299,6 +301,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "@partOfSpeech").headOption.map(e => readPartOfSpeech(e.text)),
       if((elem \ "@members").text == "") { Nil }
       else { (elem \ "@members").text.split(" ").toIndexedSeq },
+      (elem \ "@lexicalized").headOption.map(_.text.toBoolean).getOrElse(true),
       (elem \ "@lexfile").headOption.map(_.text)), elem)
   }
 
@@ -641,6 +644,16 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       case None => {}
     }
     writeMeta(out, 13, e)
+    e.n match {
+      case Some(n) => out.print(s""" n="${n}" """)
+      case None => {}
+    }
+    if(!e.subcats.isEmpty) {
+      out.print(s""" subcat="${e.subcats.mkString(" ")}"""")
+    }
+    if(!e.lexicalized) {
+      out.print(""" lexicalized="false"""")
+    }
     if(e.senseRelations.isEmpty && e.senseExamples.isEmpty &&
       e.counts.isEmpty) {
         out.print("/>")
@@ -709,6 +722,15 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     <Synset id="${escapeXmlId(e.id)}" ili="${e.ili.getOrElse("")}"""")
     e.partOfSpeech.foreach(x => out.print(s""" partOfSpeech="${x.shortForm}""""))
     writeMeta(out, 12, e)
+    if(!e.lexicalized) {
+      out.print(""" lexicalized="false"""")
+    }
+    if(!e.members.isEmpty) {
+      out.print(s""" members="${e.members.mkString(" ")}"""")
+    }
+    if(e.lexfile.isDefined) {
+      out.print(s""" lexfile="${escapeXmlId(e.lexfile.get)}"""")
+    }
     out.print(">")
     for(d <- e.definitions) {
       writeDefinition(out, d, entriesForSynset)

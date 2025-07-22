@@ -69,7 +69,11 @@
                 dc:type="type"
                 status="status"
                 note="note"
-                confidenceScore="0.9">
+                confidenceScore="0.9"
+                lexicalized="false"
+                adjposition="a"
+                subcat="subcategorizationFrame"
+                n="10">
                 <SenseRelation target="ws1" relType="antonym" dc:contributor="contributor"
                     dc:coverage="coverage"
                     dc:creator="creator"
@@ -165,7 +169,10 @@
             status="status"
             note="note"
             confidenceScore="0.9"
-            partOfSpeech="n">
+            partOfSpeech="n"
+            lexicalized="false"
+            members="w1 w2"
+            lexfile="lexfile">
             <Definition language="en" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"

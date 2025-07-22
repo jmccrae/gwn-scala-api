@@ -608,7 +608,7 @@ package serialize {
               if(v == "0") {
                 None
               } else {
-                Some(Emotion(an.toInt, 
+                Some(Emotion(an.toInt,
                   ArraySeq.unsafeWrapArray(pes.split(",\\s*")).flatMap(EmotionValue.fromPolish), 
                   ArraySeq.unsafeWrapArray(Option(ues).getOrElse("").split(",\\s*")).
                     flatMap(EmotionValue.fromPolish), 

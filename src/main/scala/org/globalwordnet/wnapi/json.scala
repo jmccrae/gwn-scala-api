@@ -343,6 +343,13 @@ object WNJSON extends Format {
           (s.senseExamples.map(metaExampleFormat.write).toList match {
             case Nil => Map()
             case vals => Map("example" -> JsArray(vals:_*))
+          }) ++
+          (s.adjposition.map(x => "adjposition" -> JsString(x.shortForm)).toMap) ++
+          (s.n.map(x => "n" -> JsNumber(x)).toMap) ++
+          (if(s.lexicalized) Map() else Map("lexicalized" -> JsFalse)) ++
+          (s.subcats.map(x => JsString(x)).toList match {
+            case Nil => Map()
+            case vals => Map("subcat" -> JsArray(vals:_*))
           }))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
@@ -360,7 +367,27 @@ object WNJSON extends Format {
             counts=m.getOrElse("count", JsArray()) match {
               case JsArray(x) => x.map(metaCountFormat.read)
               case _ => throw new WNJsonException("Counts should be a list of values")
+            },
+            adjposition=m.get("adjposition").map(stringOrFail).map(AdjPosition.fromString),
+            n=m.get("n") match {
+              case Some(JsNumber(x)) => Some(x.toInt)
+              case Some(JsString(x)) => Some(x.toInt)
+              case None => None
+              case _ => throw new WNJsonException("Sense n should be a number or string")
+            },
+            lexicalized=m.get("lexicalized") match {
+              case Some(JsBoolean(b)) => b
+              case None => true
+              case _ => throw new WNJsonException("Sense lexicalized should be a boolean")
+            },
+            subcats=m.getOrElse("subcat", JsArray()) match {
+              case JsArray(x) => x.map({
+                case JsString(s) => s
+                case _ => throw new WNJsonException("Sense subcat should be a string")
+              })
+              case _ => throw new WNJsonException("Sense subcat should be a list of strings")
             })
+
         case _ =>
           throw new WNJsonException("Sense should be an object")
       }
@@ -484,7 +511,14 @@ object WNJSON extends Format {
           case Nil => Map()
           case vals => Map("example" -> JsArray(vals:_*))
         }) ++
-        (s.iliDefinition.map(x => Map("iliDefinition" -> metaILIDefinitionFormat.write(x))).getOrElse(Map())))
+        (s.iliDefinition.map(x => Map("iliDefinition" -> metaILIDefinitionFormat.write(x))).getOrElse(Map())) ++
+        ((s.members.map(x => JsString(x))).toList match {
+          case Nil => Map()
+          case vals => Map("member" -> JsArray(vals:_*))
+        }) ++
+        (if(s.lexicalized) Map() else Map("lexicalized" -> JsFalse)) ++
+        (if(s.lexfile.isDefined) Map("lexfile" -> JsString(s.lexfile.get)) else Map()))
+
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Synset(
@@ -503,7 +537,25 @@ object WNJSON extends Format {
               case JsArray(x) => x.map(metaExampleFormat.read)
               case _ => throw new WNJsonException("Synset exampels must be list of objects")
             },
-            partOfSpeech=m.get("partOfSpeech").map(pos => PartOfSpeech.fromName(stringOrFail(pos))))
+            partOfSpeech=m.get("partOfSpeech").map(pos => PartOfSpeech.fromName(stringOrFail(pos))),
+            members=m.getOrElse("member", JsArray()) match {
+              case JsArray(x) => x.map({
+                case JsString(s) => s
+                case _ => throw new WNJsonException("Synset member must be a string")
+              })
+              case _ => throw new WNJsonException("Synset member must be a list of strings")
+            },
+            lexicalized=m.get("lexicalized") match {
+              case Some(JsBoolean(b)) => b
+              case None => true
+              case _ => throw new WNJsonException("Synset lexicalized must be a boolean" +
+                " but got: " + m.get("lexicalized"))
+            },
+            lexfile=m.get("lexfile") match {
+              case Some(JsString(s)) => Some(s)
+              case Some(_) => None
+              case None => None
+            })
         case _ =>
           throw new WNJsonException("Synset must be an object")
       }

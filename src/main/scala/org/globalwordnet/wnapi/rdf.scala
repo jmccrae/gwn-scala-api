@@ -314,7 +314,11 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       (r / VARTRANS.source).map(readSenseRelation).toSeq ++
         readShortSenseRelation(r),
       (r \* WN.example).map(readExample).toSeq,
-      (r \* WN.count).map(readCount).toSeq), r)
+      (r \* WN.count).map(readCount).toSeq,
+      (r lit WN.adjposition).headOption.map(s => AdjPosition.fromString(s.getLexicalForm())),
+      (r lit WN.subcat).map(_.getLexicalForm()).toSeq,
+      (r lit WN.n).headOption.map(_.getInt()),
+      (r lit WN.lexicalized).headOption.map(_.getBoolean()).getOrElse(true)), r)
   }
 
   private def readSenseRelation(r : Resource)(implicit model : Model) : SenseRelation = {
@@ -378,7 +382,10 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       (r / VARTRANS.source).map(readSynsetRelation).toSeq ++ 
         readShortSynsetRelation(r),
       (r \* WN.example).map(readExample).toSeq,
-      (r \* WN.partOfSpeech).headOption.map(pos => PartOfSpeech.fromName(pos.getURI().drop(WN.prefix.length)))), r)
+      (r \* WN.partOfSpeech).headOption.map(pos => PartOfSpeech.fromName(pos.getURI().drop(WN.prefix.length))),
+      (r lit WN.members).headOption.map(_.getLexicalForm().split(" ").toSeq).getOrElse(Seq()),
+      (r lit WN.lexicalized).headOption.map(_.getBoolean()).getOrElse(true),
+      (r lit WN.lexfile).headOption.map(_.getLexicalForm())), r)
   }
 
   private def readDefinition(r : Resource)(implicit model : Model) : Definition = {
@@ -677,6 +684,22 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     r + WN.example ++ s.senseExamples.map(writeExample)
     r + ONTOLEX.isLexicalizedSenseOf + model.createResource(baseUrl + s.synsetRef)
     r + WN.count ++ s.counts.map(writeCount)
+    s.adjposition match {
+      case None => 
+      case Some(value) => {
+        r + WN.adjposition + model.createLiteral(value.shortForm)
+      }
+    }
+    r + WN.subcat ++ s.subcats.map(model.createLiteral(_))
+    s.n match {
+      case None => 
+      case Some(value) => {
+        r + WN.n + model.createTypedLiteral(value : java.lang.Integer)  
+      }
+    }
+    if(!s.lexicalized) {
+      r + WN.lexicalized + model.createTypedLiteral(false: java.lang.Boolean)
+    }
     r
   }
 
@@ -755,6 +778,15 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       r + WN.partOfSpeech + writePartOfSpeech(pos)
     })
     r + WN.example ++ s.synsetExamples.map(writeExample)
+    r + WN.members + model.createLiteral(s.members.mkString(" "))
+    if(!s.lexicalized) {
+      r + WN.lexicalized + model.createTypedLiteral(false: java.lang.Boolean)
+    }
+    s.lexfile match {
+      case Some(l) =>
+        r + WN.lexfile + model.createLiteral(l, lexicon.language.toString())
+      case None =>
+    }
     r
   }
 
