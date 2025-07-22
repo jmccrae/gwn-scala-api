@@ -267,14 +267,25 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
         throw new WNRDFException("Non-standard part of speech " + pos)
       },
       (canForm lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())),
-      (canForm \* WN.tag).map(readTag).toSeq)
+      (canForm \* WN.tag).map(readTag).toSeq,
+      (canForm \* WN.pronunciation).map(readPronunciation).toSeq)
   }
 
   private def readForm(r : Resource)(implicit model : Model) : Form = {
     Form(
       (r lit ONTOLEX.writtenRep).headOrElse(throw new WNRDFException("No written representation for " + r)).getLexicalForm(),
       (r \* WN.tag).map(readTag).toSeq,
-      (r lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())))
+      (r lit WN.script).headOption.map(l => Script.getByAlpha4Code(l.getLexicalForm())),
+      (r \* WN.pronunciation).map(readPronunciation).toSeq)
+  }
+
+  private def readPronunciation(r : Resource)(implicit model : Model) : Pronunciation = {
+    Pronunciation(
+      (r lit RDF.value).headOrElse(throw new WNRDFException("Pronunciation without value")).getLexicalForm(),
+      (r lit VARTRANS.variety).headOption.map(_.getLexicalForm()),
+      (r lit VARTRANS.notation).headOption.map(_.getLexicalForm()),
+      (r lit VARTRANS.phonemic).headOption.map(_.getBoolean()).getOrElse(true),
+      (r lit VARTRANS.audio).headOption.map(_.getLexicalForm()))
   }
 
   private def readTag(r : Resource)(implicit model : Model) : Tag = {
@@ -574,6 +585,9 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
         t + WN.category + model.createLiteral(v.category)
         t + RDF.value + model.createLiteral(v.value)
     }
+    e.pronunciation foreach { v =>
+      r + WN.pronunciation + writePronunciation(v)
+    }
     r
   }
 
@@ -595,6 +609,32 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
         r + WN.tag + t
         t + WN.category + model.createLiteral(v.category)
         t + RDF.value + model.createLiteral(v.value)
+    }
+    f.pronunciation foreach { v =>
+      r + WN.pronunciation + writePronunciation(v)
+    }
+    r
+  }
+
+  private def writePronunciation(p : Pronunciation)(implicit model : Model, baseUrl : String, lexicon : Lexicon) : Resource = {
+    val r = model.createResource()
+    r + RDF.`type` + VARTRANS.Pronunciation
+    r + RDF.value + model.createLiteral(p.pronunciation, lexicon.language.toString())
+    p.variety match {
+      case Some(s) =>
+        r + VARTRANS.variety + model.createLiteral(s)
+      case None =>
+    }
+    p.notation match {
+      case Some(s) =>
+        r + VARTRANS.notation + model.createLiteral(s)
+      case None =>
+    }
+    r + VARTRANS.phonemic + model.createTypedLiteral(p.phonemic: java.lang.Boolean)
+    p.audio match {
+      case Some(a) =>
+        r + VARTRANS.audio + model.createLiteral(a)
+      case None =>
     }
     r
   }

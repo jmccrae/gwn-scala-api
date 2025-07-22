@@ -111,12 +111,17 @@ case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, sen
   override def toString = s"""LexicalEntry[$id](${(Seq(lemma.toString) ++ forms.map(_.toString) ++ senses.map(_.toString) ++ syntacticBehaviours.map(_.toString)).mkString(", ")})"""
 }
 
-case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None, tag : Seq[Tag] = Nil) {
+case class Lemma(writtenForm : String, partOfSpeech : PartOfSpeech, script : Option[Script] = None, tag : Seq[Tag] = Nil, pronunciation : Seq[Pronunciation] = Nil) {
   override def toString = s"""Lemma(${(Seq(writtenForm, partOfSpeech.toString) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
 }
 
-case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None) extends ExternalForms {
+case class Form(writtenForm : String, tag : Seq[Tag] = Nil, script : Option[Script] = None, pronunciation : Seq[Pronunciation] = Nil) extends ExternalForms{
   override def toString = s"""Form(${(Seq(writtenForm) ++ script.map(_.toString) ++ tag.map(_.toString)).mkString(", ")})"""
+}
+
+case class Pronunciation(pronunciation : String, variety : Option[String] = None,
+  notation : Option[String] = None, phonemic : Boolean = true, audio : Option[String] = None) {
+  override def toString = s"""Pronunciation(${pronunciation}${variety.map(" [" + _ + "]").getOrElse("")}${notation.map(" {" + _ + "}").getOrElse("")}${if(phonemic) " (phonemic)" else ""}${audio.map(" audio=" + _).getOrElse("")})"""
 }
 
 case class Tag(category : String, value : String) {
@@ -202,12 +207,14 @@ case class ExternalLexicalEntry(
   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends ExternalEntries
 
 case class ExternalLemma(
+  pronunciation : Seq[Pronunciation] = Nil,
   tag : Seq[Tag] = Nil) 
 
 sealed trait ExternalForms
 
 case class ExternalForm(
   id : String,
+  pronunciation : Seq[Pronunciation] = Nil,
   tag : Seq[Tag] = Nil) extends ExternalForms
 
 sealed trait ExternalSenses

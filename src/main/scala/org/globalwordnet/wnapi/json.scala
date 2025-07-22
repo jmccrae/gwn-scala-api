@@ -194,6 +194,8 @@ object WNJSON extends Format {
         "writtenForm" -> JsString(f.writtenForm)) ++
         (if(f.tag.isEmpty) Map[String,JsValue]() else Map("tag" -> JsArray(
           f.tag.map(tagFormat.write):_*))) ++
+        (if(f.pronunciation.isEmpty) Map[String,JsValue]() else Map("pronunciation" -> JsArray(
+          f.pronunciation.map(pronunciationFormat.write):_*))) ++
         f.script.map(s => "script" -> JsString(s.toString())))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
@@ -203,11 +205,40 @@ object WNJSON extends Format {
               case JsArray(x) => x.map(tagFormat.read)
               case _ => throw new WNJsonException("Tag must be list of objects")
             },
-            script=m.get("script").map(stringOrFail).map(Script.getByAlpha4Code))
+            script=m.get("script").map(stringOrFail).map(Script.getByAlpha4Code),
+            pronunciation = m.getOrElse("pronunciation", JsArray()) match {
+              case JsArray(x) => x.map(pronunciationFormat.read)
+              case _ => throw new WNJsonException("Pronunciation must be a list of objects")
+            })
         case _ =>
           throw new WNJsonException("Form must be an object")
       }
     }
+
+    object pronunciationFormat extends JsonFormat[Pronunciation] {
+      def write(p : Pronunciation) = JsObject(Map(
+        "value" -> JsString(p.pronunciation)) ++
+        p.variety.map(v => "variety" -> JsString(v)) ++
+        p.notation.map(n => "notation" -> JsString(n)) ++
+        (if(!p.phonemic) Map("phonemic" -> JsFalse) else Map()) ++
+        p.audio.map(a => "audio" -> JsString(a)))
+      def read(v : JsValue) = v match {
+        case JsObject(m) =>
+          Pronunciation(
+            pronunciation=stringOrFail(m.getOrElse("value", throw new WNJsonException("Pronunciation requires value"))),
+            variety=m.get("variety").map(stringOrFail),
+            notation=m.get("notation").map(stringOrFail),
+            phonemic= m.get("phonemic") match {
+              case Some(JsBoolean(b)) => b
+              case None => true
+              case _ => throw new WNJsonException("Pronunciation phonemic must be a boolean")
+            },
+            audio=m.get("audio").map(stringOrFail))
+        case _ =>
+          throw new WNJsonException("Pronunciation must be an object")
+      }
+    }
+
     object definitionFormat extends JsonFormat[Definition] {
       def write(d : Definition) = JsObject(
         Map("gloss" -> JsString(d.content)) ++
@@ -358,7 +389,9 @@ object WNJSON extends Format {
         "lemma" -> JsObject(Map("writtenForm" -> JsString(e.lemma.writtenForm)) ++
           e.lemma.script.map(x => "script" -> JsString(x.toString())) ++
           (if(e.lemma.tag.isEmpty) Map[String, JsValue]() else Map("tag" ->
-            JsArray(e.lemma.tag.map(tagFormat.write):_*)))
+            JsArray(e.lemma.tag.map(tagFormat.write):_*))) ++
+          (if(e.lemma.pronunciation.isEmpty) Map[String, JsValue]() else Map("pronunciation" ->
+            JsArray(e.lemma.pronunciation.map(pronunciationFormat.write):_*)))
         ),
         "partOfSpeech" -> JsString(e.lemma.partOfSpeech.name),
         "@id" -> JsString(e.id)) ++
@@ -394,6 +427,14 @@ object WNJSON extends Format {
                 case Some(JsArray(v)) => v.map(tagFormat.read)
                 case None => Nil
                 case _ => throw new WNJsonException("Tag must be an array")
+              },
+              m.get("lemma").flatMap({
+                case JsObject(m) => m.get("pronunciation")
+                case _ => throw new WNJsonException("Lemma must be an object")
+              }) match {
+                case Some(JsArray(v)) => v.map(pronunciationFormat.read)
+                case None => Nil
+                case _ => throw new WNJsonException("Pronunciation must be a list of objects")
               }
             ),
             forms=m.getOrElse("form", JsArray()) match {
