@@ -608,7 +608,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     val r = f.id match {
       case Some(id) => model.createResource(baseUrl + id)
       case None => model.createResource()
-    };
+    }
     r + RDF.`type` + ONTOLEX.Form
     r + ONTOLEX.writtenRep + model.createLiteral(f.writtenForm, lexicon.language.toString())
     f.script match {
