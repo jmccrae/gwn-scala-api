@@ -157,7 +157,6 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
   jsonFile.deleteOnExit()
   "JSON reader" should "write the coverage model" in {
     WNJSON.write(resource, jsonFile)
-    WNJSON.write(resource, new File("tmp.json"))
   }
   it should "successfully read the same data" in {
     val r2 = WNJSON.read(jsonFile)
