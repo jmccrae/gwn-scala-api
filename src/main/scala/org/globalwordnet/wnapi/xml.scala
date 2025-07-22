@@ -580,7 +580,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       case Some(id) =>
         out.print(s""" id="${escapeXmlId(id)}"""")
       case None => {}
-    }  
+    }
     e.script match {
       case Some(s) =>
         out.print(s""" script="$s" """)
