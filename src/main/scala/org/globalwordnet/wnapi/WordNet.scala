@@ -85,6 +85,7 @@ case class Lexicon(id : String,
   label : String, language : Language, email : String,
   license : String, version : String, url : Option[String] = None, 
   citation : Option[String] = None,
+  logo : Option[String] = None,
   requires : Seq[Requires] = Nil,
   entries : Seq[LexicalEntry] = Nil, 
   synsets : Seq[Synset] = Nil,
@@ -107,7 +108,7 @@ ${synsets.mkString("\n")}"""
 }
  
 case class LexicalEntry(id : String, lemma : Lemma, forms : Seq[Form] = Nil, senses : Seq[Sense] = Nil,
-   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil) extends ExternalEntries with Meta {
+   syntacticBehaviours : Seq[SyntacticBehaviour] = Nil, index : Option[String] = None) extends ExternalEntries with Meta {
   override def toString = s"""LexicalEntry[$id](${(Seq(lemma.toString) ++ forms.map(_.toString) ++ senses.map(_.toString) ++ syntacticBehaviours.map(_.toString)).mkString(", ")})"""
 }
 

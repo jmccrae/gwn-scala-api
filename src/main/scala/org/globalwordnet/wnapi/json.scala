@@ -408,6 +408,10 @@ object WNJSON extends Format {
         (e.syntacticBehaviours.map(syntacticBehaviourFormat.write).toList match {
           case Nil => Map()
           case vals => Map("synBehavior" -> JsArray(vals:_*))
+        }) ++
+        (e.index match {
+          case Some(i) => Map("index" -> JsString(i))
+          case None => Map()
         }))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
@@ -451,7 +455,12 @@ object WNJSON extends Format {
               case JsArray(x) => x.map(syntacticBehaviourFormat.read)
               case _ => throw new WNJsonException("Syntactic behaviour must be a list of objects")
             },
-            id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("Lexical entry must have an id"))))
+            id=stringOrFail(m.getOrElse("@id", throw new WNJsonException("Lexical entry must have an id"))),
+            index=m.get("index") match {
+              case Some(JsString(i)) => Some(i)
+              case Some(_) => None
+              case None => None
+            })
         case _ =>
           throw new WNJsonException("Lexical entry must be an object")
       }
@@ -520,7 +529,8 @@ object WNJSON extends Format {
           case vals => Map("synset" -> JsArray(vals:_*))
         }) ++
         l.url.map(u => Map("url" -> JsString(u))).getOrElse(Map()) ++
-        l.citation.map(u => Map("citation" -> JsString(u))).getOrElse(Map()))
+        l.citation.map(u => Map("citation" -> JsString(u))).getOrElse(Map()) ++
+        l.logo.map(u => Map("logo" -> JsString(u))).getOrElse(Map()))
       def read(v : JsValue) = v match {
         case JsObject(m) =>
           Lexicon(
@@ -539,7 +549,8 @@ object WNJSON extends Format {
             license=stringOrFail(m.getOrElse("license", throw new WNJsonException("License is required on a lexicon"))),
             version=stringOrFail(m.getOrElse("version", throw new WNJsonException("Version is required on a lexicon"))),
             url=m.get("url").map(stringOrFail),
-            citation=m.get("citation").map(stringOrFail))
+            citation=m.get("citation").map(stringOrFail),
+            logo=m.get("logo").map(stringOrFail))
         case _ =>
           throw new WNJsonException("Lexicon must be an object")
       }

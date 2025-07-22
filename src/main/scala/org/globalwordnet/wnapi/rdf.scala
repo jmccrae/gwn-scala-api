@@ -161,6 +161,7 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
       (r lit OWL.versionInfo).headOrElse(throw new WNRDFException("Version is required")).getLexicalForm(),
       (r lit SCHEMA.url).headOption.map(_.getLexicalForm()),
       (r lit SCHEMA.citation).headOption.map(_.getLexicalForm()),
+      (r lit SCHEMA.logo).headOption.map(_.getLexicalForm()),
       Nil, // (r \* WN.requires).map(readRequires).toSeq,
       (r \* LIME.entry).map(readLexicalEntry).toSeq,
       (r / SKOS.inScheme).map(readSynset).toSeq), r)
@@ -263,7 +264,8 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
         (r \* WN.partOfSpeech).headOrElse(throw new WNRDFException("No part of speech for " + r))),
       (r \* ONTOLEX.otherForm).map(readForm).toSeq,
       (r \* ONTOLEX.sense).map(readSense).toSeq,
-      (r \* SYNSEM.synBehavior).map(readSynBehavior).toSeq), r)
+      (r \* SYNSEM.synBehavior).map(readSynBehavior).toSeq,
+      (r lit ONTOLEX.index).headOption.map(_.getLexicalForm())), r)
   }
 
   private def readLemma(canForm : Resource, pos : Resource)(implicit model : Model) : Lemma = {
@@ -563,6 +565,11 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
         r + SCHEMA.citation + model.createLiteral(c)
       case None =>
     }
+    l.logo match {
+      case Some(value) => 
+        r + SCHEMA.logo + model.createLiteral(value)
+      case None =>
+    }
     r
   }
 
@@ -576,6 +583,11 @@ class WNRDF(shortRelations : Boolean = false) extends Format {
     r + ONTOLEX.sense ++ e.senses.map(writeSense)
     r + SYNSEM.synBehavior ++ e.syntacticBehaviours.map(writeSyntacticBehavior)
     r + RDFS.label + model.createLiteral(e.lemma.writtenForm, lexicon.language.toString())
+    e.index match {
+      case Some(i) =>
+        r + ONTOLEX.index + model.createLiteral(i, lexicon.language.toString())
+      case None =>
+    }
     r
   }
 

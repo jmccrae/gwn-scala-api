@@ -154,6 +154,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       attText(elem, "@version", ""),
       (elem \ "@url").headOption.map(_.text),
       (elem \ "@citation").headOption.map(_.text),
+      (elem \ "@logo").headOption.map(_.text),
       (elem \ "Requires").map(readRequires),
       (elem \ "LexicalEntry").map(readEntry),
       (elem \ "Synset").map(readSynset),
@@ -202,7 +203,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
         (elem \ "Lemma").head),
       (elem \ "Form").map(readForm),
       (elem \ "Sense").map(readSense),
-      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem)
+      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour),
+      index=(elem \ "@index").headOption.map(_.text)), elem)
   }
 
   private def readTag(elem : Node) : Tag = {
@@ -483,9 +485,12 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
            email="${escapeXml(e.email)}"
            license="${escapeXml(e.license)}"
            version="${escapeXml(e.version)}"""")
-   e.citation.foreach(c =>
+    e.citation.foreach(c =>
         out.print(s"""
            citation="${escapeXml(c)}""""))
+    e.logo.foreach(c =>
+        out.print(s"""
+           logo="${escapeXml(c)}""""))
     e.url.foreach(u =>
         out.print(s"""
            url="${escapeXml(u)}""""))
@@ -539,6 +544,11 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     out.print(s"""
     <LexicalEntry id="${escapeXmlId(e.id)}"""")
     writeMeta(out, 18, e)
+    e.index match {
+      case Some(i) =>
+        out.print(s""" index="${escapeXml(i)}"""")
+      case None => {}
+    }
     out.print(s""">
       <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}"""")
     e.lemma.script match {
