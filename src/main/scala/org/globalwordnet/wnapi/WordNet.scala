@@ -247,153 +247,105 @@ trait RelType {
 sealed trait SynsetRelType extends RelType
 
 object SynsetRelType {
-  def fromStringOrOther(name : String) : SynsetRelType = name match {
-    case "agent" => agent
-    case "also" => also
-    case "attribute" => attribute
-    case "be_in_state" => be_in_state
-    case "causes" => causes
-    case "classified_by" => classified_by
-    case "classifies" => classifies
-    case "co_agent_instrument" => co_agent_instrument
-    case "co_agent_patient" => co_agent_patient
-    case "co_agent_result" => co_agent_result
-    case "co_instrument_agent" => co_instrument_agent
-    case "co_instrument_patient" => co_instrument_patient
-    case "co_instrument_result" => co_instrument_result
-    case "co_patient_agent" => co_patient_agent
-    case "co_patient_instrument" => co_patient_instrument
-    case "co_result_agent" => co_result_agent
-    case "co_result_instrument" => co_result_instrument
-    case "co_role" => co_role
-    case "direction" => direction
-    case "domain_region" => domain_region
-    case "domain_topic" => domain_topic
-    case "exemplifies" => exemplifies
-    case "entails" => entails
-    case "eq_synonym" => eq_synonym
-    case "has_domain_region" => has_domain_region
-    case "has_domain_topic" => has_domain_topic
-    case "is_exemplified_by" => is_exemplified_by
-    case "holo_location" => holo_location
-    case "holo_member" => holo_member
-    case "holo_part" => holo_part
-    case "holo_portion" => holo_portion
-    case "holo_substance" => holo_substance
-    case "holonym" => holonym
-    case "hypernym" => hypernym
-    case "hyponym" => hyponym
-    case "in_manner" => in_manner
-    case "instance_hypernym" => instance_hypernym
-    case "instance_hyponym" => instance_hyponym
-    case "instrument" => instrument
-    case "involved" => involved
-    case "involved_agent" => involved_agent
-    case "involved_direction" => involved_direction
-    case "involved_instrument" => involved_instrument
-    case "involved_location" => involved_location
-    case "involved_patient" => involved_patient
-    case "involved_result" => involved_result
-    case "involved_source_direction" => involved_source_direction
-    case "involved_target_direction" => involved_target_direction
-    case "is_caused_by" => is_caused_by
-    case "is_entailed_by" => is_entailed_by
-    case "location" => location
-    case "manner_of" => manner_of
-    case "mero_location" => mero_location
-    case "mero_member" => mero_member
-    case "mero_part" => mero_part
-    case "mero_portion" => mero_portion
-    case "mero_substance" => mero_substance
-    case "meronym" => meronym
-    case "similar" => similar
-    case "patient" => patient
-    case "restricted_by" => restricted_by
-    case "restricts" => restricts
-    case "result" => result
-    case "role" => role
-    case "source_direction" => source_direction
-    case "state_of" => state_of
-    case "target_direction" => target_direction
-    case "subevent" => subevent
-    case "is_subevent_of" => is_subevent_of
-    case "antonym" => antonym
-    case _other => other(_other)
+  def fromStringOpt(name : String) : Option[SynsetRelType] = name match {
+    case "antonym" => Some(antonym)
+    case "agent" => Some(agent)
+    case "also" => Some(also)
+    case "attribute" => Some(attribute)
+    case "be_in_state" => Some(be_in_state)
+    case "causes" => Some(causes)
+    case "classified_by" => Some(classified_by)
+    case "classifies" => Some(classifies)
+    case "co_agent_instrument" => Some(co_agent_instrument)
+    case "co_agent_patient" => Some(co_agent_patient)
+    case "co_agent_result" => Some(co_agent_result)
+    case "co_instrument_agent" => Some(co_instrument_agent)
+    case "co_instrument_patient" => Some(co_instrument_patient)
+    case "co_instrument_result" => Some(co_instrument_result)
+    case "co_patient_agent" => Some(co_patient_agent)
+    case "co_patient_instrument" => Some(co_patient_instrument)
+    case "co_result_agent" => Some(co_result_agent)
+    case "co_result_instrument" => Some(co_result_instrument)
+    case "co_role" => Some(co_role)
+    case "direction" => Some(direction)
+    case "domain_region" => Some(domain_region)
+    case "domain_topic" => Some(domain_topic)
+    case "exemplifies" => Some(exemplifies)
+    case "entails" => Some(entails)
+    case "eq_synonym" => Some(eq_synonym)
+    case "has_domain_region" => Some(has_domain_region)
+    case "has_domain_topic" => Some(has_domain_topic)
+    case "is_exemplified_by" => Some(is_exemplified_by)
+    case "holo_location" => Some(holo_location)
+    case "holo_member" => Some(holo_member)
+    case "holo_part" => Some(holo_part)
+    case "holo_portion" => Some(holo_portion)
+    case "holo_substance" => Some(holo_substance)
+    case "holonym" => Some(holonym)
+    case "hypernym" => Some(hypernym)
+    case "hyponym" => Some(hyponym)
+    case "in_manner" => Some(in_manner)
+    case "instance_hypernym" => Some(instance_hypernym)
+    case "instance_hyponym" => Some(instance_hyponym)
+    case "instrument" => Some(instrument)
+    case "involved" => Some(involved)
+    case "involved_agent" => Some(involved_agent)
+    case "involved_direction" => Some(involved_direction)
+    case "involved_instrument" => Some(involved_instrument)
+    case "involved_location" => Some(involved_location)
+    case "involved_patient" => Some(involved_patient)
+    case "involved_result" => Some(involved_result)
+    case "involved_source_direction" => Some(involved_source_direction)
+    case "involved_target_direction" => Some(involved_target_direction)
+    case "is_caused_by" => Some(is_caused_by)
+    case "is_entailed_by" => Some(is_entailed_by)
+    case "location" => Some(location)
+    case "manner_of" => Some(manner_of)
+    case "mero_location" => Some(mero_location)
+    case "mero_member" => Some(mero_member)
+    case "mero_part" => Some(mero_part)
+    case "mero_portion" => Some(mero_portion)
+    case "mero_substance" => Some(mero_substance)
+    case "meronym" => Some(meronym)
+    case "similar" => Some(similar)
+    case "patient" => Some(patient)
+    case "restricted_by" => Some(restricted_by)
+    case "restricts" => Some(restricts)
+    case "result" => Some(result)
+    case "role" => Some(role)
+    case "source_direction" => Some(source_direction)
+    case "state_of" => Some(state_of)
+    case "target_direction" => Some(target_direction)
+    case "subevent" => Some(subevent)
+    case "is_subevent_of" => Some(is_subevent_of)
+    case "feminine" => Some(feminine)
+    case "has_feminine" => Some(has_feminine)
+    case "masculine" => Some(masculine)
+    case "has_masculine" => Some(has_masculine)
+    case "young" => Some(young)
+    case "has_young" => Some(has_young)
+    case "diminutive" => Some(diminutive)
+    case "has_diminutive" => Some(has_diminutive)
+    case "augmentative" => Some(augmentative)
+    case "has_augmentative" => Some(has_augmentative)
+    case "anto_gradable" => Some(anto_gradable)
+    case "anto_simple" => Some(anto_simple)
+    case "anto_converse" => Some(anto_converse)
+    case "ir_synonym" => Some(ir_synonym)
+    case _ => None
+    }
+
+  def fromStringOrOther(name : String) : SynsetRelType = fromStringOpt(name) match {
+    case Some(relType) => relType
+    case None => other(name)
   }
- 
-  def fromString(name : String, dcType : Option[String]) = name match {
-    case "agent" => agent
-    case "also" => also
-    case "attribute" => attribute
-    case "be_in_state" => be_in_state
-    case "causes" => causes
-    case "classified_by" => classified_by
-    case "classifies" => classifies
-    case "co_agent_instrument" => co_agent_instrument
-    case "co_agent_patient" => co_agent_patient
-    case "co_agent_result" => co_agent_result
-    case "co_instrument_agent" => co_instrument_agent
-    case "co_instrument_patient" => co_instrument_patient
-    case "co_instrument_result" => co_instrument_result
-    case "co_patient_agent" => co_patient_agent
-    case "co_patient_instrument" => co_patient_instrument
-    case "co_result_agent" => co_result_agent
-    case "co_result_instrument" => co_result_instrument
-    case "co_role" => co_role
-    case "direction" => direction
-    case "domain_region" => domain_region
-    case "domain_topic" => domain_topic
-    case "exemplifies" => exemplifies
-    case "entails" => entails
-    case "eq_synonym" => eq_synonym
-    case "has_domain_region" => has_domain_region
-    case "has_domain_topic" => has_domain_topic
-    case "is_exemplified_by" => is_exemplified_by
-    case "holo_location" => holo_location
-    case "holo_member" => holo_member
-    case "holo_part" => holo_part
-    case "holo_portion" => holo_portion
-    case "holo_substance" => holo_substance
-    case "holonym" => holonym
-    case "hypernym" => hypernym
-    case "hyponym" => hyponym
-    case "in_manner" => in_manner
-    case "instance_hypernym" => instance_hypernym
-    case "instance_hyponym" => instance_hyponym
-    case "instrument" => instrument
-    case "involved" => involved
-    case "involved_agent" => involved_agent
-    case "involved_direction" => involved_direction
-    case "involved_instrument" => involved_instrument
-    case "involved_location" => involved_location
-    case "involved_patient" => involved_patient
-    case "involved_result" => involved_result
-    case "involved_source_direction" => involved_source_direction
-    case "involved_target_direction" => involved_target_direction
-    case "is_caused_by" => is_caused_by
-    case "is_entailed_by" => is_entailed_by
-    case "location" => location
-    case "manner_of" => manner_of
-    case "mero_location" => mero_location
-    case "mero_member" => mero_member
-    case "mero_part" => mero_part
-    case "mero_portion" => mero_portion
-    case "mero_substance" => mero_substance
-    case "meronym" => meronym
-    case "similar" => similar
-    case "patient" => patient
-    case "restricted_by" => restricted_by
-    case "restricts" => restricts
-    case "result" => result
-    case "role" => role
-    case "source_direction" => source_direction
-    case "state_of" => state_of
-    case "target_direction" => target_direction
-    case "subevent" => subevent
-    case "is_subevent_of" => is_subevent_of
-    case "antonym" => antonym
+
+  def fromString(name : String, dcType : Option[String] = None) : SynsetRelType = name match {
     case "other" => other(dcType.getOrElse(throw new WordNetFormatException("Other requires a dc:type")))
-    case other => throw new WordNetFormatException("Unsupported relation type: " + other)
+    case other => fromStringOpt(other) match {
+      case Some(relType) => relType
+      case None => throw new WordNetFormatException("Unsupported relation type: " + other)
+    }
   }
 
   def fromOMWString(name : String) = name match {
@@ -437,9 +389,12 @@ involved_location, involved_patient, involved_result, involved_source_direction,
 involved_target_direction, is_caused_by, is_entailed_by, location, manner_of,
 mero_location, mero_member, mero_part, mero_portion, mero_substance, meronym,
 similar, patient, restricted_by, restricts, result, role, source_direction,
-state_of, target_direction, subevent, is_subevent_of)
+state_of, target_direction, subevent, is_subevent_of,
+feminine, has_feminine, masculine, has_masculine, young, has_young,
+diminutive, has_diminutive, augmentative, has_augmentative,
+anto_gradable, anto_simple, anto_converse, ir_synonym)
 }
-object agent extends SynsetRelType
+object agent extends SynsetRelType with SenseRelType
 object also extends SynsetRelType with SenseRelType
 object attribute extends SynsetRelType
 object be_in_state extends SynsetRelType
@@ -477,7 +432,7 @@ object hyponym extends SynsetRelType
 object in_manner extends SynsetRelType
 object instance_hypernym extends SynsetRelType
 object instance_hyponym extends SynsetRelType
-object instrument extends SynsetRelType
+object instrument extends SynsetRelType with SenseRelType
 object involved extends SynsetRelType
 object involved_agent extends SynsetRelType
 object involved_direction extends SynsetRelType
@@ -489,7 +444,7 @@ object involved_source_direction extends SynsetRelType
 object involved_target_direction extends SynsetRelType
 object is_caused_by extends SynsetRelType
 object is_entailed_by extends SynsetRelType
-object location extends SynsetRelType
+object location extends SynsetRelType with SenseRelType
 object manner_of extends SynsetRelType
 object mero_location extends SynsetRelType
 object mero_member extends SynsetRelType
@@ -504,14 +459,27 @@ case class other(`type` : String) extends SynsetRelType with SenseRelType {
 object patient extends SynsetRelType
 object restricted_by extends SynsetRelType
 object restricts extends SynsetRelType
-object result extends SynsetRelType
+object result extends SynsetRelType with SenseRelType
 object role extends SynsetRelType
 object source_direction extends SynsetRelType
 object state_of extends SynsetRelType
 object target_direction extends SynsetRelType
 object subevent extends SynsetRelType
 object is_subevent_of extends SynsetRelType
-
+object feminine extends SynsetRelType with SenseRelType
+object has_feminine extends SynsetRelType with SenseRelType
+object masculine extends SynsetRelType with SenseRelType
+object has_masculine extends SynsetRelType with SenseRelType
+object young extends SynsetRelType with SenseRelType
+object has_young extends SynsetRelType with SenseRelType
+object diminutive extends SynsetRelType with SenseRelType
+object has_diminutive extends SynsetRelType with SenseRelType
+object augmentative extends SynsetRelType with SenseRelType
+object has_augmentative extends SynsetRelType with SenseRelType
+object anto_gradable extends SynsetRelType with SenseRelType
+object anto_simple extends SynsetRelType with SenseRelType
+object anto_converse extends SynsetRelType with SenseRelType
+object ir_synonym extends SynsetRelType
 
 sealed trait SenseRelType extends RelType
 
@@ -530,15 +498,72 @@ object SenseRelType {
     case "is_exemplified_by" => is_exemplified_by
     case "similar" => similar
     case "other" => other(dcType.getOrElse(throw new RuntimeException("Other requires a dc:type")))
+    case "simple_aspect_ip" => simple_aspect_ip
+    case "secondary_aspect_ip" => secondary_aspect_ip
+    case "simple_aspect_pi" => simple_aspect_pi
+    case "secondary_aspect_pi" => secondary_aspect_pi
+    case "metonym" => metonym
+    case "has_metonym" => has_metonym
+    case "material" => material
+    case "event" => event
+    case "by_means_of" => by_means_of
+    case "undergoer" => undergoer
+    case "property" => property
+    case "state" => state
+    case "uses" => uses
+    case "destination" => destination
+    case "body_part" => body_part
+    case "vehicle" => vehicle
+    case "feminine" => feminine
+    case "has_feminine" => has_feminine
+    case "masculine" => masculine
+    case "has_masculine" => has_masculine
+    case "young" => young
+    case "has_young" => has_young
+    case "diminutive" => diminutive
+    case "has_diminutive" => has_diminutive
+    case "augmentative" => augmentative
+    case "has_augmentative" => has_augmentative
+    case "anto_gradable" => anto_gradable
+    case "anto_simple" => anto_simple
+    case "anto_converse" => anto_converse
+    case "agent" => agent
+    case "instrument" => instrument
+    case "location" => location
+    case "result" => result
   }
 
   val values = Seq( also, domain_region, domain_topic, exemplifies, has_domain_region,
-has_domain_topic, is_exemplified_by, similar, antonym, participle, pertainym, derivation)
+has_domain_topic, is_exemplified_by, similar, antonym, participle, pertainym, derivation,
+simple_aspect_ip, secondary_aspect_ip, simple_aspect_pi, secondary_aspect_pi,
+metonym, has_metonym, material, event, by_means_of, undergoer,
+property, state, uses, destination, body_part, vehicle,
+feminine, has_feminine, masculine, has_masculine, young,
+has_young, diminutive, has_diminutive, augmentative, has_augmentative,
+anto_gradable, anto_simple, anto_converse, agent, instrument,
+location, result)
 }
 object antonym extends SenseRelType with SynsetRelType
 object participle extends SenseRelType
 object pertainym extends SenseRelType
 object derivation extends SenseRelType
+// simple_aspect_ip|secondary_aspect_ip|simple_aspect_pi|secondary_aspect_pi|feminine|has_feminine|masculine|has_masculine|young|has_young|diminutive|has_diminutive|augmentative|has_augmentative|anto_gradable|anto_simple|anto_converse|metaphor|has_metaphor|metonym|has_metonym|agent|material|event|instrument|location|by_means_of|undergoer|property|result|state|uses|destination|body_part|vehicle
+object simple_aspect_ip extends SenseRelType
+object secondary_aspect_ip extends SenseRelType
+object simple_aspect_pi extends SenseRelType
+object secondary_aspect_pi extends SenseRelType
+object metonym extends SenseRelType
+object has_metonym extends SenseRelType
+object material extends SenseRelType
+object event extends SenseRelType
+object by_means_of extends SenseRelType
+object undergoer extends SenseRelType
+object property extends SenseRelType
+object state extends SenseRelType
+object uses extends SenseRelType
+object destination extends SenseRelType
+object body_part extends SenseRelType
+object vehicle extends SenseRelType
 
 sealed class PartOfSpeech(val shortForm : String, val name : String) {
   override def toString = this.getClass.getSimpleName().dropRight(1)
