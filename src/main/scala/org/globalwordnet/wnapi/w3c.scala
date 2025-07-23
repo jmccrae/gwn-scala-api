@@ -35,7 +35,7 @@ class W3C(id : String, label : String, language : Language,
   }
 
   def readLexicon(model : Model) : Lexicon = {
-    Lexicon(id, label, language, email, license, version, url, citation, Nil,
+    Lexicon(id, label, language, email, license, version, url, citation, None, Nil,
       readLexicalEntries(model), readSynsets(model))
   }
 

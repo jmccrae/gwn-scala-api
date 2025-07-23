@@ -3,7 +3,7 @@
 <!-- Not a real example but used for parsing and round trip coverage testing -->
 <LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">
     <Lexicon id="ex2" label="Example" language="de" email="email" license="http://www.license.com/"
-        version="1.0" citation="citation" url="http://example.com/"
+        version="1.0" citation="citation" url="http://example.com/" logo="http://example.com/logo.png"
         dc:contributor="contributor"
         dc:coverage="coverage"
         dc:creator="creator"
@@ -37,6 +37,7 @@
             dc:type="type"
             status="status"
             note="note"
+            index="index"
             confidenceScore="0.9">
             <Lemma
                 writtenForm="test"
@@ -68,7 +69,11 @@
                 dc:type="type"
                 status="status"
                 note="note"
-                confidenceScore="0.9">
+                confidenceScore="0.9"
+                lexicalized="false"
+                adjposition="a"
+                subcat="subcategorizationFrame"
+                n="10">
                 <SenseRelation target="ws1" relType="antonym" dc:contributor="contributor"
                     dc:coverage="coverage"
                     dc:creator="creator"
@@ -164,7 +169,10 @@
             status="status"
             note="note"
             confidenceScore="0.9"
-            partOfSpeech="n">
+            partOfSpeech="n"
+            lexicalized="false"
+            members="w1 w2"
+            lexfile="lexfile">
             <Definition language="en" dc:contributor="contributor"
                 dc:coverage="coverage"
                 dc:creator="creator"

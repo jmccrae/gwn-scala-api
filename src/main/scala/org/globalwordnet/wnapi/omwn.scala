@@ -42,27 +42,27 @@ object OpenMultilingualWordNet {
       }
     ).groupBy(_._1).view.mapValues(_.map(_._2).groupBy(_._1).view.mapValues(_.map(_._2)).toMap).toMap
     enLexicon match {
-      case Lexicon(id, label, language, email, license, version, url, citation, _, entries, synsets, frames) =>
+      case Lexicon(id, label, language, email, license, version, url, citation, logo, requires, entries, synsets, frames) =>
         Lexicon(id, label, language, email, license, version,
-          url, citation, Nil, entries,
+          url, citation, logo, requires, entries,
           synsets.map({
-            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples, partOfSpeech, members, lexfile) =>
+            case Synset(id, ili, definitions, iliDefinition, synsetRelations, synsetExamples, partOfSpeech, members, lexicalized, lexfile) =>
               Synset(id, ili, definitions ++ elements.getOrElse(id, Map()).getOrElse("definition", Nil).map({
                 case (lang, value) => Definition(value, Some(lang))
               }), iliDefinition, synsetRelations,
               synsetExamples ++ elements.getOrElse(id, Map()).getOrElse("example", Nil).map({
                 case (lang, value) => Example(value, Some(lang))
-              }), partOfSpeech, members, lexfile)
+              }), partOfSpeech, members, lexicalized, lexfile)
           }), frames)
     }
   }
 
   private def buildLexicon(lang : Language, props : Map[String, Seq[(String, String)]], 
       lexicon : Lexicon) : Lexicon = lexicon match {
-    case Lexicon(id, label, language, email, license, version, url, citation, _, entries, synsets, frames) =>
+    case Lexicon(id, label, language, email, license, version, url, citation, logo, requires, entries, synsets, frames) =>
       val lemmas = props.getOrElse("lemma", Nil)
       Lexicon(
-        id, label, language, email, license, version, url, citation, Nil,
+        id, label, language, email, license, version, url, citation, logo, requires,
         entries ++ lemmas.map({ 
           case (synset, lemma) =>
             LexicalEntry(

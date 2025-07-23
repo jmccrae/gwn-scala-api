@@ -37,6 +37,7 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
     l.license should be ("http://www.license.com/")
     l.version should be ("1.0")
     l.citation should be (Some("citation"))
+    l.logo should be (Some("http://example.com/logo.png"))
     l.url should be (Some("http://example.com/"))
     testMetaData(l)
     l.entries should have size (10)
@@ -48,6 +49,7 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
     e.forms should have size (1)
     e.lemma.tag should be (Seq(Tag("penn", "NN")))
     e.lemma.pronunciation should be (Seq(Pronunciation("pronunciation", Some("variety"), Some("notation"), false, Some("audio"))))
+    e.index should be (Some("index"))
     val f = e.forms(0)
     f.id should be (Some("f1"))
     f.writtenForm should be ("tests")
@@ -68,6 +70,11 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
     }
     ws.senseRelations.exists(_.note != None) should be (true)
     ws.senseExamples should have size 1
+    ws.adjposition should be (Some(attributive))
+    ws.n should be (Some(10))
+    ws.lexicalized should be (false)
+    ws.subcats should have size 1
+    ws.subcats(0) should be ("subcategorizationFrame")
     val x = ws.senseExamples(0)
     x.content should be ("example")
     x.language should be (Some(Language.FRENCH))
@@ -94,7 +101,14 @@ class CoverageTest extends org.scalatest.FlatSpec with Matchers {
     s.id should be ("ex2-s1")
     s.ili should be (Some("i1"))
     testMetaData(s)
-    
+    s.lexicalized should be (false)
+    s.partOfSpeech should be (Some(noun))
+    s.members should have size 2
+    s.members(0) should be ("w1")
+    s.members(1) should be ("w2")
+    s.lexfile should be (Some("lexfile"))
+
+
     s.definitions should have size 1
     val d = s.definitions(0)
     d.language should be (Some(Language.ENGLISH))
