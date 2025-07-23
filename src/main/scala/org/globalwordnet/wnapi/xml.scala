@@ -298,8 +298,6 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def readSenseExample(elem : Node) = {
     readMeta(Example(
-      //trim(elem).text,
-      ///elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
       extractTextWithXmlSpace(elem),
       (elem \ "@language").headOption.map(l => Language.get(l.text))), elem)
   }
@@ -328,8 +326,6 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def readDefinition(elem : Node) : Definition = {
     readMeta(Definition(
-      //trim(elem).text,
-      //elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
       extractTextWithXmlSpace(elem),
       (elem \ "@language").headOption.map(l => Language.get(l.text)),
       (elem \ "@sourceSense").headOption.map(_.text)), elem)
