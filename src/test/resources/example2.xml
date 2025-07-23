@@ -139,7 +139,7 @@
                     dc:type="type"
                     status="status"
                     note="note"
-                    confidenceScore="0.9">10</Count>
+                    confidenceScore="0.9"> 10  </Count>
             </Sense>
             <SyntacticBehaviour subcategorizationFrame="subcategorizationFrame"/>
         </LexicalEntry>

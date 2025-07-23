@@ -299,7 +299,8 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readSenseExample(elem : Node) = {
     readMeta(Example(
       //trim(elem).text,
-      elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
+      ///elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
+      extractTextWithXmlSpace(elem),
       (elem \ "@language").headOption.map(l => Language.get(l.text))), elem)
   }
 
@@ -328,13 +329,14 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   private def readDefinition(elem : Node) : Definition = {
     readMeta(Definition(
       //trim(elem).text,
-      elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
+      //elem.text.replaceAll("^\\s*","").replaceAll("\\s*$",""),
+      extractTextWithXmlSpace(elem),
       (elem \ "@language").headOption.map(l => Language.get(l.text)),
       (elem \ "@sourceSense").headOption.map(_.text)), elem)
   }
 
   private def readILIDefinition(elem : Node) : ILIDefinition = {
-    readMeta(ILIDefinition(trim(elem).text), elem)
+    readMeta(ILIDefinition(extractTextWithXmlSpace(elem)), elem)
   }
 
   private def readSynsetRelation(elem : Node) : SynsetRelation = {
@@ -350,7 +352,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
   }
 
   private def readCount(elem : Node) : Count = {
-    readMeta(Count(elem.text.toInt), elem)
+    readMeta(Count(trim(elem).text.toInt), elem)
   }
 
   private def readLexiconExtension(elem : Node) : LexiconExtension = {
