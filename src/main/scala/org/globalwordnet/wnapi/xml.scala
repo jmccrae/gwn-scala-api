@@ -97,6 +97,26 @@ object MoreStringEscapeUtils {
 }
 
 class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format {
+
+  private def extractTextWithXmlSpace(node: Node, inheritedSpace: String = "default"): String = {
+    val currentSpace = (node \ "@{http://www.w3.org/XML/1998/namespace}space").headOption
+      .map(_.text)
+      .getOrElse(inheritedSpace)
+
+    node match {
+      case elem: Elem =>
+        elem.child.map(child => extractTextWithXmlSpace(child, currentSpace)).mkString
+
+      case scala.xml.Text(t) =>
+        currentSpace match {
+          case "preserve" => t
+          case _ => t.trim.replaceAll("\\s+", " ")
+        }
+
+      case _ => ""
+    }
+  }
+
   def read(file : File) : LexicalResource = {
     val xml = try {
       XML.loadFile(file)
@@ -154,6 +174,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       attText(elem, "@version", ""),
       (elem \ "@url").headOption.map(_.text),
       (elem \ "@citation").headOption.map(_.text),
+      (elem \ "@logo").headOption.map(_.text),
       (elem \ "Requires").map(readRequires),
       (elem \ "LexicalEntry").map(readEntry),
       (elem \ "Synset").map(readSynset),
@@ -202,13 +223,14 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
         (elem \ "Lemma").head),
       (elem \ "Form").map(readForm),
       (elem \ "Sense").map(readSense),
-      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour)), elem)
+      (elem \ "SyntacticBehaviour").map(readSyntacticBehaviour),
+      index=(elem \ "@index").headOption.map(_.text)), elem)
   }
 
   private def readTag(elem : Node) : Tag = {
     Tag(
       (elem \ "@category").text,
-      trim(elem).text)
+      extractTextWithXmlSpace(elem))
   }
 
   private def readLemma(elem : Node) : Lemma = {
@@ -233,7 +255,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
 
   private def readPronunciation(elem : Node) : Pronunciation = {
     Pronunciation(
-      elem.text,
+      extractTextWithXmlSpace(elem),
       (elem \ "@variety").headOption.map(_.text),
       (elem \ "@notation").headOption.map(_.text),
       (elem \ "@phonemic").headOption.map(_.text.toBoolean).getOrElse(true),
@@ -249,7 +271,9 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "Count").map(readCount),
       (elem \ "@adjposition").map(readAdjPosition).headOption,
       if((elem \ "@subcat").text == "") { Nil }
-      else { (elem \ "@subcat").text.split(" ").toIndexedSeq }), elem)
+      else { (elem \ "@subcat").text.split(" ").toIndexedSeq },
+      (elem \ "@n").headOption.map(_.text.toInt),
+      (elem \ "@lexicalized").headOption.map(_.text.toBoolean).getOrElse(true)), elem)
   }
 
   private def readAdjPosition(elem : Node) : AdjPosition = {
@@ -297,6 +321,7 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       (elem \ "@partOfSpeech").headOption.map(e => readPartOfSpeech(e.text)),
       if((elem \ "@members").text == "") { Nil }
       else { (elem \ "@members").text.split(" ").toIndexedSeq },
+      (elem \ "@lexicalized").headOption.map(_.text.toBoolean).getOrElse(true),
       (elem \ "@lexfile").headOption.map(_.text)), elem)
   }
 
@@ -483,9 +508,12 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
            email="${escapeXml(e.email)}"
            license="${escapeXml(e.license)}"
            version="${escapeXml(e.version)}"""")
-   e.citation.foreach(c =>
+    e.citation.foreach(c =>
         out.print(s"""
            citation="${escapeXml(c)}""""))
+    e.logo.foreach(c =>
+        out.print(s"""
+           logo="${escapeXml(c)}""""))
     e.url.foreach(u =>
         out.print(s"""
            url="${escapeXml(u)}""""))
@@ -539,6 +567,11 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     out.print(s"""
     <LexicalEntry id="${escapeXmlId(e.id)}"""")
     writeMeta(out, 18, e)
+    e.index match {
+      case Some(i) =>
+        out.print(s""" index="${escapeXml(i)}"""")
+      case None => {}
+    }
     out.print(s""">
       <Lemma writtenForm="${escapeXml(e.lemma.writtenForm)}" partOfSpeech="${e.lemma.partOfSpeech.shortForm}"""")
     e.lemma.script match {
@@ -631,6 +664,16 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
       case None => {}
     }
     writeMeta(out, 13, e)
+    e.n match {
+      case Some(n) => out.print(s""" n="${n}" """)
+      case None => {}
+    }
+    if(!e.subcats.isEmpty) {
+      out.print(s""" subcat="${e.subcats.mkString(" ")}"""")
+    }
+    if(!e.lexicalized) {
+      out.print(""" lexicalized="false"""")
+    }
     if(e.senseRelations.isEmpty && e.senseExamples.isEmpty &&
       e.counts.isEmpty) {
         out.print("/>")
@@ -699,6 +742,15 @@ class WNLMF(comments : Boolean = true, relaxed : Boolean = false) extends Format
     <Synset id="${escapeXmlId(e.id)}" ili="${e.ili.getOrElse("")}"""")
     e.partOfSpeech.foreach(x => out.print(s""" partOfSpeech="${x.shortForm}""""))
     writeMeta(out, 12, e)
+    if(!e.lexicalized) {
+      out.print(""" lexicalized="false"""")
+    }
+    if(!e.members.isEmpty) {
+      out.print(s""" members="${e.members.mkString(" ")}"""")
+    }
+    if(e.lexfile.isDefined) {
+      out.print(s""" lexfile="${escapeXmlId(e.lexfile.get)}"""")
+    }
     out.print(">")
     for(d <- e.definitions) {
       writeDefinition(out, d, entriesForSynset)

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE LexicalResource SYSTEM "http://globalwordnet.github.io/schemas/WN-LMF-1.4.dtd">
+<LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">
+    <Lexicon id="example-space"
+             label="Example wordnet (Space)"
+             language="en"
+             email="john@mccr.ae"
+             citation="Example"
+             license="https://creativecommons.org/publicdomain/zero/1.0/"
+             version="1.0"
+             url="http://globalwordnet.github.io/schemas/">
+        <LexicalEntry id="w1">
+            <Lemma writtenForm="space" partOfSpeech="n"/>
+            <Sense id="example-space-1-n-1" synset="example-space-1-n"/>
+        </LexicalEntry>
+        <Synset id="example-space-1" partOfSpeech="n">
+            <Definition>  This is    a definition  where space will not be 
+            preserved
+            </Definition>
+            <Definition xml:space="preserve">  This  is  a  definition  where  space  will  be  preserved  </Definition>        
+        </Synset>
+    </Lexicon>
+</LexicalResource>
+
+ 

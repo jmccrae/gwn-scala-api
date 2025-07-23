@@ -91,5 +91,13 @@ class XMLSpec extends FlatSpec with Matchers {
     text2 should be (text1)
   }
 
+  it should "read the space example and preserve space" in {
+    val spaceResource = new WNLMF(false).read(new java.io.FileReader("src/test/resources/example-space.xml"))
+    spaceResource.lexicons.size should be (1)
+    spaceResource.lexicons(0).entries.size should be (1)
+    spaceResource.lexicons(0).entries(0).senses.size should be (1)
+    spaceResource.lexicons(0).entries(0).definitions(0).content should be ("This is a definition where space will not be preserved")
+    spaceResource.lexicons(0).synsets(0).definitions(1).content should be ("  This  is  a  definition  where  space  will  be  preserved  ")
+  }
 
 }
