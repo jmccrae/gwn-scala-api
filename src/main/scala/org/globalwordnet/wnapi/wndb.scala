@@ -1040,6 +1040,35 @@ class WNDB(
     }
   }
 
+  private def unescapeOewn(s : String) : String =
+    s.replace("-apos-", "'")
+     .replace("-colon-", ":")
+     .replace("-excl-", "!")
+     .replace("-num-", "#")
+     .replace("-dollar-", "$")
+     .replace("-percnt-", "%")
+     .replace("-amp-", "&")
+     .replace("-lpar-", "(")
+     .replace("-rpar-", ")")
+     .replace("-ast-", "*")
+     .replace("-plus-", "+")
+     .replace("-comma-", ",")
+     .replace("-sol-", "/")
+     .replace("-lbrace-", "{")
+     .replace("-vert-", "|")
+     .replace("-rbrace-", "}")
+     .replace("-tilde-", "~")
+     .replace("-cent-", "¢")
+     .replace("-pound-", "£")
+     .replace("-sect-", "§")
+     .replace("-copy-", "©")
+     .replace("-reg-", "®")
+     .replace("-deg-", "°")
+     .replace("-acute-", "´")
+     .replace("-para-", "¶")
+     .replace("-ordm-", "º")
+     .replace("--", "-")  // literal hyphen — must be last
+
   def unmapSenseKey(sk : String) = {
     if(sk.contains("__")) {
       val e = sk.split("__")
@@ -1048,11 +1077,9 @@ class WNDB(
       if(sk.endsWith("__")) {
         r = r + "__"
       }
-      l.replaceAll("-ap-", "'").replaceAll("-sl-", "/").replaceAll("-ex-", "!").
-        replaceAll("-cm-",",").replaceAll("-cl-",":") + "%" + 
-        r.replaceAll("_", ":").replaceAll("\\.", ":").replaceAll("-sp-","_")
+      unescapeOewn(l) + "%" + r.replaceAll("_", ":").replaceAll("\\.", ":")
     } else {
-        sk.substring(4).replaceAll("__", "%").replaceAll("-ap-", "'").replaceAll("-sl-", "/").replaceAll("-ex-", "!").replaceAll("-cm-",",").replaceAll("-cl-",":")
+        unescapeOewn(sk.substring(4).replace("__", "%"))
     }
   }
 }
