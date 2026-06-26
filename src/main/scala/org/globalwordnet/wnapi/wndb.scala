@@ -1077,7 +1077,7 @@ class WNDB(
       if(sk.endsWith("__")) {
         r = r + "__"
       }
-      unescapeOewn(l) + "%" + r.replaceAll("_", ":").replaceAll("\\.", ":")
+      unescapeOewn(l) + "%" + r.replaceAll("_", ":").replaceAll("\\.", ":").replaceAll("-sp-","_")
     } else {
         unescapeOewn(sk.substring(4).replace("__", "%"))
     }
